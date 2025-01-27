@@ -13,6 +13,6 @@ func SetUpRoutes(router *gin.Engine) {
 	router.GET("/users/:id", handlers.ReadUser)
     router.POST("/users/:id/genres", handlers.AddFavouriteGenre)
     router.POST("/users/:id/movies", handlers.AddFavouriteMovie)
+    router.PATCH("/users/:id/movies/toggle", handlers.ToggleWatchedStatus)
     router.POST("/genres", handlers.AddGenre)
 }
-
