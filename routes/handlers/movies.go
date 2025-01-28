@@ -106,7 +106,7 @@ func DeleteFavouriteMovie(c *gin.Context) {
     }
 
     var input struct {
-        MovieID uint `json:"genre_id"`
+        MovieID uint `json:"movie_id"`
     }
     if err := c.ShouldBindJSON(&input); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -114,7 +114,7 @@ func DeleteFavouriteMovie(c *gin.Context) {
     }
 
     var existingMovie structs.FavouriteMovie
-    if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, input.MovieID).First(&existingMovie).Error; err != nil {
+    if err := database.DB.Where("user_id = ? AND movie_id = ?", userID, input.MovieID).First(&existingMovie).Error; err != nil {
         if err == gorm.ErrRecordNotFound {
             c.JSON(http.StatusNotFound, gin.H{"error": "Favorite movie not found"})
         } else {
