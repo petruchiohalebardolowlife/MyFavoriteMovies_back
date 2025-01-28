@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func AddMovie(c *gin.Context) {
@@ -95,4 +96,37 @@ func ToggleWatchedStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Movie watched status updated successfully", "data": favMovie})
+}
+
+func DeleteFavouriteMovie(c *gin.Context) {
+    userID, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+        return
+    }
+
+    var input struct {
+        MovieID uint `json:"genre_id"`
+    }
+    if err := c.ShouldBindJSON(&input); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    var existingMovie structs.FavouriteMovie
+    if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, input.MovieID).First(&existingMovie).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            c.JSON(http.StatusNotFound, gin.H{"error": "Favorite movie not found"})
+        } else {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        }
+        return
+    }
+
+    if err := database.DB.Delete(&existingMovie).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Favorite movie deleted successfully"})
 }

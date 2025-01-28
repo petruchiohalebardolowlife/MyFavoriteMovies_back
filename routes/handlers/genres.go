@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func AddGenre(c *gin.Context) {
@@ -76,3 +77,37 @@ func AddFavouriteGenre(c *gin.Context) {
 
     c.JSON(http.StatusCreated, gin.H{"message": "Favorite genre added successfully", "data": newFavourite})
 }
+
+func DeleteFavouriteGenre(c *gin.Context) {
+    userID, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+        return
+    }
+
+    var input struct {
+        GenreID uint `json:"genre_id"`
+    }
+    if err := c.ShouldBindJSON(&input); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    var existingGenre structs.FavouriteGenre
+    if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, input.GenreID).First(&existingGenre).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            c.JSON(http.StatusNotFound, gin.H{"error": "Favorite genre not found"})
+        } else {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        }
+        return
+    }
+
+    if err := database.DB.Delete(&existingGenre).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Favorite genre deleted successfully"})
+}
+
