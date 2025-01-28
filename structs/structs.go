@@ -42,6 +42,6 @@ type FavouriteGenre struct {
     gorm.Model
     UserID  uint `json:"user_id"`
     GenreID uint `json:"genre_id"`
-    User    User  `gorm:"foreignKey:UserID;references:ID" json:"user"`
-    Genre   Genre `gorm:"foreignKey:GenreID;references:ID" json:"genre"`
+    User    User  `gorm:"constraint:OnDelete:CASCADE;foreignKey:UserID" json:"user"`
+    Genre   Genre `gorm:"constraint:OnDelete:CASCADE;foreignKey:GenreID" json:"genre"`
 }
