@@ -8,7 +8,6 @@ import (
 )
 
 func SetUpRoutes(router *gin.Engine) {
-	router.POST("/movies",handlers.AddMovie)
 	router.POST("/users",handlers.AddUser)
     router.PATCH("/users/:id", handlers.UpdateUser)
 	router.GET("/users/:id", handlers.ReadUser)
