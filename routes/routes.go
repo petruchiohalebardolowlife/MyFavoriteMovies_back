@@ -16,7 +16,5 @@ func SetUpRoutes(router *gin.Engine) {
     router.POST("/users/:id/movies", handlers.AddFavouriteMovie)
 	router.DELETE("/users/:id/movies", handlers.DeleteFavouriteMovie)
     router.PATCH("/users/:id/movies/toggle", handlers.ToggleWatchedStatus)
-    // router.POST("/genres", handlers.AddGenres)
 	router.GET("/users/:id/movies", apihandlers.GetMovies)
-	// router.GET("/genres", apihandlers.GetAPIGenres)
 }

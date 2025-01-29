@@ -82,7 +82,6 @@ func AddFavouriteGenres(c *gin.Context) {
         GenreIDs []uint `json:"genre_ids"`
     }
 
-
     if err := c.ShouldBindJSON(&input); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
@@ -98,8 +97,15 @@ func AddFavouriteGenres(c *gin.Context) {
 
     for _, genreID := range input.GenreIDs {
         var existingGenre structs.FavouriteGenre
-        if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).First(&existingGenre).Error; err == nil {
+        err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).First(&existingGenre).Error
+
+        if err == nil {
             continue
+        }
+
+        if err != gorm.ErrRecordNotFound {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+            return
         }
 
         var genre structs.Genre
@@ -107,6 +113,7 @@ func AddFavouriteGenres(c *gin.Context) {
             c.JSON(http.StatusNotFound, gin.H{"error": "One or more genres not found"})
             return
         }
+
         newFavourite := structs.FavouriteGenre{
             UserID:  uint(userID),
             GenreID: genreID,
@@ -123,7 +130,7 @@ func AddFavouriteGenres(c *gin.Context) {
     }
 
     if len(addedGenres) == 0 {
-        c.JSON(http.StatusConflict, gin.H{"error": "All genres are already marked as favourite"})
+        c.JSON(http.StatusConflict, gin.H{"error": "All genres are already marked as favorite"})
         return
     }
 
