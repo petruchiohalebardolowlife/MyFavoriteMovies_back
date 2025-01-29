@@ -71,7 +71,7 @@ func AddGenresOnStartup(db *gorm.DB) {
 }
 
 
-func AddFavouriteGenres(c *gin.Context) {
+func AddFavoriteGenres(c *gin.Context) {
     userID, err := strconv.Atoi(c.Param("id"))
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
@@ -93,10 +93,10 @@ func AddFavouriteGenres(c *gin.Context) {
         return
     }
 
-    var addedGenres []structs.FavouriteGenre
+    var addedGenres []structs.FavoriteGenre
 
     for _, genreID := range input.GenreIDs {
-        var existingGenre structs.FavouriteGenre
+        var existingGenre structs.FavoriteGenre
         err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).First(&existingGenre).Error
 
         if err == nil {
@@ -114,7 +114,7 @@ func AddFavouriteGenres(c *gin.Context) {
             return
         }
 
-        newFavourite := structs.FavouriteGenre{
+        newFavourite := structs.FavoriteGenre{
             UserID:  uint(userID),
             GenreID: genreID,
             User:    user,
@@ -137,7 +137,7 @@ func AddFavouriteGenres(c *gin.Context) {
     c.JSON(http.StatusCreated, gin.H{"message": "Favorite genres added successfully", "data": addedGenres})
 }
 
-func DeleteFavouriteGenre(c *gin.Context) {
+func DeleteFavoriteGenre(c *gin.Context) {
     userID, err := strconv.Atoi(c.Param("id"))
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
@@ -152,7 +152,7 @@ func DeleteFavouriteGenre(c *gin.Context) {
         return
     }
 
-    var existingGenre structs.FavouriteGenre
+    var existingGenre structs.FavoriteGenre
     if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, input.GenreID).First(&existingGenre).Error; err != nil {
         if err == gorm.ErrRecordNotFound {
             c.JSON(http.StatusNotFound, gin.H{"error": "Favorite genre not found"})

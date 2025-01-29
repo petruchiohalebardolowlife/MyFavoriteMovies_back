@@ -18,7 +18,7 @@ type Genre struct {
     Name string `json:"name"`
 }
 
-type FavouriteMovie struct {
+type FavoriteMovie struct {
     gorm.Model
     UserID    uint  `json:"user_id"`
     MovieID   uint  `json:"movie_id"`
@@ -29,7 +29,7 @@ type FavouriteMovie struct {
     User      User  `gorm:"constraint:OnDelete:CASCADE;foreignKey:UserID" json:"user"`
 }
 
-type FavouriteGenre struct {
+type FavoriteGenre struct {
     gorm.Model
     UserID  uint `json:"user_id"`
     GenreID uint `json:"genre_id"`

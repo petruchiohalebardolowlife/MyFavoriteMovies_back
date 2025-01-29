@@ -11,7 +11,7 @@ import (
 )
 
 
-func AddFavouriteMovie(c *gin.Context) {
+func AddFavoriteMovie(c *gin.Context) {
     userID, err := strconv.Atoi(c.Param("id"))
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
@@ -36,13 +36,13 @@ func AddFavouriteMovie(c *gin.Context) {
         return
     }
 
-    var existingFavourite structs.FavouriteMovie
-    if err := database.DB.Where("user_id = ? AND movie_id = ?", userID, input.MovieID).First(&existingFavourite).Error; err == nil {
+    var existingFavorite structs.FavoriteMovie
+    if err := database.DB.Where("user_id = ? AND movie_id = ?", userID, input.MovieID).First(&existingFavorite).Error; err == nil {
         c.JSON(http.StatusConflict, gin.H{"error": "Movie already in favorites"})
         return
     }
     
-    newFavourite := structs.FavouriteMovie{
+    newFavorite := structs.FavoriteMovie{
         UserID:     uint(userID),
         MovieID:    input.MovieID,
         Title:      input.Title,
@@ -52,12 +52,12 @@ func AddFavouriteMovie(c *gin.Context) {
         User:       user,
     }
 
-    if err := database.DB.Create(&newFavourite).Error; err != nil {
+    if err := database.DB.Create(&newFavorite).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    c.JSON(http.StatusCreated, gin.H{"message": "Movie added to favorites successfully", "data": newFavourite})
+    c.JSON(http.StatusCreated, gin.H{"message": "Movie added to favorites successfully", "data": newFavorite})
 }
 
 func ToggleWatchedStatus(c *gin.Context) {
@@ -75,7 +75,7 @@ func ToggleWatchedStatus(c *gin.Context) {
 		return
 	}
 
-	var favMovie structs.FavouriteMovie
+	var favMovie structs.FavoriteMovie
 	if err := database.DB.Where("user_id = ? AND movie_id = ?", userID, input.MovieID).First(&favMovie).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Favorite movie not found"})
 		return
@@ -91,7 +91,7 @@ func ToggleWatchedStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Movie watched status updated successfully", "data": favMovie})
 }
 
-func DeleteFavouriteMovie(c *gin.Context) {
+func DeleteFavoriteMovie(c *gin.Context) {
     userID, err := strconv.Atoi(c.Param("id"))
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
@@ -106,7 +106,7 @@ func DeleteFavouriteMovie(c *gin.Context) {
         return
     }
 
-    var existingMovie structs.FavouriteMovie
+    var existingMovie structs.FavoriteMovie
     if err := database.DB.Where("user_id = ? AND movie_id = ?", userID, input.MovieID).First(&existingMovie).Error; err != nil {
         if err == gorm.ErrRecordNotFound {
             c.JSON(http.StatusNotFound, gin.H{"error": "Favorite movie not found"})
