@@ -1,70 +1,63 @@
 package handlers
 
 import (
-	"fmt"
 	"myfavouritemovies/database"
 	"myfavouritemovies/structs"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func AddMovie(c *gin.Context) {
-    var movie structs.Movie
-    if err := c.ShouldBindJSON(&movie); err != nil {
+
+func AddFavouriteMovie(c *gin.Context) {
+    userID, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+        return
+    }
+
+    var input struct {
+        MovieID     uint    `json:"movie_id"`
+        Title       string  `json:"title"`
+        PosterPath  string  `json:"poster_path"`
+        VoteAverage float64 `json:"vote_average"`
+    }
+
+    if err := c.ShouldBindJSON(&input); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
-    if err := database.DB.Create(&movie).Error; err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-    c.JSON(http.StatusCreated, movie)
-	fmt.Fprintln(os.Stdout, "MOVIE ADD")
-}
 
-func AddFavouriteMovie (c *gin.Context) {
-	userID,err:=strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid user ID"})
-		return
-	}
-
-	var input struct {
-		MovieID uint `json:"movie_id"`
-	}
-	if err := c.ShouldBindJSON(&input);err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
-	return
-	}
-	var user structs.User
+    var user structs.User
     if err := database.DB.First(&user, userID).Error; err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
         return
     }
 
-	var movie structs.Movie
-	if err := database.DB.First(&movie, input.MovieID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error":"Movie not found"})
-		return
-	}
+    var existingFavourite structs.FavouriteMovie
+    if err := database.DB.Where("user_id = ? AND movie_id = ?", userID, input.MovieID).First(&existingFavourite).Error; err == nil {
+        c.JSON(http.StatusConflict, gin.H{"error": "Movie already in favorites"})
+        return
+    }
+    
+    newFavourite := structs.FavouriteMovie{
+        UserID:     uint(userID),
+        MovieID:    input.MovieID,
+        Title:      input.Title,
+        PosterPath: input.PosterPath,
+        VoteAverage: input.VoteAverage,
+        Watched:    false,
+        User:       user,
+    }
 
-	newFavourite := structs.FavouriteMovie {
-    UserID: uint(userID),
-    MovieID: input.MovieID,   
-    Watched: false,
-    User: user,
-    Movie: movie,
-	}
-
-	if err := database.DB.Create(&newFavourite).Error; err != nil {
+    if err := database.DB.Create(&newFavourite).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
-	c.JSON(http.StatusCreated, gin.H{"message": "Favorite genre added successfully", "data": newFavourite})
+
+    c.JSON(http.StatusCreated, gin.H{"message": "Movie added to favorites successfully", "data": newFavourite})
 }
 
 func ToggleWatchedStatus(c *gin.Context) {

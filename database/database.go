@@ -20,6 +20,6 @@ func InitDB() *gorm.DB {
 	}
 	fmt.Println("Successfully connected to LocalDATABase on PostgreSQL!")
 
-DB.AutoMigrate(&structs.User{},&structs.Movie{},&structs.FavouriteMovie{}, &structs.FavouriteGenre{})
+DB.AutoMigrate(&structs.User{},&structs.FavouriteMovie{}, &structs.FavouriteGenre{})
 	return DB
 }
