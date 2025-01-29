@@ -5,6 +5,7 @@ import (
 	"log"
 	server "myfavouritemovies"
 	"myfavouritemovies/database"
+	"myfavouritemovies/routes/handlers"
 )
 
 func main() {
@@ -14,6 +15,7 @@ func main() {
 	} else {
 		log.Fatal("Failed to initialize the database.")
 	}
+	handlers.AddGenresOnStartup(db)
 
 	server := server.CreateServer()
 

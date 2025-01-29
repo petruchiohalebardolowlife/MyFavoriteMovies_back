@@ -40,7 +40,7 @@ func GetMovies(c *gin.Context) {
         genreFilter = selectedGenre
     }
 
-    apiKey := "YOUR_TMDB_API_KEY"
+    apiKey := "6b2c0c7ec76b014687e6201bb7bd904d"
     url := fmt.Sprintf(
         "https://api.themoviedb.org/3/discover/movie?api_key=%s&with_genres=%s&page=%s",
         apiKey, genreFilter, page,
