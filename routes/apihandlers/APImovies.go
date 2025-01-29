@@ -19,15 +19,13 @@ func GetMovies(c *gin.Context) {
         return
     }
 
-    var favoriteGenres []structs.FavoriteGenre
-    if err := database.DB.Where("user_id = ?", userID).Find(&favoriteGenres).Error; err != nil {
+    var favgenreIDs []string
+    if err := database.DB.
+        Model(&structs.FavoriteGenre{}).
+        Where("user_id = ?", userID).
+        Pluck("genre_id", &favgenreIDs).Error; err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "No favorite genres found"})
         return
-    }
-
-    allGenreIDs := []string{}
-    for _, genre := range favoriteGenres {
-        allGenreIDs = append(allGenreIDs, fmt.Sprintf("%d", genre.GenreID))
     }
 
     selectedGenre := c.Query("genre")
@@ -35,7 +33,7 @@ func GetMovies(c *gin.Context) {
     year := c.Query("year")    
     page := c.DefaultQuery("page", "1") 
 
-    genreFilter := strings.Join(allGenreIDs, ",")
+    genreFilter := strings.Join(favgenreIDs, ",")
     if selectedGenre != "" {
         genreFilter = selectedGenre
     }
