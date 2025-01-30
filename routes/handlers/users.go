@@ -25,13 +25,10 @@ func AddUser(c *gin.Context) {
 }
 
 func UpdateUser(c *gin.Context) {
-	id := c.Param("id")
-	var user structs.User
-
-	if err := database.DB.First(&user, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
+	_, err, user := utils.CheckUser(c)
+    if !err {
+        return
+    }
 
 	if !utils.BindJSON(c, &user) {
         return
@@ -45,13 +42,11 @@ func UpdateUser(c *gin.Context) {
 }
 
 func ReadUser(c *gin.Context) {
-	id := c.Param("id")
-	var user structs.User
+	_, ok, user := utils.CheckUser(c)
+    if !ok {
+        return
+    }
 
-	if err := database.DB.First(&user, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
 	c.JSON(http.StatusOK, user)
 	fmt.Fprintln(os.Stdout, "USER READ!")
 }

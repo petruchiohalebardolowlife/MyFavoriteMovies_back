@@ -73,8 +73,8 @@ func AddGenres(c *gin.Context) {
 }
 
 func AddOrDeleteFavoriteGenre(c *gin.Context) {
-    userID, err := utils.CheckUser(c)
-    if !err {
+    userID, ok, user := utils.CheckUser(c)
+    if !ok {
         return
     }
 
@@ -83,12 +83,6 @@ func AddOrDeleteFavoriteGenre(c *gin.Context) {
     }
 
     if !utils.BindJSON(c, &input) {
-        return
-    }
-
-    var user structs.User
-    if err := database.DB.First(&user, userID).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
         return
     }
 
