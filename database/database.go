@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"myfavouritemovies/structs"
+	"os"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -12,14 +14,26 @@ import (
 var DB *gorm.DB
 
 func InitDB() *gorm.DB {
-	dsn:="host=localhost user=postgres password=3256 dbname=postgres port=5432 sslmode=disable"
-	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	err:=godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error connecting to database: %v",err)
+		log.Println("Not found .env file")
 	}
-	fmt.Println("Successfully connected to LocalDATABase on PostgreSQL!")
+	host:=os.Getenv("DB_HOST")
+	user:=os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
+	sslmode := os.Getenv("DB_SSLMODE")
 
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		host, user, password, dbname, port, sslmode)
+	
+	db, err:=gorm.Open(postgres.Open(dsn),&gorm.Config{})
+	if err != nil {
+		log.Fatal("Failed to connect to database ",err)
+	}
+	DB=db
+	fmt.Println("Successfully connected to LocalDATABase on PostgreSQL!")
 DB.AutoMigrate(&structs.User{},&structs.FavoriteMovie{}, &structs.FavoriteGenre{})
 	return DB
 }
