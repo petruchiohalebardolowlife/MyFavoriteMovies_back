@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"myfavouritemovies/database"
 	"myfavouritemovies/structs"
+	"myfavouritemovies/utils"
 	"net/http"
 	"os"
 
@@ -12,8 +13,7 @@ import (
 
 func AddUser(c *gin.Context) {
     var user structs.User
-    if err := c.ShouldBindJSON(&user); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+    if !utils.BindJSON(c, &user) {
         return
     }
     if err := database.DB.Create(&user).Error; err != nil {
@@ -33,10 +33,9 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	if !utils.BindJSON(c, &user) {
+        return
+    }
 	if err := database.DB.Save(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

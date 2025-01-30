@@ -3,8 +3,8 @@ package handlers
 import (
 	"myfavouritemovies/database"
 	"myfavouritemovies/structs"
+	"myfavouritemovies/utils"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -12,9 +12,8 @@ import (
 
 
 func AddFavoriteMovie(c *gin.Context) {
-    userID, err := strconv.Atoi(c.Param("id"))
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+    userID, err := utils.CheckUser(c)
+    if !err {
         return
     }
 
@@ -25,8 +24,7 @@ func AddFavoriteMovie(c *gin.Context) {
         VoteAverage float64 `json:"vote_average"`
     }
 
-    if err := c.ShouldBindJSON(&input); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+    if !utils.BindJSON(c, &input) {
         return
     }
 
@@ -36,8 +34,8 @@ func AddFavoriteMovie(c *gin.Context) {
         return
     }
 
-    var existingFavourite structs.FavoriteMovie
-    if err := database.DB.Where("user_id = ? AND movie_id = ?", userID, input.MovieID).First(&existingFavourite).Error; err == nil {
+    var existingFavorite structs.FavoriteMovie
+    if err := database.DB.Where("user_id = ? AND movie_id = ?", userID, input.MovieID).First(&existingFavorite).Error; err == nil {
         c.JSON(http.StatusConflict, gin.H{"error": "Movie already in favorites"})
         return
     }
@@ -61,19 +59,16 @@ func AddFavoriteMovie(c *gin.Context) {
 }
 
 func ToggleWatchedStatus(c *gin.Context) {
-	userID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-
+    userID, err := utils.CheckUser(c)
+    if !err {
+        return
+    }
 	var input struct {
 		MovieID uint `json:"movie_id"`
 	}
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+    if !utils.BindJSON(c, &input) {
+        return
+    }
 
 	var favMovie structs.FavoriteMovie
 	if err := database.DB.Where("user_id = ? AND movie_id = ?", userID, input.MovieID).First(&favMovie).Error; err != nil {
@@ -92,17 +87,15 @@ func ToggleWatchedStatus(c *gin.Context) {
 }
 
 func DeleteFavoriteMovie(c *gin.Context) {
-    userID, err := strconv.Atoi(c.Param("id"))
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+    userID, err := utils.CheckUser(c)
+    if !err {
         return
     }
 
     var input struct {
         MovieID uint `json:"movie_id"`
     }
-    if err := c.ShouldBindJSON(&input); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+    if !utils.BindJSON(c, &input) {
         return
     }
 

@@ -3,10 +3,9 @@ package database
 import (
 	"fmt"
 	"log"
+	config "myfavouritemovies/configs"
 	"myfavouritemovies/structs"
-	"os"
 
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -14,19 +13,9 @@ import (
 var DB *gorm.DB
 
 func InitDB() *gorm.DB {
-	err:=godotenv.Load()
-	if err != nil {
-		log.Println("Not found .env file")
-	}
-	host:=os.Getenv("DB_HOST")
-	user:=os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
-	port := os.Getenv("DB_PORT")
-	sslmode := os.Getenv("DB_SSLMODE")
-
+	config.LoadConfig()
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
-		host, user, password, dbname, port, sslmode)
+		config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME, config.DB_PORT, config.DB_SSLMODE)
 	
 	db, err:=gorm.Open(postgres.Open(dsn),&gorm.Config{})
 	if err != nil {
