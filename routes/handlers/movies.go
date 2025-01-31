@@ -6,41 +6,32 @@ import (
 	"myfavouritemovies/utils"
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 
 func AddFavoriteMovie(c *gin.Context) {
-    userID, ok, user := utils.CheckUser(c)
-    if !ok {
+    var input structs.Movie
+
+    user, errUser := utils.CheckSession(c)
+    if !errUser || !utils.BindJSON(c, &input) {
         return
     }
 
-    var input struct {
-        MovieID     uint    `json:"movie_id"`
-        Title       string  `json:"title"`
-        PosterPath  string  `json:"poster_path"`
-        VoteAverage float64 `json:"vote_average"`
-    }
-
-    if !utils.BindJSON(c, &input) {
+    if _, err := utils.FindFavoriteMovie(user.ID, input.MovieID); err == nil {
+        c.JSON(http.StatusConflict, gin.H{"error": "Movie already in favorites"})
         return
     }
 
-    if _, err := utils.FindFavoriteMovie(uint(userID), input.MovieID); err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "Movie already in favorites"})
-		return
-	}
-    
     newFavorite := structs.FavoriteMovie{
-        UserID:     uint(userID),
+        UserID:     user.ID,
         MovieID:    input.MovieID,
         Title:      input.Title,
         PosterPath: input.PosterPath,
         VoteAverage: input.VoteAverage,
+        Genres: input.Genres,
         Watched:    false,
-        User:       user,
     }
 
     if err := database.DB.Create(&newFavorite).Error; err != nil {
@@ -48,13 +39,21 @@ func AddFavoriteMovie(c *gin.Context) {
         return
     }
 
+    if err := database.DB.Model(&newFavorite).Association("Genres").Append(input.Genres); err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to associate genres"})
+        return
+    }
+
     c.JSON(http.StatusCreated, gin.H{"message": "Movie added to favorites successfully", "data": newFavorite})
 }
 
 func ToggleWatchedStatus(c *gin.Context) {
-    userID, ok, _ := utils.CheckUser(c)
-    if !ok {
-        return
+    session := sessions.Default(c)
+    userInterface := session.Get("user")
+    user, errUser := userInterface.(structs.User)
+    if !errUser {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+    return
     }
 	var input struct {
 		MovieID uint `json:"movie_id"`
@@ -63,7 +62,7 @@ func ToggleWatchedStatus(c *gin.Context) {
         return
     }
 
-    favMovie, err := utils.FindFavoriteMovie(uint(userID), input.MovieID)
+    favMovie, err := utils.FindFavoriteMovie(uint(user.ID), input.MovieID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Favorite movie not found"})
 		return
@@ -80,9 +79,12 @@ func ToggleWatchedStatus(c *gin.Context) {
 }
 
 func DeleteFavoriteMovie(c *gin.Context) {
-    userID, ok, _ := utils.CheckUser(c)
-    if !ok {
-        return
+    session := sessions.Default(c)
+    userInterface := session.Get("user")
+    user, errUser := userInterface.(structs.User)
+    if !errUser {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+    return
     }
 
     var input struct {
@@ -92,20 +94,12 @@ func DeleteFavoriteMovie(c *gin.Context) {
         return
     }
 
-    existingMovie, err := utils.FindFavoriteMovie(uint(userID), input.MovieID)
+    existingMovie, err := utils.FindFavoriteMovie(uint(user.ID), input.MovieID)
     if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Favorite movie not found"})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
-		return
-	}
+    c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find favorite movie"})
+    return
+    }
 
-    if err := database.DB.Delete(&existingMovie).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
+    database.DB.Delete(&existingMovie)
     c.JSON(http.StatusOK, gin.H{"message": "Favorite movie deleted successfully"})
-}
+}   

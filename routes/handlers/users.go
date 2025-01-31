@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,9 +26,12 @@ func AddUser(c *gin.Context) {
 }
 
 func UpdateUser(c *gin.Context) {
-	_, err, user := utils.CheckUser(c)
-    if !err {
-        return
+	session := sessions.Default(c)
+    userInterface := session.Get("user")
+    user, errUser := userInterface.(structs.User)
+    if !errUser {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+    return
     }
 
 	if !utils.BindJSON(c, &user) {
@@ -39,14 +43,4 @@ func UpdateUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, user)
 	fmt.Fprintln(os.Stdout, "USER UPDATED!")
-}
-
-func ReadUser(c *gin.Context) {
-	_, ok, user := utils.CheckUser(c)
-    if !ok {
-        return
-    }
-
-	c.JSON(http.StatusOK, user)
-	fmt.Fprintln(os.Stdout, "USER READ!")
 }
