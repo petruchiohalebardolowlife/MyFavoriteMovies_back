@@ -51,7 +51,7 @@ func AddFavoriteGenre(c *gin.Context) {
         GenreID uint `json:"genre_id"`
     }
 
-    user, errUser := utils.CheckSession(c)
+    user, errUser := utils.CheckContextUser(c)
     if !errUser || !utils.BindJSON(c, &input) {
         return
     }
@@ -80,7 +80,7 @@ func DeleteFavoriteGenre(c *gin.Context) {
     var input struct {
         GenreID uint `json:"genre_id"`
     }
-    user, errUser := utils.CheckSession(c)
+    user, errUser := utils.CheckContextUser(c)
     if !errUser || !utils.BindJSON(c, &input) {
         return
     }

@@ -1,24 +1,24 @@
 package routes
 
 import (
-	"encoding/gob"
 	"myfavouritemovies/routes/handlers"
-	"myfavouritemovies/structs"
+	"myfavouritemovies/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 
 func SetUpRoutes(router *gin.Engine) {
-	gob.Register(structs.User{})  
 
-	router.POST("/login",handlers.SignIn)
 	router.POST("/users",handlers.AddUser)
-    router.PATCH("/users/", handlers.UpdateUser)
-    router.POST("/favgenres", handlers.AddFavoriteGenre)
-	router.DELETE("/favgenres", handlers.DeleteFavoriteGenre)
-    router.POST("/movies", handlers.AddFavoriteMovie)
-	router.DELETE("/movies", handlers.DeleteFavoriteMovie)
-    router.PATCH("/movies/toggle", handlers.ToggleWatchedStatus)
-    router.POST("/genres", handlers.AddGenres)
+
+	auth := router.Group("/")
+	auth.Use(utils.HardcodedUserMiddleware())
+	auth.PATCH("/users/", handlers.UpdateUser)
+	auth.POST("/favgenres", handlers.AddFavoriteGenre)
+	auth.DELETE("/favgenres", handlers.DeleteFavoriteGenre)
+	auth.POST("/movies", handlers.AddFavoriteMovie)
+	auth.DELETE("/movies", handlers.DeleteFavoriteMovie)
+	auth.PATCH("/movies/toggle", handlers.ToggleWatchedStatus)
+	auth.POST("/genres", handlers.AddGenres)
 }

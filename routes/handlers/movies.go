@@ -12,7 +12,7 @@ import (
 func AddFavoriteMovie(c *gin.Context) {
     var input structs.Movie
 
-    user, errUser := utils.CheckSession(c)
+    user, errUser := utils.CheckContextUser(c)
     if !errUser || !utils.BindJSON(c, &input) {
         return
     }
@@ -23,14 +23,15 @@ func AddFavoriteMovie(c *gin.Context) {
     }
 
     newFavorite := structs.FavoriteMovie{
-        UserID:     user.ID,
-        MovieID:    input.MovieID,
-        Title:      input.Title,
-        PosterPath: input.PosterPath,
+        UserID:      user.ID,
+        MovieID:     input.MovieID,
+        Title:       input.Title,
+        PosterPath:  input.PosterPath,
         VoteAverage: input.VoteAverage,
-        Genres: input.Genres,
-        Watched:    false,
+        Genres:      input.Genres,
+        Watched:     false,
     }
+
 
     if err := database.DB.Create(&newFavorite).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -45,12 +46,13 @@ func AddFavoriteMovie(c *gin.Context) {
     c.JSON(http.StatusCreated, gin.H{"message": "Movie added to favorites successfully"})
 }
 
+
 func ToggleWatchedStatus(c *gin.Context) {
 	var input struct {
 		MovieID uint `json:"movie_id"`
 	}
     
-    user, errUser := utils.CheckSession(c)
+    user, errUser := utils.CheckContextUser(c)
     if !errUser || !utils.BindJSON(c, &input) {
         return
     }
@@ -76,7 +78,7 @@ func DeleteFavoriteMovie(c *gin.Context) {
         MovieID uint `json:"movie_id"`
     }
   
-    user, errUser := utils.CheckSession(c)
+    user, errUser := utils.CheckContextUser(c)
     if !errUser || !utils.BindJSON(c, &input) {
         return
     }

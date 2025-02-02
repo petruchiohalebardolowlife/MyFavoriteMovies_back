@@ -5,7 +5,6 @@ import (
 	"myfavouritemovies/structs"
 	"net/http"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,15 +23,31 @@ func FindFavoriteMovie(userID, movieID uint) (structs.FavoriteMovie, error) {
 	return favMovie, err
 }
 
-func CheckSession(c *gin.Context) (*structs.User, bool) {
-	session := sessions.Default(c)
-	userInterface := session.Get("user")
+func HardcodedUserMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        user := structs.User{
+            ID:       671,
+            NickName: "Vasiliy",
+            Username: "Vasya",
+        }
 
-	user, errUser := userInterface.(structs.User)
-	if !errUser {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return nil, false
-	}
+        c.Set("user", user)
+        c.Next()
+    }
+}
 
-	return &user, true
+func CheckContextUser(c *gin.Context) (*structs.User, bool) {
+    userInterface, exists := c.Get("user")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return nil, false
+    }
+
+    user, errUser := userInterface.(structs.User)
+    if !errUser {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse user from context"})
+        return nil, false
+    }
+
+    return &user, true
 }
