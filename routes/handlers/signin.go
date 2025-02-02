@@ -11,11 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func Login(c *gin.Context) {
-    var input struct {
-        Username string `json:"username"`
-        Password string `json:"password"`
-    }
+func SignIn(c *gin.Context) {
+    var input structs.SignIn
 
     if !utils.BindJSON(c, &input) {
         return

@@ -28,8 +28,8 @@ func CheckSession(c *gin.Context) (*structs.User, bool) {
 	session := sessions.Default(c)
 	userInterface := session.Get("user")
 
-	user, ok := userInterface.(structs.User)
-	if !ok {
+	user, errUser := userInterface.(structs.User)
+	if !errUser {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return nil, false
 	}

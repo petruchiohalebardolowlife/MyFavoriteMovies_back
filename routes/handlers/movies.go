@@ -6,10 +6,8 @@ import (
 	"myfavouritemovies/utils"
 	"net/http"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
-
 
 func AddFavoriteMovie(c *gin.Context) {
     var input structs.Movie
@@ -44,25 +42,20 @@ func AddFavoriteMovie(c *gin.Context) {
         return
     }
 
-    c.JSON(http.StatusCreated, gin.H{"message": "Movie added to favorites successfully", "data": newFavorite})
+    c.JSON(http.StatusCreated, gin.H{"message": "Movie added to favorites successfully"})
 }
 
 func ToggleWatchedStatus(c *gin.Context) {
-    session := sessions.Default(c)
-    userInterface := session.Get("user")
-    user, errUser := userInterface.(structs.User)
-    if !errUser {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-    return
-    }
 	var input struct {
 		MovieID uint `json:"movie_id"`
 	}
-    if !utils.BindJSON(c, &input) {
+    
+    user, errUser := utils.CheckSession(c)
+    if !errUser || !utils.BindJSON(c, &input) {
         return
     }
 
-    favMovie, err := utils.FindFavoriteMovie(uint(user.ID), input.MovieID)
+    favMovie, err := utils.FindFavoriteMovie(user.ID, input.MovieID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Favorite movie not found"})
 		return
@@ -75,22 +68,16 @@ func ToggleWatchedStatus(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Movie watched status updated successfully", "data": favMovie})
+	c.JSON(http.StatusOK, gin.H{"message": "Movie watched status updated successfully"})
 }
 
 func DeleteFavoriteMovie(c *gin.Context) {
-    session := sessions.Default(c)
-    userInterface := session.Get("user")
-    user, errUser := userInterface.(structs.User)
-    if !errUser {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-    return
-    }
-
     var input struct {
         MovieID uint `json:"movie_id"`
     }
-    if !utils.BindJSON(c, &input) {
+  
+    user, errUser := utils.CheckSession(c)
+    if !errUser || !utils.BindJSON(c, &input) {
         return
     }
 
@@ -102,4 +89,4 @@ func DeleteFavoriteMovie(c *gin.Context) {
 
     database.DB.Delete(&existingMovie)
     c.JSON(http.StatusOK, gin.H{"message": "Favorite movie deleted successfully"})
-}   
+}

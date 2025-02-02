@@ -27,8 +27,8 @@ func AddGenres(c *gin.Context) {
 
 	var newGenres []structs.Genre
 	for _, genre := range input.Genres {
-		if !slices.ContainsFunc(existingGenres, func(g structs.Genre) bool {
-			return g.ID == genre.ID
+		if !slices.ContainsFunc(existingGenres, func(gen structs.Genre) bool {
+			return gen.ID == genre.ID
 		}) {
 			newGenres = append(newGenres, genre)
 		}
@@ -39,7 +39,7 @@ func AddGenres(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusCreated, gin.H{"message": "Genres added successfully", "data": newGenres})
+		c.JSON(http.StatusCreated, gin.H{"message": "Genres added successfully"})
 	} else {
 		c.Status(http.StatusCreated)
 	}
@@ -62,14 +62,8 @@ func AddFavoriteGenre(c *gin.Context) {
         return
     }
 
-    var genre structs.Genre
-    if err := database.DB.First(&genre, input.GenreID).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "Genre not found"})
-        return
-    }
-
     newFavorite := structs.FavoriteGenre{
-        UserID:  uint(user.ID),
+        UserID:  user.ID,
         GenreID: input.GenreID,
     }
 
@@ -78,7 +72,7 @@ func AddFavoriteGenre(c *gin.Context) {
         return
     }
 
-    c.JSON(http.StatusCreated, gin.H{"message": "Favorite genre added successfully", "data": newFavorite})
+    c.JSON(http.StatusCreated, gin.H{"message": "Favorite genre added successfully"})
 }
 
 func DeleteFavoriteGenre(c *gin.Context) {

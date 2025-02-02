@@ -7,7 +7,7 @@ import (
 type User struct {
 	gorm.Model
 	ID uint `gorm:"primaryKey" json:"id"`
-	Login string `gorm:"unique"`
+	NickName string `gorm:"unique"`
 	Username  string `gorm:"unique"`
 	Password  string `gorm:"not null"`
     FavoriteMovies  []FavoriteMovie  `gorm:"constraint:OnDelete:CASCADE;" json:"favorite_movies"`
@@ -45,3 +45,8 @@ type Movie struct {
     GenreIDs    []uint `json:"genre_ids"`
     Genres []Genre `json:"genres"`
 }
+
+type SignIn struct {
+        Username string `json:"username"`
+        Password string `json:"password"`
+    }

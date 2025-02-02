@@ -12,9 +12,9 @@ import (
 func SetUpRoutes(router *gin.Engine) {
 	gob.Register(structs.User{})  
 
-	router.POST("/login",handlers.Login)
+	router.POST("/login",handlers.SignIn)
 	router.POST("/users",handlers.AddUser)
-    router.PATCH("/users/:id", handlers.UpdateUser)
+    router.PATCH("/users/", handlers.UpdateUser)
     router.POST("/favgenres", handlers.AddFavoriteGenre)
 	router.DELETE("/favgenres", handlers.DeleteFavoriteGenre)
     router.POST("/movies", handlers.AddFavoriteMovie)
