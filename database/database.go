@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	config "myfavouritemovies/configs"
 	"myfavouritemovies/structs"
 
 	"gorm.io/driver/postgres"
@@ -12,14 +13,16 @@ import (
 var DB *gorm.DB
 
 func InitDB() *gorm.DB {
-	dsn:="host=localhost user=postgres password=3256 dbname=postgres port=5432 sslmode=disable"
-	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	config.LoadConfig()
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME, config.DB_PORT, config.DB_SSLMODE)
+	
+	db, err:=gorm.Open(postgres.Open(dsn),&gorm.Config{})
 	if err != nil {
-		log.Fatalf("Error connecting to database: %v",err)
+		log.Fatal("Failed to connect to database ",err)
 	}
+	DB=db
 	fmt.Println("Successfully connected to LocalDATABase on PostgreSQL!")
-
 DB.AutoMigrate(&structs.User{},&structs.FavoriteMovie{}, &structs.FavoriteGenre{})
 	return DB
 }

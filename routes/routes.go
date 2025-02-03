@@ -1,20 +1,24 @@
 package routes
 
 import (
-	"myfavouritemovies/routes/apihandlers"
 	"myfavouritemovies/routes/handlers"
+	"myfavouritemovies/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
+
 func SetUpRoutes(router *gin.Engine) {
-	router.POST("/users",handlers.AddUser)
-    router.PATCH("/users/:id", handlers.UpdateUser)
-	router.GET("/users/:id", handlers.ReadUser)
-    router.POST("/users/:id/genres", handlers.AddFavoriteGenres)
-	router.DELETE("/users/:id/genres", handlers.DeleteFavoriteGenre)
-    router.POST("/users/:id/movies", handlers.AddFavoriteMovie)
-	router.DELETE("/users/:id/movies", handlers.DeleteFavoriteMovie)
-    router.PATCH("/users/:id/movies/toggle", handlers.ToggleWatchedStatus)
-	router.GET("/users/:id/movies", apihandlers.GetMovies)
+
+	router.POST("/users",handlers.AddUserHandler)
+  
+	auth := router.Group("/")
+	auth.Use(utils.HardcodedUserMiddleware())
+	auth.PATCH("/users/", handlers.UpdateUserHandler)
+	auth.POST("/favgenres", handlers.AddFavoriteGenreHandler)
+	auth.DELETE("/favgenres", handlers.DeleteFavoriteGenreHandler)
+	auth.POST("/movies", handlers.AddFavoriteMovieHandler)
+	auth.DELETE("/movies", handlers.DeleteFavoriteMovieHandler)
+	auth.PATCH("/movies/toggle", handlers.ToggleWatchedStatusHandler)
+	auth.POST("/genres", handlers.AddGenresHandler)
 }

@@ -4,22 +4,23 @@ import (
 	"fmt"
 	"log"
 	server "myfavouritemovies"
+	config "myfavouritemovies/configs"
 	"myfavouritemovies/database"
-	"myfavouritemovies/routes/handlers"
 )
 
 func main() {
+	config.LoadConfig()
+
 	db := database.InitDB()
 	if db != nil {
 		fmt.Println("Database tables created successfully!")
 	} else {
 		log.Fatal("Failed to initialize the database.")
 	}
-	handlers.AddGenresOnStartup(db)
 
 	server := server.CreateServer()
 
-	if err := server.Run(":8081"); err != nil {
+	if err := server.Run(":"+config.SRVR_PORT); err != nil {
 		log.Fatal("Server run failed: ", err)
 	} else {
 		fmt.Println("SERVER RUNNING")
