@@ -15,15 +15,24 @@ func AddUserHandler(c *gin.Context) {
       return
   }
 
-  repository.AddUser(c, &user)
+  if err := repository.AddUser(&user); err != nil {
+      c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+      return
+  }
+
   c.Status(http.StatusCreated)
 }
 
 func UpdateUserHandler(c *gin.Context) {
-  user, errUser := utils.CheckContextUser(c)
+  user, errUser := utils.GetContextUser(c)
   if !errUser || !utils.BindJSON(c, &user) {
       return
   }
 
-  repository.UpdateUser(c, user)
+  if err := repository.UpdateUser(user); err != nil {
+      c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+      return
+  }
+
+  c.Status(http.StatusOK)
 }
