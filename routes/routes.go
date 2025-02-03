@@ -14,11 +14,10 @@ func SetUpRoutes(router *gin.Engine) {
   
 	auth := router.Group("/")
 	auth.Use(utils.HardcodedUserMiddleware())
-	auth.PATCH("/users/", handlers.UpdateUserHandler)
+	auth.PATCH("/users", handlers.UpdateUserHandler)
 	auth.POST("/favgenres", handlers.AddFavoriteGenreHandler)
 	auth.DELETE("/favgenres", handlers.DeleteFavoriteGenreHandler)
 	auth.POST("/movies", handlers.AddFavoriteMovieHandler)
 	auth.DELETE("/movies", handlers.DeleteFavoriteMovieHandler)
 	auth.PATCH("/movies/toggle", handlers.ToggleWatchedStatusHandler)
-	auth.POST("/genres", handlers.AddGenresHandler)
 }

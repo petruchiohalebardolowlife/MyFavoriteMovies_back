@@ -1,12 +1,12 @@
 package repository
 
 import (
+	"errors"
 	"myfavouritemovies/database"
 	"myfavouritemovies/structs"
-	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slices"
+	"gorm.io/gorm"
 )
 
 func GetAllGenres() ([]structs.Genre, error) {
@@ -17,35 +17,35 @@ func GetAllGenres() ([]structs.Genre, error) {
 	return genres, nil
 }
 
+func SaveGenresToDB(db *gorm.DB, genres []structs.Genre) error {
+	var existingGenres []structs.Genre
+	if err := db.Find(&existingGenres).Error; err != nil {
+		return err
+	}
 
-func AddGenres(c *gin.Context, genres []structs.Genre) {
-  existingGenres, err := GetAllGenres()
-  if err != nil {
-      c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-      return
-  }
+	var newGenres []structs.Genre
+	for _, genre := range genres {
+		if !slices.ContainsFunc(existingGenres, func(gen structs.Genre) bool {
+			return gen.ID == genre.ID
+		}) {
+			newGenres = append(newGenres, genre)
+		}
+	}
 
-  var newGenres []structs.Genre
-  for _, genre := range genres {
-      if !slices.ContainsFunc(existingGenres, func(gen structs.Genre) bool {
-          return gen.ID == genre.ID
-      }) {
-          newGenres = append(newGenres, genre)
-      }
-  }
+	if len(newGenres) > 0 {
+		if err := db.Create(&newGenres).Error; err != nil {
+			return err
+		}
+	}
 
-  if len(newGenres) > 0 {
-      if err := database.DB.Create(&newGenres).Error; err != nil {
-          c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-          return
-      }
-  }
+	return nil
 }
 
-func AddFavoriteGenre(c *gin.Context, userID, genreID uint) {
-  if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).First(&structs.FavoriteGenre{}).Error; err == nil {
-      c.JSON(http.StatusConflict, gin.H{"error": "genre already in favorites"})
-      return
+func AddFavoriteGenre(userID, genreID uint) error {
+  err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
+      First(&structs.FavoriteGenre{}).Error
+  if err == nil {
+      return errors.New("genre already in favorites")
   }
 
   newFavorite := structs.FavoriteGenre{
@@ -54,24 +54,22 @@ func AddFavoriteGenre(c *gin.Context, userID, genreID uint) {
   }
 
   if err := database.DB.Create(&newFavorite).Error; err != nil {
-      c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-      return
+      return err
   }
 
-  c.Status(http.StatusCreated)
+  return nil
 }
 
-func DeleteFavoriteGenre(c *gin.Context, userID, genreID uint) {
+func DeleteFavoriteGenre(userID, genreID uint) error {
   var favGenre structs.FavoriteGenre
-  if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).First(&favGenre).Error; err != nil {
-      c.JSON(http.StatusConflict, gin.H{"error": "genre not in favorites"})
-      return
+  if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
+      First(&favGenre).Error; err != nil {
+      return errors.New("genre not in favorites")
   }
 
   if err := database.DB.Delete(&favGenre).Error; err != nil {
-      c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-      return
+      return err
   }
-
-  c.Status(http.StatusOK)
+  
+  return nil
 }

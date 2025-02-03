@@ -36,7 +36,7 @@ func HardcodedUserMiddleware() gin.HandlerFunc {
     }
 }
 
-func CheckContextUser(c *gin.Context) (*structs.User, bool) {
+func GetContextUser(c *gin.Context) (*structs.User, bool) {
     userInterface, exists := c.Get("user")
     if !exists {
         c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})

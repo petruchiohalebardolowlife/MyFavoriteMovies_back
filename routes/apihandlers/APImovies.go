@@ -1,4 +1,4 @@
-package apihandlers
+package api
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ import (
 )
 
 func GetMovies(c *gin.Context) {
-  user, errUser := utils.CheckContextUser(c)
+  user, errUser := utils.GetContextUser(c)
   if !errUser {
     return
 }

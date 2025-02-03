@@ -12,12 +12,16 @@ import (
 func AddFavoriteMovieHandler(c *gin.Context) {
   var input structs.Movie
 
-  user, errUser := utils.CheckContextUser(c)
+  user, errUser := utils.GetContextUser(c)
   if !errUser || !utils.BindJSON(c, &input) {
       return
   }
 
-  repository.AddFavoriteMovie(c, user.ID, input)
+  if err := repository.AddFavoriteMovie(user.ID, input); err != nil {
+      c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+      return
+  }
+
   c.Status(http.StatusCreated)
 }
 
@@ -26,12 +30,16 @@ func ToggleWatchedStatusHandler(c *gin.Context) {
       MovieID uint `json:"movie_id"`
   }
 
-  user, errUser := utils.CheckContextUser(c)
+  user, errUser := utils.GetContextUser(c)
   if !errUser || !utils.BindJSON(c, &input) {
       return
   }
 
-  repository.ToggleWatchedStatus(c, user.ID, input.MovieID)
+  if err := repository.ToggleWatchedStatus(user.ID, input.MovieID); err != nil {
+      c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+      return
+  }
+
   c.Status(http.StatusOK)
 }
 
@@ -40,11 +48,15 @@ func DeleteFavoriteMovieHandler(c *gin.Context) {
       MovieID uint `json:"movie_id"`
   }
 
-  user, errUser := utils.CheckContextUser(c)
+  user, errUser := utils.GetContextUser(c)
   if !errUser || !utils.BindJSON(c, &input) {
       return
   }
 
-  repository.DeleteFavoriteMovie(c, user.ID, input.MovieID)
+  if err := repository.DeleteFavoriteMovie(user.ID, input.MovieID); err != nil {
+      c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+      return
+  }
+
   c.Status(http.StatusOK)
 }

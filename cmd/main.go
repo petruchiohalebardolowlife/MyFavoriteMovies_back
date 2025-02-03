@@ -6,6 +6,8 @@ import (
 	server "myfavouritemovies"
 	config "myfavouritemovies/configs"
 	"myfavouritemovies/database"
+	"myfavouritemovies/repository"
+	api "myfavouritemovies/routes/apihandlers"
 )
 
 func main() {
@@ -17,13 +19,20 @@ func main() {
 	} else {
 		log.Fatal("Failed to initialize the database.")
 	}
+  genres, err := api.FetchGenres()
+  if err != nil {
+    log.Fatalf("Failed to fetch genres: %v", err)
+  }
+  if err := repository.SaveGenresToDB(db, genres); err != nil {
+		log.Fatalf("Failed to add genres: %v", err)
+	}
 
 	server := server.CreateServer()
 
 	if err := server.Run(":"+config.SRVR_PORT); err != nil {
 		log.Fatal("Server run failed: ", err)
 	} else {
-		fmt.Println("SERVER RUNNING")
+		fmt.Println("Server running")
 	}
 }
 
