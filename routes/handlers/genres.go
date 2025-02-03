@@ -2,28 +2,11 @@ package handlers
 
 import (
 	"myfavouritemovies/repository"
-	"myfavouritemovies/structs"
 	"myfavouritemovies/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
-
-func AddGenresHandler(c *gin.Context) {
-  var input struct {
-      Genres []structs.Genre `json:"genres"`
-  }
-
-  if !utils.BindJSON(c, &input) {
-      return
-  }
-
-  if err := repository.AddGenres(input.Genres); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-    c.Status(http.StatusCreated)
-}
 
 func AddFavoriteGenreHandler(c *gin.Context) {
     var input struct {

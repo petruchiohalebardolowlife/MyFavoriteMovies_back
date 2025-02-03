@@ -6,6 +6,8 @@ import (
 	server "myfavouritemovies"
 	config "myfavouritemovies/configs"
 	"myfavouritemovies/database"
+	"myfavouritemovies/repository"
+	"myfavouritemovies/structs"
 )
 
 func main() {
@@ -17,7 +19,15 @@ func main() {
 	} else {
 		log.Fatal("Failed to initialize the database.")
 	}
-
+  genres := []structs.Genre{
+    {ID: 12, Name: "Adventure"},
+    {ID: 14, Name: "Fantasy"},
+    {ID: 16, Name: "Animation"},
+    {ID: 18, Name: "Drama"},
+}
+if err := repository.AddGenres(genres); err != nil {
+  log.Fatalf("Failed to add genres: %v", err)
+}
 	server := server.CreateServer()
 
 	if err := server.Run(":"+config.SRVR_PORT); err != nil {
