@@ -8,7 +8,15 @@ import (
 	"myfavouritemovies/database"
 	"myfavouritemovies/repository"
 	tmdb "myfavouritemovies/service"
+	"myfavouritemovies/structs"
 )
+
+var movieFilter = structs.MovieFilter{
+  GenreIDs: []int{18, 28},
+  Rating:   "6", 
+  Year:     2020,        
+  Page:     1,      
+}
 
 func main() {
 	db := database.InitDB()
@@ -25,6 +33,10 @@ func main() {
   if err := repository.SaveGenresToDB(db, genres); err != nil {
 		log.Fatalf("Failed to add genres: %v", err)
 	}
+
+  fmt.Println("Starting fetch movies...")
+  tmdb.FetchFiltredMovies(movieFilter)
+
 
 	server := server.CreateServer()
   if err := server.Run(":"+config.SRVR_PORT); err != nil {

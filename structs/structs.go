@@ -52,8 +52,8 @@ type SignIn struct {
 }
 
 type MovieFilter struct {
-    GenreID  int
+    GenreIDs []int
     Rating   string 
-    Year     int
-    Page     int
+    Year     int  
+    Page     uint 
 }
