@@ -1,7 +1,6 @@
 package tmdb
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,8 +10,7 @@ import (
 )
 
 func FetchFromTMDB(endpoint string) ([]byte, error) {
-  url := fmt.Sprintf("%s%s?apikey=%s", config.TMDB_API_BASE_URL, endpoint, config.API_KEY)
-  fmt.Println(url)
+  url := fmt.Sprintf("%s%s?api_key=%s", config.TMDB_API_BASE_URL, endpoint, config.API_KEY)
   resp, err := http.Get(url)
   if err != nil {
     return nil, err
@@ -34,21 +32,11 @@ func FetchGenres() ([]structs.Genre, error) {
 	}
 
 	var response struct {
-		Genres []structs.Genre `json:"genres"`
-	}
+    Genres []structs.Genre `json:"genres"`
+  }
 
-	// Используем json.NewDecoder для потокового чтения
-	decoder := json.NewDecoder(bytes.NewReader(body))
-
-	// Декодируем данные
-	if err := decoder.Decode(&response); err != nil {
-		return nil, fmt.Errorf("failed to decode response body: %v", err)
-	}
-
-	// Проверяем, что жанры есть в ответе
-	if len(response.Genres) == 0 {
-		return nil, fmt.Errorf("no genres found in the response")
-	}
-
-	return response.Genres, nil
+  if err := json.Unmarshal(body, &response); err != nil {
+    return nil, err
+  }
+  return response.Genres, nil
 }

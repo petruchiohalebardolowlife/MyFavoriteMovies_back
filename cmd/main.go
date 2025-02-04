@@ -7,7 +7,7 @@ import (
 	config "myfavouritemovies/configs"
 	"myfavouritemovies/database"
 	"myfavouritemovies/repository"
-	api "myfavouritemovies/routes/apihandlers"
+	tmdb "myfavouritemovies/service"
 )
 
 func main() {
@@ -18,6 +18,14 @@ func main() {
 		log.Fatal("Failed to initialize the database.")
 	}
 
+  genres, err := tmdb.FetchGenres()
+  if err != nil {
+    log.Fatalf("Failed to fetch genres: %v", err)
+  }
+  if err := repository.SaveGenresToDB(db, genres); err != nil {
+		log.Fatalf("Failed to add genres: %v", err)
+	}
+
 	server := server.CreateServer()
   if err := server.Run(":"+config.SRVR_PORT); err != nil {
 		log.Fatal("Server run failed: ", err)
@@ -25,12 +33,6 @@ func main() {
 		fmt.Println("Server running")
 	}
 
-  genres, err := api.FetchGenres()
-  if err != nil {
-    log.Fatalf("Failed to fetch genres: %v", err)
-  }
-  if err := repository.SaveGenresToDB(db, genres); err != nil {
-		log.Fatalf("Failed to add genres: %v", err)
-	}
 }
+
 
