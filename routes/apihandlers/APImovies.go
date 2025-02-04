@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetMovies(c *gin.Context) {
+func FetchMovies(c *gin.Context) {
   user, errUser := utils.GetContextUser(c)
   if !errUser {
     return

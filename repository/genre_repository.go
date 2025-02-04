@@ -18,10 +18,10 @@ func GetAllGenres() ([]structs.Genre, error) {
 }
 
 func SaveGenresToDB(db *gorm.DB, genres []structs.Genre) error {
-	var existingGenres []structs.Genre
-	if err := db.Find(&existingGenres).Error; err != nil {
-		return err
-	}
+	existingGenres, err := GetAllGenres()
+  if err != nil {
+      return err
+  }
 
 	var newGenres []structs.Genre
 	for _, genre := range genres {
