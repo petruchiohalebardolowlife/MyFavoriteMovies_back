@@ -50,7 +50,6 @@ func FetchGenres() ([]structs.Genre, error) {
   return response.Genres, nil
 }
 
-
 func FetchFiltredMovies(filters structs.MovieFilter) ([]structs.Movie, error){
   endpoint := "/discover/movie"
 
@@ -76,8 +75,6 @@ func FetchFiltredMovies(filters structs.MovieFilter) ([]structs.Movie, error){
 		endpoint = fmt.Sprintf("%s?%s", endpoint, strings.Join(queryParams, "&"))
 	}
 
-  log.Println("Fetching from TMDB with URL:", endpoint)
-
 	body, err := FetchFromTMDB(endpoint)
 	if err != nil {
 		return nil, err
@@ -94,7 +91,22 @@ func FetchFiltredMovies(filters structs.MovieFilter) ([]structs.Movie, error){
 for _,n := range response.Results {
   log.Printf("%s", n.Title)
 }
+  log.Printf("LOG FROM FILTREDMOVIE ENDPOINT IS %s",endpoint)
 	return response.Results, nil
 }
 
+func FetchMovieDetails(movie_id int) (structs.MovieDetails, error) {
+	endpoint := "/movie/"+strconv.Itoa(movie_id)
+	body, err := FetchFromTMDB(endpoint)
+	if err != nil {
+		return structs.MovieDetails{}, err
+	}
 
+	var response structs.MovieDetails
+
+  if err := json.Unmarshal(body, &response); err != nil {
+    return structs.MovieDetails{}, err
+  }
+
+  return response, nil
+}

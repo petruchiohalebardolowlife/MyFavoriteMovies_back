@@ -18,6 +18,8 @@ var movieFilter = structs.MovieFilter{
   Page:     1,      
 }
 
+var sonic_id = 454626
+
 func main() {
 	db := database.InitDB()
 	if db != nil {
@@ -34,17 +36,12 @@ func main() {
 		log.Fatalf("Failed to add genres: %v", err)
 	}
 
-  fmt.Println("Starting fetch movies...")
-  tmdb.FetchFiltredMovies(movieFilter)
-
-
 	server := server.CreateServer()
   if err := server.Run(":"+config.SRVR_PORT); err != nil {
 		log.Fatal("Server run failed: ", err)
 	} else {
 		fmt.Println("Server running")
 	}
-
 }
 
 
