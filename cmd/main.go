@@ -7,18 +7,8 @@ import (
 	config "myfavouritemovies/configs"
 	"myfavouritemovies/database"
 	"myfavouritemovies/repository"
-	tmdb "myfavouritemovies/service"
-	"myfavouritemovies/structs"
+	"myfavouritemovies/service"
 )
-
-var movieFilter = structs.MovieFilter{
-  GenreIDs: []int{18, 28},
-  Rating:   "6", 
-  Year:     2020,        
-  Page:     1,      
-}
-
-var sonic_id = 454626
 
 func main() {
 	db := database.InitDB()
@@ -28,7 +18,7 @@ func main() {
 		log.Fatal("Failed to initialize the database.")
 	}
 
-  genres, err := tmdb.FetchGenres()
+  genres, err := service.FetchGenres()
   if err != nil {
     log.Fatalf("Failed to fetch genres: %v", err)
   }
@@ -43,5 +33,3 @@ func main() {
 		fmt.Println("Server running")
 	}
 }
-
-

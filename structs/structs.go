@@ -52,17 +52,17 @@ type SignIn struct {
 }
 
 type MovieFilter struct {
-	GenreIDs []int
-	Rating   string
-	Year     int
-	Page     uint
+	GenreIDs   []int
+	Popularity float64
+	Year       int
+	Page       uint
 }
 
 type MovieDetails struct {
-	Title         string  `json:"title"`
-	Rating        float64     `json:"vote_average"`
-	ReleaseDate   string  `json:"release_date"`
-	PosterPath    string  `json:"poster_path"`
-	Genres        []Genre `json:"genres"`
-	Overview      string  `json:"overview"`
+	Title       string  `json:"title"`
+	Rating      float64 `json:"vote_average"`
+	ReleaseDate string  `json:"release_date"`
+	PosterPath  string  `json:"poster_path"`
+	Genres      []Genre `json:"genres"`
+	Overview    string  `json:"overview"`
 }
