@@ -41,9 +41,8 @@ func AddGenres(genres []structs.Genre) error {
 }
 
 func AddFavoriteGenre(userID, genreID uint) error {
-  err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
-      First(&structs.FavoriteGenre{}).Error
-  if err == nil {
+ if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
+      First(&structs.FavoriteGenre{}).Error; err == nil {
       return errors.New("genre already in favorites")
   }
 
