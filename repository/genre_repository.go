@@ -6,6 +6,7 @@ import (
 	"myfavouritemovies/structs"
 
 	"golang.org/x/exp/slices"
+	"gorm.io/gorm"
 )
 
 func GetAllGenres() ([]structs.Genre, error) {
@@ -16,33 +17,34 @@ func GetAllGenres() ([]structs.Genre, error) {
 	return genres, nil
 }
 
-func AddGenres(genres []structs.Genre) error {
-  existingGenres, err := GetAllGenres()
+func SaveGenresToDB(db *gorm.DB, genres []structs.Genre) error {
+	existingGenres, err := GetAllGenres()
   if err != nil {
       return err
   }
 
-  var newGenres []structs.Genre
-  for _, genre := range genres {
-      if !slices.ContainsFunc(existingGenres, func(gen structs.Genre) bool {
-          return gen.ID == genre.ID
-      }) {
-          newGenres = append(newGenres, genre)
-      }
-  }
+	var newGenres []structs.Genre
+	for _, genre := range genres {
+		if !slices.ContainsFunc(existingGenres, func(gen structs.Genre) bool {
+			return gen.ID == genre.ID
+		}) {
+			newGenres = append(newGenres, genre)
+		}
+	}
 
-  if len(newGenres) > 0 {
-      if err := database.DB.Create(&newGenres).Error; err != nil {
-          return err
-      }
-  }
+	if len(newGenres) > 0 {
+		if err := db.Create(&newGenres).Error; err != nil {
+			return err
+		}
+	}
 
-  return nil
+	return nil
 }
 
 func AddFavoriteGenre(userID, genreID uint) error {
- if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
-      First(&structs.FavoriteGenre{}).Error; err == nil {
+  err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
+      First(&structs.FavoriteGenre{}).Error
+  if err == nil {
       return errors.New("genre already in favorites")
   }
 

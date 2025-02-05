@@ -14,6 +14,8 @@ var (
 	DB_PORT     string
 	DB_SSLMODE  string
 	SRVR_PORT   string
+  API_KEY     string
+  TMDB_API_BASE_URL string
 )
 
 func LoadConfig() {
@@ -29,4 +31,6 @@ func LoadConfig() {
 	DB_PORT = os.Getenv("DB_PORT")
 	DB_SSLMODE = os.Getenv("DB_SSLMODE")
 	SRVR_PORT = os.Getenv("SRVR_PORT")
+  API_KEY = os.Getenv("API_KEY")
+  TMDB_API_BASE_URL = os.Getenv("TMDB_API_BASE_URL")
 }
