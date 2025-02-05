@@ -8,7 +8,7 @@ import (
 
 func FetchGenres() ([]structs.Genre, error) {
 	endpoint := "/genre/movie/list"
-	body, err := FetchFromTMDB(endpoint)
+	body, err := FetchFromTMDB(endpoint,"")
 	if err != nil {
 		return nil, err
 	}

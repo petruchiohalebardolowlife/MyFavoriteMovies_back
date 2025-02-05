@@ -5,16 +5,10 @@ import (
 	"io"
 	config "myfavouritemovies/configs"
 	"net/http"
-	"strings"
 )
 
-func FetchFromTMDB(endpoint string) ([]byte, error) {
-  separator := "?"
-  if strings.Contains(endpoint, "?") {
-    separator = "&"
-  }
-
-  url := fmt.Sprintf("%s%s%sapi_key=%s", config.TMDB_API_BASE_URL, endpoint, separator, config.API_KEY)
+func FetchFromTMDB(endpoint string, params string) ([]byte, error) {
+  url := fmt.Sprintf("%s%s?api_key=%s&%s", config.TMDB_API_BASE_URL, endpoint, config.API_KEY, params)
 
   resp, err := http.Get(url)
   if err != nil {
@@ -28,5 +22,4 @@ func FetchFromTMDB(endpoint string) ([]byte, error) {
   }
   return body, nil
 }
-
 

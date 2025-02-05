@@ -29,12 +29,12 @@ func FetchFiltredMovies(filters structs.MovieFilter) ([]structs.Movie, error){
 	if filters.Page > 0 {
 		queryParams = append(queryParams, fmt.Sprintf("page=%d", filters.Page))
 	}
-
+  var paramsString string
 	if len(queryParams) > 0 {
-		endpoint = fmt.Sprintf("%s?%s", endpoint, strings.Join(queryParams, "&"))
+		 paramsString = fmt.Sprintf("%s?%s", endpoint, strings.Join(queryParams, "&"))
 	}
 
-	body, err := FetchFromTMDB(endpoint)
+	body, err := FetchFromTMDB(endpoint, paramsString)
 	if err != nil {
 		return nil, err
 	}
