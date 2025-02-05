@@ -6,7 +6,10 @@ import (
 	"myfavouritemovies/structs"
 
 	"golang.org/x/exp/slices"
+<<<<<<< HEAD
 	"gorm.io/gorm"
+=======
+>>>>>>> master
 )
 
 func GetAllGenres() ([]structs.Genre, error) {
