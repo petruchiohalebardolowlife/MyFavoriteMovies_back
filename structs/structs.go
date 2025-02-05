@@ -66,3 +66,8 @@ type MovieDetails struct {
 	Genres      []Genre `json:"genres"`
 	Overview    string  `json:"overview"`
 }
+
+type ResponseFiltredMovies struct {
+	Page    int     `json:"page"`
+	Results []Movie `json:"results"`
+}

@@ -39,14 +39,10 @@ func FetchFiltredMovies(filters structs.MovieFilter) ([]structs.Movie, error){
 		return nil, err
 	}
 
-	var response struct {
-    Page int `json:"page"`
-		Results []structs.Movie `json:"results"`
-	}
-
+	var response structs.ResponseFiltredMovies
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
-
+  
 	return response.Results, nil
 }
