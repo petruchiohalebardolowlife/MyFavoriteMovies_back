@@ -10,35 +10,35 @@ import (
 )
 
 func GetAllGenres() ([]structs.Genre, error) {
-	var genres []structs.Genre
-	if err := database.DB.Find(&genres).Error; err != nil {
-		return nil, err
-	}
-	return genres, nil
+  var genres []structs.Genre
+  if err := database.DB.Find(&genres).Error; err != nil {
+    return nil, err
+  }
+  return genres, nil
 }
 
 func SaveGenresToDB(db *gorm.DB, genres []structs.Genre) error {
-	existingGenres, err := GetAllGenres()
+  existingGenres, err := GetAllGenres()
   if err != nil {
       return err
   }
 
-	var newGenres []structs.Genre
-	for _, genre := range genres {
-		if !slices.ContainsFunc(existingGenres, func(gen structs.Genre) bool {
-			return gen.ID == genre.ID
-		}) {
-			newGenres = append(newGenres, genre)
-		}
-	}
+  var newGenres []structs.Genre
+  for _, genre := range genres {
+    if !slices.ContainsFunc(existingGenres, func(gen structs.Genre) bool {
+      return gen.ID == genre.ID
+    }) {
+      newGenres = append(newGenres, genre)
+    }
+  }
 
-	if len(newGenres) > 0 {
-		if err := db.Create(&newGenres).Error; err != nil {
-			return err
-		}
-	}
+  if len(newGenres) > 0 {
+    if err := db.Create(&newGenres).Error; err != nil {
+      return err
+    }
+  }
 
-	return nil
+  return nil
 }
 
 func AddFavoriteGenre(userID, genreID uint) error {

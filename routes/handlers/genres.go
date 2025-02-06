@@ -18,7 +18,7 @@ func AddFavoriteGenreHandler(c *gin.Context) {
         return
     }
 
-    if err := repository.AddFavoriteGenre(user.ID, input.GenreID); err != nil {
+    if err := repository.AddFavoriteGenre(uint(user.ID), input.GenreID); err != nil {
         if err.Error() == "genre already in favorites" {
             c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
             return
@@ -40,7 +40,7 @@ func DeleteFavoriteGenreHandler(c *gin.Context) {
       return
   }
 
-  if err := repository.DeleteFavoriteGenre(user.ID, input.GenreID); err != nil {
+  if err := repository.DeleteFavoriteGenre(uint(user.ID), input.GenreID); err != nil {
       if err.Error() == "genre not in favorites" {
           c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
           return

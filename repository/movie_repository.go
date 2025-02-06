@@ -8,13 +8,13 @@ import (
 )
 
 func AddFavoriteMovie(userID uint, input structs.Movie) error {
-  if _, err := utils.FindFavoriteMovie(userID, input.MovieID); err == nil {
+  if _, err := utils.FindFavoriteMovie(userID, uint(input.ID)); err == nil {
       return errors.New("movie already in favorites")
   }
 
   newFavorite := structs.FavoriteMovie{
       UserID:      userID,
-      MovieID:     input.MovieID,
+      MovieID:     uint(input.ID),
       Title:       input.Title,
       PosterPath:  input.PosterPath,
       VoteAverage: input.VoteAverage,

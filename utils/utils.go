@@ -9,18 +9,18 @@ import (
 )
 
 func BindJSON (c *gin.Context, input interface{}) bool {
-	if err:=c.ShouldBindJSON(input);err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
-		return false
-	}
-	return true
+  if err:=c.ShouldBindJSON(input);err != nil {
+    c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
+    return false
+  }
+  return true
 }
 
 
 func FindFavoriteMovie(userID, movieID uint) (structs.FavoriteMovie, error) {
-	var favMovie structs.FavoriteMovie
-	err := database.DB.Where("user_id = ? AND movie_id = ?", userID, movieID).First(&favMovie).Error
-	return favMovie, err
+  var favMovie structs.FavoriteMovie
+  err := database.DB.Where("user_id = ? AND movie_id = ?", userID, movieID).First(&favMovie).Error
+  return favMovie, err
 }
 
 func HardcodedUserMiddleware() gin.HandlerFunc {
