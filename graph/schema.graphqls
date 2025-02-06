@@ -1,0 +1,100 @@
+type User {
+  id: ID!
+  nickName: String!
+  username: String!
+  favoriteMovies: [FavoriteMovie!]!
+  favoriteGenres: [FavoriteGenre!]!
+}
+
+type Genre {
+  id: ID!
+  name: String!
+}
+
+type FavoriteMovie {
+  id: ID!
+  userId: ID!
+  movieId: ID!
+  title: String!
+  posterPath: String!
+  voteAverage: Float!
+  watched: Boolean!
+  genres: [Genre!]!
+}
+
+type Movie {
+  id: ID!
+  title: String!
+  posterPath: String!
+  voteAverage: Float!
+  genreIds: [ID!]!
+  genres: [Genre!]!
+}
+
+type FavoriteGenre {
+  id: ID!
+  userId: ID!
+  genreId: ID!
+}
+
+type MovieDetails {
+  title: String!
+  rating: Float!
+  releaseDate: String!
+  posterPath: String!
+  genres: [Genre!]!
+  overview: String!
+}
+
+input MovieFilter {
+  genreIDs: [Int!]
+  popularity: Float
+  year: Int
+  page: Int
+}
+
+type ResponseFilteredMovies {
+  page: Int!
+  results: [Movie!]!
+}
+
+input SignInInput {
+  username: String!
+  password: String!
+}
+
+type Query {
+  getUser(id: ID!): User
+  getAllGenres: [Genre!]!
+  getFavoriteMovies(userId: ID!): [FavoriteMovie!]!
+  getMovieDetails(movieId: ID!): MovieDetails!
+  filterMovies(filter: MovieFilter!): ResponseFilteredMovies!
+}
+
+type Mutation {
+  createUser(nickName: String!, username: String!, password: String!): User!
+  deleteUser(id: ID!): Boolean!
+  updateUser(
+    id: ID!
+    nickName: String
+    username: String
+    password: String
+  ): User!
+
+  addFavoriteMovie(
+    userId: ID!
+    movieId: ID!
+    title: String!
+    posterPath: String!
+    voteAverage: Float!
+  ): FavoriteMovie!
+  removeFavoriteMovie(userId: ID!, movieId: ID!): Boolean!
+  markMovieAsWatched(
+    userId: ID!
+    movieId: ID!
+    watched: Boolean!
+  ): FavoriteMovie!
+
+  addFavoriteGenre(userId: ID!, genreId: ID!): FavoriteGenre!
+  removeFavoriteGenre(userId: ID!, genreId: ID!): Boolean!
+}
