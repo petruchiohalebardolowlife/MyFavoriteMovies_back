@@ -62,7 +62,7 @@ input SignInInput {
 }
 
 type Query {
-  getUser(id: ID!): User!
+  getUser: User!
   getAllGenres: [Genre!]!
   getAllFavoriteGenres(userID: ID!): [FavoriteGenre!]
   getFavoriteMovies(userID: ID!): [FavoriteMovie!]
@@ -72,13 +72,8 @@ type Query {
 
 type Mutation {
   createUser(nickName: String!, userName: String!, password: String!): User!
-  deleteUser(id: ID!): Boolean!
-  updateUser(
-    id: ID!
-    nickName: String!
-    userName: String!
-    password: String!
-  ): User!
+  deleteUser: Boolean!
+  updateUser(nickName: String, password: String): Boolean!
 
   addFavoriteMovie(
     userID: ID!

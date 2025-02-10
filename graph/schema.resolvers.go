@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"myfavouritemovies/repository"
 	"myfavouritemovies/structs"
+	"myfavouritemovies/utils"
 )
 
 // CreateUser is the resolver for the createUser field.
@@ -21,20 +22,35 @@ func (r *mutationResolver) CreateUser(ctx context.Context, nickName string, user
 	if err := repository.AddUser(user); err != nil {
 		return nil, err
 	}
+
 	return user, nil
 }
 
 // DeleteUser is the resolver for the deleteUser field.
-func (r *mutationResolver) DeleteUser(ctx context.Context, userID int32) (bool, error) {
-	if err := repository.DeleteUser(userID); err != nil {
-    return false, err
-  }
-  return true, nil
+func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
+	user, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return false, errUser
+	}
+
+	if err := repository.DeleteUser(user.ID); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // UpdateUser is the resolver for the updateUser field.
-func (r *mutationResolver) UpdateUser(ctx context.Context, id int32, nickName string, userName string, password string) (*structs.User, error) {
-	panic(fmt.Errorf("not implemented: UpdateUser - updateUser"))
+func (r *mutationResolver) UpdateUser(ctx context.Context, nickName *string, password *string) (bool, error) {
+	user, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return false, errUser
+	}
+	_, err := repository.UpdateUser(user, nickName, password)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // AddFavoriteMovie is the resolver for the addFavoriteMovie field.
@@ -63,8 +79,12 @@ func (r *mutationResolver) RemoveFavoriteGenre(ctx context.Context, userID int32
 }
 
 // GetUser is the resolver for the getUser field.
-func (r *queryResolver) GetUser(ctx context.Context, id int32) (*structs.User, error) {
-	return &structs.User{ID: id, UserName: "John Doe", FavoriteMovies: []*structs.FavoriteMovie{}}, nil
+func (r *queryResolver) GetUser(ctx context.Context) (*structs.User, error) {
+	user, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return nil, errUser
+	}
+	return user, nil
 }
 
 // GetAllGenres is the resolver for the getAllGenres field.
@@ -92,6 +112,7 @@ func (r *queryResolver) GetFavoriteMovies(ctx context.Context, userID int32) ([]
 	if err != nil {
 		return nil, err
 	}
+
 	return favMovies, nil
 }
 

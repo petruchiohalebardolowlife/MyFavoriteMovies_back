@@ -25,7 +25,7 @@ func AddUserHandler(c *gin.Context) {
 
 func UpdateUserHandler(c *gin.Context) {
   user, errUser := utils.GetContextUser(c)
-  if !errUser || !utils.BindJSON(c, &user) {
+  if errUser!=nil || !utils.BindJSON(c, &user) {
       return
   }
 

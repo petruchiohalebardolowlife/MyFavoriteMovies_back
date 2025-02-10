@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+	"errors"
 	"myfavouritemovies/database"
 	"myfavouritemovies/structs"
 	"net/http"
@@ -25,33 +27,25 @@ func FindFavoriteMovie(userID, movieID int32) (structs.FavoriteMovie, error) {
   return favMovie, err
 }
 
-func HardcodedUserMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        user := structs.User{
-            ID:       671,
-            NickName: "Vasiliy",
-            UserName: "Vasya",
-        }
-
-        c.Set("user", user)
-        c.Next()
+func HardcodedUserMiddleware(next http.Handler) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    user := structs.User{
+      ID:       671,
+      NickName: "Vasiliy",
+      UserName: "Vasya",
     }
+
+    ctx := context.WithValue(r.Context(), "user", user)
+    next.ServeHTTP(w, r.WithContext(ctx))
+   })
 }
 
-func GetContextUser(c *gin.Context) (*structs.User, bool) {
-    userInterface, exists := c.Get("user")
-    if !exists {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-        return nil, false
-    }
-
-    user, errUser := userInterface.(structs.User)
-    if !errUser {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse user from context"})
-        return nil, false
-    }
-
-    return &user, true
+func GetContextUser(ctx context.Context) (*structs.User, error) {
+  user, errUser := ctx.Value("user").(structs.User)
+  if !errUser {
+    return nil, errors.New("User is not in context")
+  }
+  return &user, nil
 }
 
 func GetGenreNameByID(genreID int32, db *gorm.DB) string {

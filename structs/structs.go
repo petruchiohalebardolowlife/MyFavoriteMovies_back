@@ -6,12 +6,12 @@ import (
 
 type User struct {
   gorm.Model
-	ID             int32           `json:"id"`
-	NickName       string           `json:"nickName"`
-	UserName       string           `json:"userName"`
+  ID             int32           `json:"id"`
+  NickName       string           `json:"nickName"`
+  UserName       string           `json:"userName"`
   Password string `json:"password"`
-	FavoriteMovies []*FavoriteMovie `json:"favoriteMovies"`
-	FavoriteGenres []*FavoriteGenre `json:"favoriteGenres"`
+  FavoriteMovies []*FavoriteMovie `json:"favoriteMovies"`
+  FavoriteGenres []*FavoriteGenre `json:"favoriteGenres"`
 }
 
 

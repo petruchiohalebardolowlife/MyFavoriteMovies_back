@@ -8,6 +8,7 @@ import (
 	"myfavouritemovies/graph"
 	"myfavouritemovies/repository"
 	"myfavouritemovies/service"
+	"myfavouritemovies/utils"
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -21,10 +22,10 @@ import (
 
 func main() {
   db := database.InitDB()
-	if db == nil {
-		log.Fatal("Failed to initialize the database.")
-	}
-	fmt.Println("Database tables created successfully!")
+  if db == nil {
+    log.Fatal("Failed to initialize the database.")
+  }
+  fmt.Println("Database tables created successfully!")
   resolver := &graph.Resolver{}
 
   genres, err := service.FetchGenres()
@@ -48,8 +49,8 @@ func main() {
     Cache: lru.New[string](100),
   })
 
-  http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-  http.Handle("/query", srv)
+  http.Handle("/", utils.HardcodedUserMiddleware(playground.Handler("GraphQL playground", "/query")))
+  http.Handle("/query", utils.HardcodedUserMiddleware(srv))
 
   log.Printf("connect to http://localhost:%s/ for GraphQL playground", config.SRVR_PORT)
   log.Fatal(http.ListenAndServe(":"+config.SRVR_PORT, nil))
