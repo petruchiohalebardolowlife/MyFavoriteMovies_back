@@ -22,7 +22,7 @@ func main() {
   if err != nil {
     log.Fatalf("Failed to fetch genres: %v", err)
   }
-  if err := repository.SaveGenresToDB(db, genres); err != nil {
+  if err := repository.SaveGenresToDB(genres); err != nil {
     log.Fatalf("Failed to add genres: %v", err)
   }
 

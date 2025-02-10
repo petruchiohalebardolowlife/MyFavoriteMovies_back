@@ -8,7 +8,8 @@ type User struct {
   gorm.Model
 	ID             int32           `json:"id"`
 	NickName       string           `json:"nickName"`
-	Username       string           `json:"username"`
+	UserName       string           `json:"userName"`
+  Password string `json:"password"`
 	FavoriteMovies []*FavoriteMovie `json:"favoriteMovies"`
 	FavoriteGenres []*FavoriteGenre `json:"favoriteGenres"`
 }
@@ -22,8 +23,8 @@ type Genre struct {
 
 type FavoriteMovie struct {
   gorm.Model
-  UserID      uint    `json:"user_id"`
-  MovieID     uint    `json:"movie_id"`
+  UserID      int32    `json:"user_id"`
+  MovieID     int32    `json:"movie_id"`
   Title       string  `json:"title"`
   PosterPath  string  `json:"poster_path"`
   VoteAverage float64 `json:"vote_average"`
@@ -33,8 +34,8 @@ type FavoriteMovie struct {
 
 type FavoriteGenre struct {
   gorm.Model
-  UserID  uint
-  GenreID uint
+  UserID  int32
+  GenreID int32
 }
 
 type SignIn struct {

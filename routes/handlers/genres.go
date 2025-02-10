@@ -10,7 +10,7 @@ import (
 
 func AddFavoriteGenreHandler(c *gin.Context) {
     var input struct {
-        GenreID uint `json:"genre_id"`
+        GenreID int32 `json:"genre_id"`
     }
 
     user, errUser := utils.GetContextUser(c)
@@ -18,7 +18,7 @@ func AddFavoriteGenreHandler(c *gin.Context) {
         return
     }
 
-    if err := repository.AddFavoriteGenre(uint(user.ID), input.GenreID); err != nil {
+    if err := repository.AddFavoriteGenre(user.ID, input.GenreID); err != nil {
         if err.Error() == "genre already in favorites" {
             c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
             return
@@ -32,7 +32,7 @@ func AddFavoriteGenreHandler(c *gin.Context) {
 
 func DeleteFavoriteGenreHandler(c *gin.Context) {
   var input struct {
-      GenreID uint `json:"genre_id"`
+      GenreID int32 `json:"genre_id"`
   }
 
   user, errUser := utils.GetContextUser(c)
@@ -40,7 +40,7 @@ func DeleteFavoriteGenreHandler(c *gin.Context) {
       return
   }
 
-  if err := repository.DeleteFavoriteGenre(uint(user.ID), input.GenreID); err != nil {
+  if err := repository.DeleteFavoriteGenre(user.ID, input.GenreID); err != nil {
       if err.Error() == "genre not in favorites" {
           c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
           return

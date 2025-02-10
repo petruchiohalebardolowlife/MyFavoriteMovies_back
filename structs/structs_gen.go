@@ -3,12 +3,11 @@
 package structs
 
 type Movie struct {
-	ID          int32    `json:"id"`
-	Title       string   `json:"title"`
-	PosterPath  string   `json:"posterPath"`
-	VoteAverage float64  `json:"voteAverage"`
-	GenreIds    []int32  `json:"genreIds"`
-	Genres      []*Genre `json:"genres"`
+	ID          int32   `json:"id"`
+	Title       string  `json:"title"`
+	PosterPath  string  `json:"posterPath"`
+	VoteAverage float64 `json:"voteAverage"`
+	GenreIDs    []int32 `json:"genreIDs"`
 }
 
 type MovieDetails struct {
@@ -35,7 +34,7 @@ type Query struct {
 
 type ResponseFilteredMovies struct {
 	Page    int32    `json:"page"`
-	Results []*Movie `json:"results"`
+	Results []*Movie `json:"results,omitempty"`
 }
 
 type SignInInput struct {

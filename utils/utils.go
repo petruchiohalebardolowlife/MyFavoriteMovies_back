@@ -5,6 +5,8 @@ import (
 	"myfavouritemovies/structs"
 	"net/http"
 
+	"gorm.io/gorm"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +19,7 @@ func BindJSON (c *gin.Context, input interface{}) bool {
 }
 
 
-func FindFavoriteMovie(userID, movieID uint) (structs.FavoriteMovie, error) {
+func FindFavoriteMovie(userID, movieID int32) (structs.FavoriteMovie, error) {
   var favMovie structs.FavoriteMovie
   err := database.DB.Where("user_id = ? AND movie_id = ?", userID, movieID).First(&favMovie).Error
   return favMovie, err
@@ -28,7 +30,7 @@ func HardcodedUserMiddleware() gin.HandlerFunc {
         user := structs.User{
             ID:       671,
             NickName: "Vasiliy",
-            Username: "Vasya",
+            UserName: "Vasya",
         }
 
         c.Set("user", user)
@@ -50,4 +52,12 @@ func GetContextUser(c *gin.Context) (*structs.User, bool) {
     }
 
     return &user, true
+}
+
+func GetGenreNameByID(genreID int32, db *gorm.DB) string {
+  var genre structs.Genre
+  if err := db.Where("id = ?", genreID).First(&genre).Error; err != nil {
+      return ""
+  }
+  return genre.Name
 }

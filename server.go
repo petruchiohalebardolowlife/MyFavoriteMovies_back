@@ -6,6 +6,8 @@ import (
 	config "myfavouritemovies/configs"
 	"myfavouritemovies/database"
 	"myfavouritemovies/graph"
+	"myfavouritemovies/repository"
+	"myfavouritemovies/service"
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -23,8 +25,17 @@ func main() {
 		log.Fatal("Failed to initialize the database.")
 	}
 	fmt.Println("Database tables created successfully!")
+  resolver := &graph.Resolver{}
 
-  srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+  genres, err := service.FetchGenres()
+  if err != nil {
+    log.Fatalf("Failed to fetch genres: %v", err)
+  }
+  if err := repository.SaveGenresToDB(genres); err != nil {
+    log.Fatalf("Failed to add genres: %v", err)
+  }
+
+  srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
 
   srv.AddTransport(transport.Options{})
   srv.AddTransport(transport.GET{})

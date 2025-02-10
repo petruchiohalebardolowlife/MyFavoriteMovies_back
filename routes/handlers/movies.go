@@ -17,7 +17,7 @@ func AddFavoriteMovieHandler(c *gin.Context) {
       return
   }
 
-  if err := repository.AddFavoriteMovie(uint(user.ID), input); err != nil {
+  if err := repository.AddFavoriteMovie(user.ID, input); err != nil {
       c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
       return
   }
@@ -27,7 +27,7 @@ func AddFavoriteMovieHandler(c *gin.Context) {
 
 func ToggleWatchedStatusHandler(c *gin.Context) {
   var input struct {
-      MovieID uint `json:"movie_id"`
+      MovieID int32 `json:"movie_id"`
   }
 
   user, errUser := utils.GetContextUser(c)
@@ -35,7 +35,7 @@ func ToggleWatchedStatusHandler(c *gin.Context) {
       return
   }
 
-  if err := repository.ToggleWatchedStatus(uint(user.ID), input.MovieID); err != nil {
+  if err := repository.ToggleWatchedStatus(user.ID, input.MovieID); err != nil {
       c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
       return
   }
@@ -45,7 +45,7 @@ func ToggleWatchedStatusHandler(c *gin.Context) {
 
 func DeleteFavoriteMovieHandler(c *gin.Context) {
   var input struct {
-      MovieID uint `json:"movie_id"`
+      MovieID int32 `json:"movie_id"`
   }
 
   user, errUser := utils.GetContextUser(c)
@@ -53,7 +53,7 @@ func DeleteFavoriteMovieHandler(c *gin.Context) {
       return
   }
 
-  if err := repository.DeleteFavoriteMovie(uint(user.ID), input.MovieID); err != nil {
+  if err := repository.DeleteFavoriteMovie(user.ID, input.MovieID); err != nil {
       c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
       return
   }

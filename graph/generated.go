@@ -39,9 +39,6 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	FavoriteGenre() FavoriteGenreResolver
-	FavoriteMovie() FavoriteMovieResolver
-	Genre() GenreResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -52,13 +49,11 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	FavoriteGenre struct {
 		GenreID func(childComplexity int) int
-		ID      func(childComplexity int) int
 		UserID  func(childComplexity int) int
 	}
 
 	FavoriteMovie struct {
 		Genres      func(childComplexity int) int
-		ID          func(childComplexity int) int
 		MovieID     func(childComplexity int) int
 		PosterPath  func(childComplexity int) int
 		Title       func(childComplexity int) int
@@ -73,8 +68,7 @@ type ComplexityRoot struct {
 	}
 
 	Movie struct {
-		GenreIds    func(childComplexity int) int
-		Genres      func(childComplexity int) int
+		GenreIDs    func(childComplexity int) int
 		ID          func(childComplexity int) int
 		PosterPath  func(childComplexity int) int
 		Title       func(childComplexity int) int
@@ -93,20 +87,21 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddFavoriteGenre    func(childComplexity int, userID int32, genreID int32) int
 		AddFavoriteMovie    func(childComplexity int, userID int32, movieID int32, title string, posterPath string, voteAverage float64) int
-		CreateUser          func(childComplexity int, nickName string, username string, password string) int
+		CreateUser          func(childComplexity int, nickName string, userName string, password string) int
 		DeleteUser          func(childComplexity int, id int32) int
 		MarkMovieAsWatched  func(childComplexity int, userID int32, movieID int32, watched bool) int
 		RemoveFavoriteGenre func(childComplexity int, userID int32, genreID int32) int
 		RemoveFavoriteMovie func(childComplexity int, userID int32, movieID int32) int
-		UpdateUser          func(childComplexity int, id int32, nickName *string, username *string, password *string) int
+		UpdateUser          func(childComplexity int, id int32, nickName string, userName string, password string) int
 	}
 
 	Query struct {
-		FilterMovies      func(childComplexity int, filter structs.MovieFilter) int
-		GetAllGenres      func(childComplexity int) int
-		GetFavoriteMovies func(childComplexity int, userID int32) int
-		GetMovieDetails   func(childComplexity int, movieID int32) int
-		GetUser           func(childComplexity int, id int32) int
+		GetAllFavoriteGenres func(childComplexity int, userID int32) int
+		GetAllGenres         func(childComplexity int) int
+		GetFavoriteMovies    func(childComplexity int, userID int32) int
+		GetFilteredMovies    func(childComplexity int, filter structs.MovieFilter) int
+		GetMovieDetails      func(childComplexity int, movieID int32) int
+		GetUser              func(childComplexity int, id int32) int
 	}
 
 	ResponseFilteredMovies struct {
@@ -119,27 +114,15 @@ type ComplexityRoot struct {
 		FavoriteMovies func(childComplexity int) int
 		ID             func(childComplexity int) int
 		NickName       func(childComplexity int) int
-		Username       func(childComplexity int) int
+		Password       func(childComplexity int) int
+		UserName       func(childComplexity int) int
 	}
 }
 
-type FavoriteGenreResolver interface {
-	ID(ctx context.Context, obj *structs.FavoriteGenre) (int32, error)
-	UserID(ctx context.Context, obj *structs.FavoriteGenre) (int32, error)
-	GenreID(ctx context.Context, obj *structs.FavoriteGenre) (int32, error)
-}
-type FavoriteMovieResolver interface {
-	ID(ctx context.Context, obj *structs.FavoriteMovie) (int32, error)
-	UserID(ctx context.Context, obj *structs.FavoriteMovie) (int32, error)
-	MovieID(ctx context.Context, obj *structs.FavoriteMovie) (int32, error)
-}
-type GenreResolver interface {
-	ID(ctx context.Context, obj *structs.Genre) (int32, error)
-}
 type MutationResolver interface {
-	CreateUser(ctx context.Context, nickName string, username string, password string) (*structs.User, error)
+	CreateUser(ctx context.Context, nickName string, userName string, password string) (*structs.User, error)
 	DeleteUser(ctx context.Context, id int32) (bool, error)
-	UpdateUser(ctx context.Context, id int32, nickName *string, username *string, password *string) (*structs.User, error)
+	UpdateUser(ctx context.Context, id int32, nickName string, userName string, password string) (*structs.User, error)
 	AddFavoriteMovie(ctx context.Context, userID int32, movieID int32, title string, posterPath string, voteAverage float64) (*structs.FavoriteMovie, error)
 	RemoveFavoriteMovie(ctx context.Context, userID int32, movieID int32) (bool, error)
 	MarkMovieAsWatched(ctx context.Context, userID int32, movieID int32, watched bool) (*structs.FavoriteMovie, error)
@@ -149,9 +132,10 @@ type MutationResolver interface {
 type QueryResolver interface {
 	GetUser(ctx context.Context, id int32) (*structs.User, error)
 	GetAllGenres(ctx context.Context) ([]*structs.Genre, error)
+	GetAllFavoriteGenres(ctx context.Context, userID int32) ([]*structs.FavoriteGenre, error)
 	GetFavoriteMovies(ctx context.Context, userID int32) ([]*structs.FavoriteMovie, error)
 	GetMovieDetails(ctx context.Context, movieID int32) (*structs.MovieDetails, error)
-	FilterMovies(ctx context.Context, filter structs.MovieFilter) (*structs.ResponseFilteredMovies, error)
+	GetFilteredMovies(ctx context.Context, filter structs.MovieFilter) (*structs.ResponseFilteredMovies, error)
 }
 
 type executableSchema struct {
@@ -173,21 +157,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "FavoriteGenre.genreId":
+	case "FavoriteGenre.genreID":
 		if e.complexity.FavoriteGenre.GenreID == nil {
 			break
 		}
 
 		return e.complexity.FavoriteGenre.GenreID(childComplexity), true
 
-	case "FavoriteGenre.id":
-		if e.complexity.FavoriteGenre.ID == nil {
-			break
-		}
-
-		return e.complexity.FavoriteGenre.ID(childComplexity), true
-
-	case "FavoriteGenre.userId":
+	case "FavoriteGenre.userID":
 		if e.complexity.FavoriteGenre.UserID == nil {
 			break
 		}
@@ -201,14 +178,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FavoriteMovie.Genres(childComplexity), true
 
-	case "FavoriteMovie.id":
-		if e.complexity.FavoriteMovie.ID == nil {
-			break
-		}
-
-		return e.complexity.FavoriteMovie.ID(childComplexity), true
-
-	case "FavoriteMovie.movieId":
+	case "FavoriteMovie.movieID":
 		if e.complexity.FavoriteMovie.MovieID == nil {
 			break
 		}
@@ -229,7 +199,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FavoriteMovie.Title(childComplexity), true
 
-	case "FavoriteMovie.userId":
+	case "FavoriteMovie.userID":
 		if e.complexity.FavoriteMovie.UserID == nil {
 			break
 		}
@@ -264,19 +234,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Genre.Name(childComplexity), true
 
-	case "Movie.genreIds":
-		if e.complexity.Movie.GenreIds == nil {
+	case "Movie.genreIDs":
+		if e.complexity.Movie.GenreIDs == nil {
 			break
 		}
 
-		return e.complexity.Movie.GenreIds(childComplexity), true
-
-	case "Movie.genres":
-		if e.complexity.Movie.Genres == nil {
-			break
-		}
-
-		return e.complexity.Movie.Genres(childComplexity), true
+		return e.complexity.Movie.GenreIDs(childComplexity), true
 
 	case "Movie.id":
 		if e.complexity.Movie.ID == nil {
@@ -358,7 +321,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddFavoriteGenre(childComplexity, args["userId"].(int32), args["genreId"].(int32)), true
+		return e.complexity.Mutation.AddFavoriteGenre(childComplexity, args["userID"].(int32), args["genreID"].(int32)), true
 
 	case "Mutation.addFavoriteMovie":
 		if e.complexity.Mutation.AddFavoriteMovie == nil {
@@ -370,7 +333,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddFavoriteMovie(childComplexity, args["userId"].(int32), args["movieId"].(int32), args["title"].(string), args["posterPath"].(string), args["voteAverage"].(float64)), true
+		return e.complexity.Mutation.AddFavoriteMovie(childComplexity, args["userID"].(int32), args["movieID"].(int32), args["title"].(string), args["posterPath"].(string), args["voteAverage"].(float64)), true
 
 	case "Mutation.createUser":
 		if e.complexity.Mutation.CreateUser == nil {
@@ -382,7 +345,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateUser(childComplexity, args["nickName"].(string), args["username"].(string), args["password"].(string)), true
+		return e.complexity.Mutation.CreateUser(childComplexity, args["nickName"].(string), args["userName"].(string), args["password"].(string)), true
 
 	case "Mutation.deleteUser":
 		if e.complexity.Mutation.DeleteUser == nil {
@@ -406,7 +369,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MarkMovieAsWatched(childComplexity, args["userId"].(int32), args["movieId"].(int32), args["watched"].(bool)), true
+		return e.complexity.Mutation.MarkMovieAsWatched(childComplexity, args["userID"].(int32), args["movieID"].(int32), args["watched"].(bool)), true
 
 	case "Mutation.removeFavoriteGenre":
 		if e.complexity.Mutation.RemoveFavoriteGenre == nil {
@@ -418,7 +381,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveFavoriteGenre(childComplexity, args["userId"].(int32), args["genreId"].(int32)), true
+		return e.complexity.Mutation.RemoveFavoriteGenre(childComplexity, args["userID"].(int32), args["genreID"].(int32)), true
 
 	case "Mutation.removeFavoriteMovie":
 		if e.complexity.Mutation.RemoveFavoriteMovie == nil {
@@ -430,7 +393,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveFavoriteMovie(childComplexity, args["userId"].(int32), args["movieId"].(int32)), true
+		return e.complexity.Mutation.RemoveFavoriteMovie(childComplexity, args["userID"].(int32), args["movieID"].(int32)), true
 
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
@@ -442,19 +405,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUser(childComplexity, args["id"].(int32), args["nickName"].(*string), args["username"].(*string), args["password"].(*string)), true
+		return e.complexity.Mutation.UpdateUser(childComplexity, args["id"].(int32), args["nickName"].(string), args["userName"].(string), args["password"].(string)), true
 
-	case "Query.filterMovies":
-		if e.complexity.Query.FilterMovies == nil {
+	case "Query.getAllFavoriteGenres":
+		if e.complexity.Query.GetAllFavoriteGenres == nil {
 			break
 		}
 
-		args, err := ec.field_Query_filterMovies_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_getAllFavoriteGenres_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.FilterMovies(childComplexity, args["filter"].(structs.MovieFilter)), true
+		return e.complexity.Query.GetAllFavoriteGenres(childComplexity, args["userID"].(int32)), true
 
 	case "Query.getAllGenres":
 		if e.complexity.Query.GetAllGenres == nil {
@@ -473,7 +436,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetFavoriteMovies(childComplexity, args["userId"].(int32)), true
+		return e.complexity.Query.GetFavoriteMovies(childComplexity, args["userID"].(int32)), true
+
+	case "Query.getFilteredMovies":
+		if e.complexity.Query.GetFilteredMovies == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getFilteredMovies_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetFilteredMovies(childComplexity, args["filter"].(structs.MovieFilter)), true
 
 	case "Query.getMovieDetails":
 		if e.complexity.Query.GetMovieDetails == nil {
@@ -485,7 +460,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetMovieDetails(childComplexity, args["movieId"].(int32)), true
+		return e.complexity.Query.GetMovieDetails(childComplexity, args["movieID"].(int32)), true
 
 	case "Query.getUser":
 		if e.complexity.Query.GetUser == nil {
@@ -541,12 +516,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.NickName(childComplexity), true
 
-	case "User.username":
-		if e.complexity.User.Username == nil {
+	case "User.password":
+		if e.complexity.User.Password == nil {
 			break
 		}
 
-		return e.complexity.User.Username(childComplexity), true
+		return e.complexity.User.Password(childComplexity), true
+
+	case "User.userName":
+		if e.complexity.User.UserName == nil {
+			break
+		}
+
+		return e.complexity.User.UserName(childComplexity), true
 
 	}
 	return 0, false
@@ -681,20 +663,20 @@ func (ec *executionContext) field_Mutation_addFavoriteGenre_args(ctx context.Con
 	if err != nil {
 		return nil, err
 	}
-	args["userId"] = arg0
+	args["userID"] = arg0
 	arg1, err := ec.field_Mutation_addFavoriteGenre_argsGenreID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["genreId"] = arg1
+	args["genreID"] = arg1
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_addFavoriteGenre_argsUserID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-	if tmp, ok := rawArgs["userId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["userID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -706,8 +688,8 @@ func (ec *executionContext) field_Mutation_addFavoriteGenre_argsGenreID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("genreId"))
-	if tmp, ok := rawArgs["genreId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("genreID"))
+	if tmp, ok := rawArgs["genreID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -722,12 +704,12 @@ func (ec *executionContext) field_Mutation_addFavoriteMovie_args(ctx context.Con
 	if err != nil {
 		return nil, err
 	}
-	args["userId"] = arg0
+	args["userID"] = arg0
 	arg1, err := ec.field_Mutation_addFavoriteMovie_argsMovieID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["movieId"] = arg1
+	args["movieID"] = arg1
 	arg2, err := ec.field_Mutation_addFavoriteMovie_argsTitle(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -749,8 +731,8 @@ func (ec *executionContext) field_Mutation_addFavoriteMovie_argsUserID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-	if tmp, ok := rawArgs["userId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["userID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -762,8 +744,8 @@ func (ec *executionContext) field_Mutation_addFavoriteMovie_argsMovieID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieId"))
-	if tmp, ok := rawArgs["movieId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
+	if tmp, ok := rawArgs["movieID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -818,11 +800,11 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 		return nil, err
 	}
 	args["nickName"] = arg0
-	arg1, err := ec.field_Mutation_createUser_argsUsername(ctx, rawArgs)
+	arg1, err := ec.field_Mutation_createUser_argsUserName(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["username"] = arg1
+	args["userName"] = arg1
 	arg2, err := ec.field_Mutation_createUser_argsPassword(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -843,12 +825,12 @@ func (ec *executionContext) field_Mutation_createUser_argsNickName(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_createUser_argsUsername(
+func (ec *executionContext) field_Mutation_createUser_argsUserName(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-	if tmp, ok := rawArgs["username"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userName"))
+	if tmp, ok := rawArgs["userName"]; ok {
 		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
@@ -899,12 +881,12 @@ func (ec *executionContext) field_Mutation_markMovieAsWatched_args(ctx context.C
 	if err != nil {
 		return nil, err
 	}
-	args["userId"] = arg0
+	args["userID"] = arg0
 	arg1, err := ec.field_Mutation_markMovieAsWatched_argsMovieID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["movieId"] = arg1
+	args["movieID"] = arg1
 	arg2, err := ec.field_Mutation_markMovieAsWatched_argsWatched(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -916,8 +898,8 @@ func (ec *executionContext) field_Mutation_markMovieAsWatched_argsUserID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-	if tmp, ok := rawArgs["userId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["userID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -929,8 +911,8 @@ func (ec *executionContext) field_Mutation_markMovieAsWatched_argsMovieID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieId"))
-	if tmp, ok := rawArgs["movieId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
+	if tmp, ok := rawArgs["movieID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -958,20 +940,20 @@ func (ec *executionContext) field_Mutation_removeFavoriteGenre_args(ctx context.
 	if err != nil {
 		return nil, err
 	}
-	args["userId"] = arg0
+	args["userID"] = arg0
 	arg1, err := ec.field_Mutation_removeFavoriteGenre_argsGenreID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["genreId"] = arg1
+	args["genreID"] = arg1
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_removeFavoriteGenre_argsUserID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-	if tmp, ok := rawArgs["userId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["userID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -983,8 +965,8 @@ func (ec *executionContext) field_Mutation_removeFavoriteGenre_argsGenreID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("genreId"))
-	if tmp, ok := rawArgs["genreId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("genreID"))
+	if tmp, ok := rawArgs["genreID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -999,20 +981,20 @@ func (ec *executionContext) field_Mutation_removeFavoriteMovie_args(ctx context.
 	if err != nil {
 		return nil, err
 	}
-	args["userId"] = arg0
+	args["userID"] = arg0
 	arg1, err := ec.field_Mutation_removeFavoriteMovie_argsMovieID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["movieId"] = arg1
+	args["movieID"] = arg1
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_removeFavoriteMovie_argsUserID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-	if tmp, ok := rawArgs["userId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["userID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -1024,8 +1006,8 @@ func (ec *executionContext) field_Mutation_removeFavoriteMovie_argsMovieID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieId"))
-	if tmp, ok := rawArgs["movieId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
+	if tmp, ok := rawArgs["movieID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -1046,11 +1028,11 @@ func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, 
 		return nil, err
 	}
 	args["nickName"] = arg1
-	arg2, err := ec.field_Mutation_updateUser_argsUsername(ctx, rawArgs)
+	arg2, err := ec.field_Mutation_updateUser_argsUserName(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["username"] = arg2
+	args["userName"] = arg2
 	arg3, err := ec.field_Mutation_updateUser_argsPassword(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -1074,39 +1056,39 @@ func (ec *executionContext) field_Mutation_updateUser_argsID(
 func (ec *executionContext) field_Mutation_updateUser_argsNickName(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (*string, error) {
+) (string, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("nickName"))
 	if tmp, ok := rawArgs["nickName"]; ok {
-		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
-	var zeroVal *string
+	var zeroVal string
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_updateUser_argsUsername(
+func (ec *executionContext) field_Mutation_updateUser_argsUserName(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (*string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-	if tmp, ok := rawArgs["username"]; ok {
-		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userName"))
+	if tmp, ok := rawArgs["userName"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
-	var zeroVal *string
+	var zeroVal string
 	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_updateUser_argsPassword(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (*string, error) {
+) (string, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 	if tmp, ok := rawArgs["password"]; ok {
-		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
-	var zeroVal *string
+	var zeroVal string
 	return zeroVal, nil
 }
 
@@ -1133,17 +1115,63 @@ func (ec *executionContext) field_Query___type_argsName(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Query_filterMovies_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Query_getAllFavoriteGenres_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := ec.field_Query_filterMovies_argsFilter(ctx, rawArgs)
+	arg0, err := ec.field_Query_getAllFavoriteGenres_argsUserID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["userID"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_getAllFavoriteGenres_argsUserID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (int32, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["userID"]; ok {
+		return ec.unmarshalNID2int32(ctx, tmp)
+	}
+
+	var zeroVal int32
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getFavoriteMovies_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_getFavoriteMovies_argsUserID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["userID"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_getFavoriteMovies_argsUserID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (int32, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["userID"]; ok {
+		return ec.unmarshalNID2int32(ctx, tmp)
+	}
+
+	var zeroVal int32
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getFilteredMovies_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_getFilteredMovies_argsFilter(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
 	args["filter"] = arg0
 	return args, nil
 }
-func (ec *executionContext) field_Query_filterMovies_argsFilter(
+func (ec *executionContext) field_Query_getFilteredMovies_argsFilter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (structs.MovieFilter, error) {
@@ -1156,29 +1184,6 @@ func (ec *executionContext) field_Query_filterMovies_argsFilter(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Query_getFavoriteMovies_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Query_getFavoriteMovies_argsUserID(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["userId"] = arg0
-	return args, nil
-}
-func (ec *executionContext) field_Query_getFavoriteMovies_argsUserID(
-	ctx context.Context,
-	rawArgs map[string]any,
-) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-	if tmp, ok := rawArgs["userId"]; ok {
-		return ec.unmarshalNID2int32(ctx, tmp)
-	}
-
-	var zeroVal int32
-	return zeroVal, nil
-}
-
 func (ec *executionContext) field_Query_getMovieDetails_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1186,15 +1191,15 @@ func (ec *executionContext) field_Query_getMovieDetails_args(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	args["movieId"] = arg0
+	args["movieID"] = arg0
 	return args, nil
 }
 func (ec *executionContext) field_Query_getMovieDetails_argsMovieID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieId"))
-	if tmp, ok := rawArgs["movieId"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
+	if tmp, ok := rawArgs["movieID"]; ok {
 		return ec.unmarshalNID2int32(ctx, tmp)
 	}
 
@@ -1325,8 +1330,8 @@ func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _FavoriteGenre_id(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteGenre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteGenre_id(ctx, field)
+func (ec *executionContext) _FavoriteGenre_userID(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteGenre) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FavoriteGenre_userID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1339,7 +1344,7 @@ func (ec *executionContext) _FavoriteGenre_id(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.FavoriteGenre().ID(rctx, obj)
+		return obj.UserID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1356,12 +1361,12 @@ func (ec *executionContext) _FavoriteGenre_id(ctx context.Context, field graphql
 	return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FavoriteGenre_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FavoriteGenre_userID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FavoriteGenre",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
 		},
@@ -1369,8 +1374,8 @@ func (ec *executionContext) fieldContext_FavoriteGenre_id(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _FavoriteGenre_userId(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteGenre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteGenre_userId(ctx, field)
+func (ec *executionContext) _FavoriteGenre_genreID(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteGenre) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FavoriteGenre_genreID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1383,7 +1388,7 @@ func (ec *executionContext) _FavoriteGenre_userId(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.FavoriteGenre().UserID(rctx, obj)
+		return obj.GenreID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1400,12 +1405,12 @@ func (ec *executionContext) _FavoriteGenre_userId(ctx context.Context, field gra
 	return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FavoriteGenre_userId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FavoriteGenre_genreID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FavoriteGenre",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
 		},
@@ -1413,8 +1418,8 @@ func (ec *executionContext) fieldContext_FavoriteGenre_userId(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _FavoriteGenre_genreId(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteGenre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteGenre_genreId(ctx, field)
+func (ec *executionContext) _FavoriteMovie_userID(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FavoriteMovie_userID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1427,7 +1432,7 @@ func (ec *executionContext) _FavoriteGenre_genreId(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.FavoriteGenre().GenreID(rctx, obj)
+		return obj.UserID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1444,56 +1449,12 @@ func (ec *executionContext) _FavoriteGenre_genreId(ctx context.Context, field gr
 	return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FavoriteGenre_genreId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteGenre",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FavoriteMovie_id(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteMovie_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.FavoriteMovie().ID(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int32)
-	fc.Result = res
-	return ec.marshalNID2int32(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FavoriteMovie_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FavoriteMovie_userID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FavoriteMovie",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
 		},
@@ -1501,8 +1462,8 @@ func (ec *executionContext) fieldContext_FavoriteMovie_id(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _FavoriteMovie_userId(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteMovie_userId(ctx, field)
+func (ec *executionContext) _FavoriteMovie_movieID(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FavoriteMovie_movieID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1515,7 +1476,7 @@ func (ec *executionContext) _FavoriteMovie_userId(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.FavoriteMovie().UserID(rctx, obj)
+		return obj.MovieID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1532,56 +1493,12 @@ func (ec *executionContext) _FavoriteMovie_userId(ctx context.Context, field gra
 	return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FavoriteMovie_userId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FavoriteMovie_movieID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FavoriteMovie",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FavoriteMovie_movieId(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteMovie_movieId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.FavoriteMovie().MovieID(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int32)
-	fc.Result = res
-	return ec.marshalNID2int32(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FavoriteMovie_movieId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteMovie",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
 		},
@@ -1829,7 +1746,7 @@ func (ec *executionContext) _Genre_id(ctx context.Context, field graphql.Collect
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Genre().ID(rctx, obj)
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1850,8 +1767,8 @@ func (ec *executionContext) fieldContext_Genre_id(_ context.Context, field graph
 	fc = &graphql.FieldContext{
 		Object:     "Genre",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
 		},
@@ -2079,8 +1996,8 @@ func (ec *executionContext) fieldContext_Movie_voteAverage(_ context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _Movie_genreIds(ctx context.Context, field graphql.CollectedField, obj *structs.Movie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Movie_genreIds(ctx, field)
+func (ec *executionContext) _Movie_genreIDs(ctx context.Context, field graphql.CollectedField, obj *structs.Movie) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Movie_genreIDs(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2093,7 +2010,7 @@ func (ec *executionContext) _Movie_genreIds(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.GenreIds, nil
+		return obj.GenreIDs, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2110,7 +2027,7 @@ func (ec *executionContext) _Movie_genreIds(ctx context.Context, field graphql.C
 	return ec.marshalNID2ᚕint32ᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Movie_genreIds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Movie_genreIDs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Movie",
 		Field:      field,
@@ -2118,56 +2035,6 @@ func (ec *executionContext) fieldContext_Movie_genreIds(_ context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Movie_genres(ctx context.Context, field graphql.CollectedField, obj *structs.Movie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Movie_genres(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Genres, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*structs.Genre)
-	fc.Result = res
-	return ec.marshalNGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐGenreᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Movie_genres(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Movie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Genre_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Genre_name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Genre", field.Name)
 		},
 	}
 	return fc, nil
@@ -2457,7 +2324,7 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUser(rctx, fc.Args["nickName"].(string), fc.Args["username"].(string), fc.Args["password"].(string))
+		return ec.resolvers.Mutation().CreateUser(rctx, fc.Args["nickName"].(string), fc.Args["userName"].(string), fc.Args["password"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2486,8 +2353,10 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_User_id(ctx, field)
 			case "nickName":
 				return ec.fieldContext_User_nickName(ctx, field)
-			case "username":
-				return ec.fieldContext_User_username(ctx, field)
+			case "userName":
+				return ec.fieldContext_User_userName(ctx, field)
+			case "password":
+				return ec.fieldContext_User_password(ctx, field)
 			case "favoriteMovies":
 				return ec.fieldContext_User_favoriteMovies(ctx, field)
 			case "favoriteGenres":
@@ -2579,7 +2448,7 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUser(rctx, fc.Args["id"].(int32), fc.Args["nickName"].(*string), fc.Args["username"].(*string), fc.Args["password"].(*string))
+		return ec.resolvers.Mutation().UpdateUser(rctx, fc.Args["id"].(int32), fc.Args["nickName"].(string), fc.Args["userName"].(string), fc.Args["password"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2608,8 +2477,10 @@ func (ec *executionContext) fieldContext_Mutation_updateUser(ctx context.Context
 				return ec.fieldContext_User_id(ctx, field)
 			case "nickName":
 				return ec.fieldContext_User_nickName(ctx, field)
-			case "username":
-				return ec.fieldContext_User_username(ctx, field)
+			case "userName":
+				return ec.fieldContext_User_userName(ctx, field)
+			case "password":
+				return ec.fieldContext_User_password(ctx, field)
 			case "favoriteMovies":
 				return ec.fieldContext_User_favoriteMovies(ctx, field)
 			case "favoriteGenres":
@@ -2646,7 +2517,7 @@ func (ec *executionContext) _Mutation_addFavoriteMovie(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddFavoriteMovie(rctx, fc.Args["userId"].(int32), fc.Args["movieId"].(int32), fc.Args["title"].(string), fc.Args["posterPath"].(string), fc.Args["voteAverage"].(float64))
+		return ec.resolvers.Mutation().AddFavoriteMovie(rctx, fc.Args["userID"].(int32), fc.Args["movieID"].(int32), fc.Args["title"].(string), fc.Args["posterPath"].(string), fc.Args["voteAverage"].(float64))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2671,12 +2542,10 @@ func (ec *executionContext) fieldContext_Mutation_addFavoriteMovie(ctx context.C
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_FavoriteMovie_id(ctx, field)
-			case "userId":
-				return ec.fieldContext_FavoriteMovie_userId(ctx, field)
-			case "movieId":
-				return ec.fieldContext_FavoriteMovie_movieId(ctx, field)
+			case "userID":
+				return ec.fieldContext_FavoriteMovie_userID(ctx, field)
+			case "movieID":
+				return ec.fieldContext_FavoriteMovie_movieID(ctx, field)
 			case "title":
 				return ec.fieldContext_FavoriteMovie_title(ctx, field)
 			case "posterPath":
@@ -2719,7 +2588,7 @@ func (ec *executionContext) _Mutation_removeFavoriteMovie(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveFavoriteMovie(rctx, fc.Args["userId"].(int32), fc.Args["movieId"].(int32))
+		return ec.resolvers.Mutation().RemoveFavoriteMovie(rctx, fc.Args["userID"].(int32), fc.Args["movieID"].(int32))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2774,7 +2643,7 @@ func (ec *executionContext) _Mutation_markMovieAsWatched(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkMovieAsWatched(rctx, fc.Args["userId"].(int32), fc.Args["movieId"].(int32), fc.Args["watched"].(bool))
+		return ec.resolvers.Mutation().MarkMovieAsWatched(rctx, fc.Args["userID"].(int32), fc.Args["movieID"].(int32), fc.Args["watched"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2799,12 +2668,10 @@ func (ec *executionContext) fieldContext_Mutation_markMovieAsWatched(ctx context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_FavoriteMovie_id(ctx, field)
-			case "userId":
-				return ec.fieldContext_FavoriteMovie_userId(ctx, field)
-			case "movieId":
-				return ec.fieldContext_FavoriteMovie_movieId(ctx, field)
+			case "userID":
+				return ec.fieldContext_FavoriteMovie_userID(ctx, field)
+			case "movieID":
+				return ec.fieldContext_FavoriteMovie_movieID(ctx, field)
 			case "title":
 				return ec.fieldContext_FavoriteMovie_title(ctx, field)
 			case "posterPath":
@@ -2847,7 +2714,7 @@ func (ec *executionContext) _Mutation_addFavoriteGenre(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddFavoriteGenre(rctx, fc.Args["userId"].(int32), fc.Args["genreId"].(int32))
+		return ec.resolvers.Mutation().AddFavoriteGenre(rctx, fc.Args["userID"].(int32), fc.Args["genreID"].(int32))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2872,12 +2739,10 @@ func (ec *executionContext) fieldContext_Mutation_addFavoriteGenre(ctx context.C
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_FavoriteGenre_id(ctx, field)
-			case "userId":
-				return ec.fieldContext_FavoriteGenre_userId(ctx, field)
-			case "genreId":
-				return ec.fieldContext_FavoriteGenre_genreId(ctx, field)
+			case "userID":
+				return ec.fieldContext_FavoriteGenre_userID(ctx, field)
+			case "genreID":
+				return ec.fieldContext_FavoriteGenre_genreID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FavoriteGenre", field.Name)
 		},
@@ -2910,7 +2775,7 @@ func (ec *executionContext) _Mutation_removeFavoriteGenre(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveFavoriteGenre(rctx, fc.Args["userId"].(int32), fc.Args["genreId"].(int32))
+		return ec.resolvers.Mutation().RemoveFavoriteGenre(rctx, fc.Args["userID"].(int32), fc.Args["genreID"].(int32))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2972,11 +2837,14 @@ func (ec *executionContext) _Query_getUser(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*structs.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖmyfavouritemoviesᚋstructsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖmyfavouritemoviesᚋstructsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2991,8 +2859,10 @@ func (ec *executionContext) fieldContext_Query_getUser(ctx context.Context, fiel
 				return ec.fieldContext_User_id(ctx, field)
 			case "nickName":
 				return ec.fieldContext_User_nickName(ctx, field)
-			case "username":
-				return ec.fieldContext_User_username(ctx, field)
+			case "userName":
+				return ec.fieldContext_User_userName(ctx, field)
+			case "password":
+				return ec.fieldContext_User_password(ctx, field)
 			case "favoriteMovies":
 				return ec.fieldContext_User_favoriteMovies(ctx, field)
 			case "favoriteGenres":
@@ -3065,6 +2935,64 @@ func (ec *executionContext) fieldContext_Query_getAllGenres(_ context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getAllFavoriteGenres(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getAllFavoriteGenres(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllFavoriteGenres(rctx, fc.Args["userID"].(int32))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*structs.FavoriteGenre)
+	fc.Result = res
+	return ec.marshalOFavoriteGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteGenreᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getAllFavoriteGenres(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "userID":
+				return ec.fieldContext_FavoriteGenre_userID(ctx, field)
+			case "genreID":
+				return ec.fieldContext_FavoriteGenre_genreID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FavoriteGenre", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getAllFavoriteGenres_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getFavoriteMovies(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getFavoriteMovies(ctx, field)
 	if err != nil {
@@ -3079,21 +3007,18 @@ func (ec *executionContext) _Query_getFavoriteMovies(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetFavoriteMovies(rctx, fc.Args["userId"].(int32))
+		return ec.resolvers.Query().GetFavoriteMovies(rctx, fc.Args["userID"].(int32))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.([]*structs.FavoriteMovie)
 	fc.Result = res
-	return ec.marshalNFavoriteMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteMovieᚄ(ctx, field.Selections, res)
+	return ec.marshalOFavoriteMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteMovieᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getFavoriteMovies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3104,12 +3029,10 @@ func (ec *executionContext) fieldContext_Query_getFavoriteMovies(ctx context.Con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_FavoriteMovie_id(ctx, field)
-			case "userId":
-				return ec.fieldContext_FavoriteMovie_userId(ctx, field)
-			case "movieId":
-				return ec.fieldContext_FavoriteMovie_movieId(ctx, field)
+			case "userID":
+				return ec.fieldContext_FavoriteMovie_userID(ctx, field)
+			case "movieID":
+				return ec.fieldContext_FavoriteMovie_movieID(ctx, field)
 			case "title":
 				return ec.fieldContext_FavoriteMovie_title(ctx, field)
 			case "posterPath":
@@ -3152,7 +3075,7 @@ func (ec *executionContext) _Query_getMovieDetails(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetMovieDetails(rctx, fc.Args["movieId"].(int32))
+		return ec.resolvers.Query().GetMovieDetails(rctx, fc.Args["movieID"].(int32))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3207,8 +3130,8 @@ func (ec *executionContext) fieldContext_Query_getMovieDetails(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_filterMovies(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_filterMovies(ctx, field)
+func (ec *executionContext) _Query_getFilteredMovies(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getFilteredMovies(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3221,7 +3144,7 @@ func (ec *executionContext) _Query_filterMovies(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FilterMovies(rctx, fc.Args["filter"].(structs.MovieFilter))
+		return ec.resolvers.Query().GetFilteredMovies(rctx, fc.Args["filter"].(structs.MovieFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3238,7 +3161,7 @@ func (ec *executionContext) _Query_filterMovies(ctx context.Context, field graph
 	return ec.marshalNResponseFilteredMovies2ᚖmyfavouritemoviesᚋstructsᚐResponseFilteredMovies(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_filterMovies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_getFilteredMovies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -3261,7 +3184,7 @@ func (ec *executionContext) fieldContext_Query_filterMovies(ctx context.Context,
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_filterMovies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_getFilteredMovies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3464,14 +3387,11 @@ func (ec *executionContext) _ResponseFilteredMovies_results(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.([]*structs.Movie)
 	fc.Result = res
-	return ec.marshalNMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐMovieᚄ(ctx, field.Selections, res)
+	return ec.marshalOMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐMovieᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ResponseFilteredMovies_results(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3490,10 +3410,8 @@ func (ec *executionContext) fieldContext_ResponseFilteredMovies_results(_ contex
 				return ec.fieldContext_Movie_posterPath(ctx, field)
 			case "voteAverage":
 				return ec.fieldContext_Movie_voteAverage(ctx, field)
-			case "genreIds":
-				return ec.fieldContext_Movie_genreIds(ctx, field)
-			case "genres":
-				return ec.fieldContext_Movie_genres(ctx, field)
+			case "genreIDs":
+				return ec.fieldContext_Movie_genreIDs(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Movie", field.Name)
 		},
@@ -3589,8 +3507,8 @@ func (ec *executionContext) fieldContext_User_nickName(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *structs.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_username(ctx, field)
+func (ec *executionContext) _User_userName(ctx context.Context, field graphql.CollectedField, obj *structs.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_userName(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3603,7 +3521,7 @@ func (ec *executionContext) _User_username(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Username, nil
+		return obj.UserName, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3620,7 +3538,51 @@ func (ec *executionContext) _User_username(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_username(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_userName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_password(ctx context.Context, field graphql.CollectedField, obj *structs.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_password(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Password, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_password(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -3672,12 +3634,10 @@ func (ec *executionContext) fieldContext_User_favoriteMovies(_ context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_FavoriteMovie_id(ctx, field)
-			case "userId":
-				return ec.fieldContext_FavoriteMovie_userId(ctx, field)
-			case "movieId":
-				return ec.fieldContext_FavoriteMovie_movieId(ctx, field)
+			case "userID":
+				return ec.fieldContext_FavoriteMovie_userID(ctx, field)
+			case "movieID":
+				return ec.fieldContext_FavoriteMovie_movieID(ctx, field)
 			case "title":
 				return ec.fieldContext_FavoriteMovie_title(ctx, field)
 			case "posterPath":
@@ -3734,12 +3694,10 @@ func (ec *executionContext) fieldContext_User_favoriteGenres(_ context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_FavoriteGenre_id(ctx, field)
-			case "userId":
-				return ec.fieldContext_FavoriteGenre_userId(ctx, field)
-			case "genreId":
-				return ec.fieldContext_FavoriteGenre_genreId(ctx, field)
+			case "userID":
+				return ec.fieldContext_FavoriteGenre_userID(ctx, field)
+			case "genreID":
+				return ec.fieldContext_FavoriteGenre_genreID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FavoriteGenre", field.Name)
 		},
@@ -5799,114 +5757,16 @@ func (ec *executionContext) _FavoriteGenre(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FavoriteGenre")
-		case "id":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._FavoriteGenre_id(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
+		case "userID":
+			out.Values[i] = ec._FavoriteGenre_userID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
+		case "genreID":
+			out.Values[i] = ec._FavoriteGenre_genreID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "userId":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._FavoriteGenre_userId(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "genreId":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._FavoriteGenre_genreId(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5941,138 +5801,40 @@ func (ec *executionContext) _FavoriteMovie(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FavoriteMovie")
-		case "id":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._FavoriteMovie_id(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
+		case "userID":
+			out.Values[i] = ec._FavoriteMovie_userID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
+		case "movieID":
+			out.Values[i] = ec._FavoriteMovie_movieID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "userId":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._FavoriteMovie_userId(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "movieId":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._FavoriteMovie_movieId(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "title":
 			out.Values[i] = ec._FavoriteMovie_title(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "posterPath":
 			out.Values[i] = ec._FavoriteMovie_posterPath(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "voteAverage":
 			out.Values[i] = ec._FavoriteMovie_voteAverage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "watched":
 			out.Values[i] = ec._FavoriteMovie_watched(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "genres":
 			out.Values[i] = ec._FavoriteMovie_genres(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -6109,45 +5871,14 @@ func (ec *executionContext) _Genre(ctx context.Context, sel ast.SelectionSet, ob
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Genre")
 		case "id":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Genre_id(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._Genre_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "name":
 			out.Values[i] = ec._Genre_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -6203,13 +5934,8 @@ func (ec *executionContext) _Movie(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "genreIds":
-			out.Values[i] = ec._Movie_genreIds(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "genres":
-			out.Values[i] = ec._Movie_genres(ctx, field, obj)
+		case "genreIDs":
+			out.Values[i] = ec._Movie_genreIDs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -6420,13 +6146,16 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		case "getUser":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._Query_getUser(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -6458,19 +6187,35 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getAllFavoriteGenres":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getAllFavoriteGenres(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "getFavoriteMovies":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._Query_getFavoriteMovies(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
 				return res
 			}
 
@@ -6502,7 +6247,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "filterMovies":
+		case "getFilteredMovies":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -6511,7 +6256,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_filterMovies(ctx, field)
+				res = ec._Query_getFilteredMovies(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -6573,9 +6318,6 @@ func (ec *executionContext) _ResponseFilteredMovies(ctx context.Context, sel ast
 			}
 		case "results":
 			out.Values[i] = ec._ResponseFilteredMovies_results(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6620,8 +6362,13 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "username":
-			out.Values[i] = ec._User_username(ctx, field, obj)
+		case "userName":
+			out.Values[i] = ec._User_userName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "password":
+			out.Values[i] = ec._User_password(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -7255,50 +7002,6 @@ func (ec *executionContext) marshalNInt2int32(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐMovieᚄ(ctx context.Context, sel ast.SelectionSet, v []*structs.Movie) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNMovie2ᚖmyfavouritemoviesᚋstructsᚐMovie(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNMovie2ᚖmyfavouritemoviesᚋstructsᚐMovie(ctx context.Context, sel ast.SelectionSet, v *structs.Movie) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -7650,6 +7353,100 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) marshalOFavoriteGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteGenreᚄ(ctx context.Context, sel ast.SelectionSet, v []*structs.FavoriteGenre) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFavoriteGenre2ᚖmyfavouritemoviesᚋstructsᚐFavoriteGenre(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOFavoriteMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteMovieᚄ(ctx context.Context, sel ast.SelectionSet, v []*structs.FavoriteMovie) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFavoriteMovie2ᚖmyfavouritemoviesᚋstructsᚐFavoriteMovie(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v any) (*float64, error) {
 	if v == nil {
 		return nil, nil
@@ -7720,6 +7517,53 @@ func (ec *executionContext) marshalOInt2ᚖint32(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalOMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐMovieᚄ(ctx context.Context, sel ast.SelectionSet, v []*structs.Movie) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMovie2ᚖmyfavouritemoviesᚋstructsᚐMovie(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -7734,13 +7578,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
-}
-
-func (ec *executionContext) marshalOUser2ᚖmyfavouritemoviesᚋstructsᚐUser(ctx context.Context, sel ast.SelectionSet, v *structs.User) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

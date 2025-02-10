@@ -1,7 +1,8 @@
 type User {
   id: ID!
   nickName: String!
-  username: String!
+  userName: String!
+  password: String!
   favoriteMovies: [FavoriteMovie!]!
   favoriteGenres: [FavoriteGenre!]!
 }
@@ -12,9 +13,8 @@ type Genre {
 }
 
 type FavoriteMovie {
-  id: ID!
-  userId: ID!
-  movieId: ID!
+  userID: ID!
+  movieID: ID!
   title: String!
   posterPath: String!
   voteAverage: Float!
@@ -27,14 +27,12 @@ type Movie {
   title: String!
   posterPath: String!
   voteAverage: Float!
-  genreIds: [ID!]!
-  genres: [Genre!]!
+  genreIDs: [ID!]!
 }
 
 type FavoriteGenre {
-  id: ID!
-  userId: ID!
-  genreId: ID!
+  userID: ID!
+  genreID: ID!
 }
 
 type MovieDetails {
@@ -55,7 +53,7 @@ input MovieFilter {
 
 type ResponseFilteredMovies {
   page: Int!
-  results: [Movie!]!
+  results: [Movie!]
 }
 
 input SignInInput {
@@ -64,37 +62,38 @@ input SignInInput {
 }
 
 type Query {
-  getUser(id: ID!): User
+  getUser(id: ID!): User!
   getAllGenres: [Genre!]!
-  getFavoriteMovies(userId: ID!): [FavoriteMovie!]!
-  getMovieDetails(movieId: ID!): MovieDetails!
-  filterMovies(filter: MovieFilter!): ResponseFilteredMovies!
+  getAllFavoriteGenres(userID: ID!): [FavoriteGenre!]
+  getFavoriteMovies(userID: ID!): [FavoriteMovie!]
+  getMovieDetails(movieID: ID!): MovieDetails!
+  getFilteredMovies(filter: MovieFilter!): ResponseFilteredMovies!
 }
 
 type Mutation {
-  createUser(nickName: String!, username: String!, password: String!): User!
+  createUser(nickName: String!, userName: String!, password: String!): User!
   deleteUser(id: ID!): Boolean!
   updateUser(
     id: ID!
-    nickName: String
-    username: String
-    password: String
+    nickName: String!
+    userName: String!
+    password: String!
   ): User!
 
   addFavoriteMovie(
-    userId: ID!
-    movieId: ID!
+    userID: ID!
+    movieID: ID!
     title: String!
     posterPath: String!
     voteAverage: Float!
   ): FavoriteMovie!
-  removeFavoriteMovie(userId: ID!, movieId: ID!): Boolean!
+  removeFavoriteMovie(userID: ID!, movieID: ID!): Boolean!
   markMovieAsWatched(
-    userId: ID!
-    movieId: ID!
+    userID: ID!
+    movieID: ID!
     watched: Boolean!
   ): FavoriteMovie!
 
-  addFavoriteGenre(userId: ID!, genreId: ID!): FavoriteGenre!
-  removeFavoriteGenre(userId: ID!, genreId: ID!): Boolean!
+  addFavoriteGenre(userID: ID!, genreID: ID!): FavoriteGenre!
+  removeFavoriteGenre(userID: ID!, genreID: ID!): Boolean!
 }
