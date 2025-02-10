@@ -6,17 +6,11 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"myfavouritemovies/repository"
 	"myfavouritemovies/service"
 	"myfavouritemovies/structs"
 	"myfavouritemovies/utils"
 )
-
-// ReleaseDate is the resolver for the releaseDate field.
-func (r *movieResolver) ReleaseDate(ctx context.Context, obj *structs.Movie) (string, error) {
-	panic(fmt.Errorf("not implemented: ReleaseDate - releaseDate"))
-}
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, nickName string, userName string, password string) (*structs.User, error) {
@@ -70,7 +64,7 @@ func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie structs.M
 	return true, nil
 }
 
-// RemoveFavoriteMovie is the resolver for the removeFavoriteMovie field.
+// DeleteFavoriteMovie is the resolver for the deleteFavoriteMovie field.
 func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, movieID int32) (bool, error) {
 	user, errUser := utils.GetContextUser(ctx)
 	if errUser != nil {
@@ -82,7 +76,7 @@ func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, movieID int3
 	return true, nil
 }
 
-// ToggleWatchedStatus is the resolver for the markMovieAsWatched field.
+// ToggleWatchedStatus is the resolver for the toggleWatchedStatus field.
 func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, movieID int32) (bool, error) {
 	user, errUser := utils.GetContextUser(ctx)
 	if errUser != nil {
@@ -106,7 +100,7 @@ func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, genreID int32) 
 	return true, nil
 }
 
-// RemoveFavoriteGenre is the resolver for the removeFavoriteGenre field.
+// DeleteFavoriteGenre is the resolver for the deleteFavoriteGenre field.
 func (r *mutationResolver) DeleteFavoriteGenre(ctx context.Context, genreID int32) (bool, error) {
 	user, errUser := utils.GetContextUser(ctx)
 	if errUser != nil {
@@ -182,15 +176,11 @@ func (r *queryResolver) GetFilteredMovies(ctx context.Context, filter structs.Mo
 	return filteredMovies, nil
 }
 
-// Movie returns MovieResolver implementation.
-func (r *Resolver) Movie() MovieResolver { return &movieResolver{r} }
-
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-type movieResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

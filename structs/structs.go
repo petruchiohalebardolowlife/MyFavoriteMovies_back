@@ -58,5 +58,5 @@ type Movie struct {
 	PosterPath  string  `json:"poster_path"`
 	VoteAverage float64 `json:"vote_average"`
 	GenreIDs    []int32 `json:"genre_ids"`
-  Year string `json:"release_date"`
+  ReleaseDate string `json:"release_date"`
 }
