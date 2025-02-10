@@ -7,14 +7,14 @@ import (
 	"myfavouritemovies/utils"
 )
 
-func AddFavoriteMovie(userID int32, input structs.Movie) error {
-  if _, err := utils.FindFavoriteMovie(userID, input.ID); err == nil {
+func AddFavoriteMovie(userID int32, input structs.MovieInput) error {
+  if _, err := utils.FindFavoriteMovie(userID, input.MovieID); err == nil {
       return errors.New("movie already in favorites")
   }
 
   newFavorite := structs.FavoriteMovie{
       UserID:      userID,
-      MovieID:     (input.ID),
+      MovieID:     (input.MovieID),
       Title:       input.Title,
       PosterPath:  input.PosterPath,
       VoteAverage: input.VoteAverage,

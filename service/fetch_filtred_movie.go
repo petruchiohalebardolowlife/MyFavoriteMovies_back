@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func FetchFiltredMovies(filters structs.MovieFilter) ([]*structs.Movie, error){
+func FetchFilteredMovies(filters structs.MovieFilter) ([]*structs.Movie, error){
   endpoint := "/discover/movie"
 
   var queryParams []string

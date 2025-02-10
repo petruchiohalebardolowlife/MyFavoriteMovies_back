@@ -28,6 +28,7 @@ type Movie {
   posterPath: String!
   voteAverage: Float!
   genreIDs: [ID!]!
+  releaseDate: String!
 }
 
 type FavoriteGenre {
@@ -51,6 +52,14 @@ input MovieFilter {
   page: Int
 }
 
+input MovieInput {
+  movieID: ID!
+  title: String!
+  posterPath: String!
+  voteAverage: Float!
+  genreIDs: [ID!]!
+}
+
 type ResponseFilteredMovies {
   page: Int!
   results: [Movie!]
@@ -64,10 +73,10 @@ input SignInInput {
 type Query {
   getUser: User!
   getAllGenres: [Genre!]!
-  getAllFavoriteGenres(userID: ID!): [FavoriteGenre!]
-  getFavoriteMovies(userID: ID!): [FavoriteMovie!]
+  getAllFavoriteGenres: [FavoriteGenre!]
+  getFavoriteMovies: [FavoriteMovie!]
   getMovieDetails(movieID: ID!): MovieDetails!
-  getFilteredMovies(filter: MovieFilter!): ResponseFilteredMovies!
+  getFilteredMovies(filter: MovieFilter!): [Movie]
 }
 
 type Mutation {
@@ -75,20 +84,10 @@ type Mutation {
   deleteUser: Boolean!
   updateUser(nickName: String, password: String): Boolean!
 
-  addFavoriteMovie(
-    userID: ID!
-    movieID: ID!
-    title: String!
-    posterPath: String!
-    voteAverage: Float!
-  ): FavoriteMovie!
-  removeFavoriteMovie(userID: ID!, movieID: ID!): Boolean!
-  markMovieAsWatched(
-    userID: ID!
-    movieID: ID!
-    watched: Boolean!
-  ): FavoriteMovie!
+  addFavoriteMovie(movie: MovieInput!): Boolean!
+  deleteFavoriteMovie(movieID: ID!): Boolean!
+  toggleWatchedStatus(movieID: ID!): Boolean!
 
-  addFavoriteGenre(userID: ID!, genreID: ID!): FavoriteGenre!
-  removeFavoriteGenre(userID: ID!, genreID: ID!): Boolean!
+  addFavoriteGenre(genreID: ID!): Boolean!
+  deleteFavoriteGenre(genreID: ID!): Boolean!
 }

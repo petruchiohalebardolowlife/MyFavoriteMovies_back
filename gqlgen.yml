@@ -137,6 +137,12 @@ models:
   FavoriteGenre:
     model:
       - myfavouritemovies/structs.FavoriteGenre
+  MovieDetails:
+    model:
+      - myfavouritemovies/structs.MovieDetails
+  Movie:
+    model:
+      - myfavouritemovies/structs.Movie
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.Int32

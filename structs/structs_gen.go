@@ -2,28 +2,19 @@
 
 package structs
 
-type Movie struct {
-	ID          int32   `json:"id"`
-	Title       string  `json:"title"`
-	PosterPath  string  `json:"posterPath"`
-	VoteAverage float64 `json:"voteAverage"`
-	GenreIDs    []int32 `json:"genreIDs"`
-}
-
-type MovieDetails struct {
-	Title       string   `json:"title"`
-	Rating      float64  `json:"rating"`
-	ReleaseDate string   `json:"releaseDate"`
-	PosterPath  string   `json:"posterPath"`
-	Genres      []*Genre `json:"genres"`
-	Overview    string   `json:"overview"`
-}
-
 type MovieFilter struct {
 	GenreIDs   []int32  `json:"genreIDs,omitempty"`
 	Popularity *float64 `json:"popularity,omitempty"`
 	Year       *int32   `json:"year,omitempty"`
 	Page       *int32   `json:"page,omitempty"`
+}
+
+type MovieInput struct {
+	MovieID     int32   `json:"movieID"`
+	Title       string  `json:"title"`
+	PosterPath  string  `json:"posterPath"`
+	VoteAverage float64 `json:"voteAverage"`
+	GenreIDs    []int32 `json:"genreIDs"`
 }
 
 type Mutation struct {

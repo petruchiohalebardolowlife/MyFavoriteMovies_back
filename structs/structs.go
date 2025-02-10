@@ -42,3 +42,21 @@ type SignIn struct {
   Username string `json:"username"`
   Password string `json:"password"`
 }
+
+type MovieDetails struct {
+	Title       string   `json:"title"`
+	Rating      float64  `json:"vote_average"`
+	ReleaseDate string   `json:"release_date"`
+	PosterPath  string   `json:"poster_path"`
+	Genres      []*Genre `json:"genres"`
+	Overview    string   `json:"overview"`
+}
+
+type Movie struct {
+	ID          int32   `json:"id"`
+	Title       string  `json:"title"`
+	PosterPath  string  `json:"poster_path"`
+	VoteAverage float64 `json:"vote_average"`
+	GenreIDs    []int32 `json:"genre_ids"`
+  Year string `json:"release_date"`
+}

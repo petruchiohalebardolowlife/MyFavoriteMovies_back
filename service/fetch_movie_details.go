@@ -7,17 +7,17 @@ import (
 	"strconv"
 )
 
-func FetchMovieDetails(movie_id int) (structs.MovieDetails, error) {
-  endpoint := "/movie/"+strconv.Itoa(movie_id)
+func FetchMovieDetails(movieID int32) (*structs.MovieDetails, error) {
+  endpoint := "/movie/"+strconv.FormatInt(int64(movieID), 10)
   body, err := FetchFromTMDB(endpoint,"")
   if err != nil {
-    return structs.MovieDetails{}, err
+    return nil, err
   }
 
   var response structs.MovieDetails
 
   if err := json.Unmarshal(body, &response); err != nil {
-    return structs.MovieDetails{}, err
+    return nil, err
   }
-  return response, nil
+  return &response, nil
 }

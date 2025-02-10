@@ -8,9 +8,15 @@ import (
 	"context"
 	"fmt"
 	"myfavouritemovies/repository"
+	"myfavouritemovies/service"
 	"myfavouritemovies/structs"
 	"myfavouritemovies/utils"
 )
+
+// ReleaseDate is the resolver for the releaseDate field.
+func (r *movieResolver) ReleaseDate(ctx context.Context, obj *structs.Movie) (string, error) {
+	panic(fmt.Errorf("not implemented: ReleaseDate - releaseDate"))
+}
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, nickName string, userName string, password string) (*structs.User, error) {
@@ -32,7 +38,6 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 	if errUser != nil {
 		return false, errUser
 	}
-
 	if err := repository.DeleteUser(user.ID); err != nil {
 		return false, err
 	}
@@ -46,36 +51,71 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, nickName *string, pas
 	if errUser != nil {
 		return false, errUser
 	}
-	_, err := repository.UpdateUser(user, nickName, password)
-	if err != nil {
+	if err := repository.UpdateUser(user, nickName, password); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// AddFavoriteMovie is the resolver for the addFavoriteMovie field.
+func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie structs.MovieInput) (bool, error) {
+	user, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return false, errUser
+	}
+	if err := repository.AddFavoriteMovie(user.ID, movie); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-// AddFavoriteMovie is the resolver for the addFavoriteMovie field.
-func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, userID int32, movieID int32, title string, posterPath string, voteAverage float64) (*structs.FavoriteMovie, error) {
-	panic(fmt.Errorf("not implemented: AddFavoriteMovie - addFavoriteMovie"))
-}
-
 // RemoveFavoriteMovie is the resolver for the removeFavoriteMovie field.
-func (r *mutationResolver) RemoveFavoriteMovie(ctx context.Context, userID int32, movieID int32) (bool, error) {
-	panic(fmt.Errorf("not implemented: RemoveFavoriteMovie - removeFavoriteMovie"))
+func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, movieID int32) (bool, error) {
+	user, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return false, errUser
+	}
+	if err := repository.DeleteFavoriteMovie(user.ID, movieID); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
-// MarkMovieAsWatched is the resolver for the markMovieAsWatched field.
-func (r *mutationResolver) MarkMovieAsWatched(ctx context.Context, userID int32, movieID int32, watched bool) (*structs.FavoriteMovie, error) {
-	panic(fmt.Errorf("not implemented: MarkMovieAsWatched - markMovieAsWatched"))
+// ToggleWatchedStatus is the resolver for the markMovieAsWatched field.
+func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, movieID int32) (bool, error) {
+	user, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return false, errUser
+	}
+	if err := repository.ToggleWatchedStatus(user.ID, movieID); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // AddFavoriteGenre is the resolver for the addFavoriteGenre field.
-func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, userID int32, genreID int32) (*structs.FavoriteGenre, error) {
-	panic(fmt.Errorf("not implemented: AddFavoriteGenre - addFavoriteGenre"))
+func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, genreID int32) (bool, error) {
+	user, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return false, errUser
+	}
+	if err := repository.AddFavoriteGenre(user.ID, genreID); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // RemoveFavoriteGenre is the resolver for the removeFavoriteGenre field.
-func (r *mutationResolver) RemoveFavoriteGenre(ctx context.Context, userID int32, genreID int32) (bool, error) {
-	panic(fmt.Errorf("not implemented: RemoveFavoriteGenre - removeFavoriteGenre"))
+func (r *mutationResolver) DeleteFavoriteGenre(ctx context.Context, genreID int32) (bool, error) {
+	user, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return false, errUser
+	}
+	if err := repository.DeleteFavoriteGenre(user.ID, genreID); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // GetUser is the resolver for the getUser field.
@@ -98,8 +138,12 @@ func (r *queryResolver) GetAllGenres(ctx context.Context) ([]*structs.Genre, err
 }
 
 // GetAllFavoriteGenres is the resolver for the getAllFavoriteGenres field.
-func (r *queryResolver) GetAllFavoriteGenres(ctx context.Context, userID int32) ([]*structs.FavoriteGenre, error) {
-	favGenres, err := repository.GetFavoriteGenres(userID)
+func (r *queryResolver) GetAllFavoriteGenres(ctx context.Context) ([]*structs.FavoriteGenre, error) {
+	user, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return nil, errUser
+	}
+	favGenres, err := repository.GetFavoriteGenres(user.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -107,24 +151,39 @@ func (r *queryResolver) GetAllFavoriteGenres(ctx context.Context, userID int32) 
 }
 
 // GetFavoriteMovies is the resolver for the getFavoriteMovies field.
-func (r *queryResolver) GetFavoriteMovies(ctx context.Context, userID int32) ([]*structs.FavoriteMovie, error) {
-	favMovies, err := repository.GetFavoriteMovies(userID)
+func (r *queryResolver) GetFavoriteMovies(ctx context.Context) ([]*structs.FavoriteMovie, error) {
+	user, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return nil, errUser
+	}
+	favMovies, err := repository.GetFavoriteMovies(user.ID)
 	if err != nil {
 		return nil, err
 	}
-
 	return favMovies, nil
 }
 
 // GetMovieDetails is the resolver for the getMovieDetails field.
 func (r *queryResolver) GetMovieDetails(ctx context.Context, movieID int32) (*structs.MovieDetails, error) {
-	panic(fmt.Errorf("not implemented: GetMovieDetails - getMovieDetails"))
+	movieDetails, err := service.FetchMovieDetails(movieID)
+	if err != nil {
+		return nil, err
+	}
+
+	return movieDetails, nil
 }
 
 // GetFilteredMovies is the resolver for the getFilteredMovies field.
-func (r *queryResolver) GetFilteredMovies(ctx context.Context, filter structs.MovieFilter) (*structs.ResponseFilteredMovies, error) {
-	panic(fmt.Errorf("not implemented: GetFilteredMovies - getFilteredMovies"))
+func (r *queryResolver) GetFilteredMovies(ctx context.Context, filter structs.MovieFilter) ([]*structs.Movie, error) {
+	filteredMovies, err := service.FetchFilteredMovies(filter)
+	if err != nil {
+		return nil, err
+	}
+	return filteredMovies, nil
 }
+
+// Movie returns MovieResolver implementation.
+func (r *Resolver) Movie() MovieResolver { return &movieResolver{r} }
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
@@ -132,5 +191,6 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+type movieResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
