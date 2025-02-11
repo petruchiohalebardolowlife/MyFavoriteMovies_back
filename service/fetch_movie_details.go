@@ -8,7 +8,7 @@ import (
 )
 
 func FetchMovieDetails(movieID uint) (*structs.MovieDetails, error) {
-  endpoint := "/movie/"+strconv.FormatInt(int64(movieID), 10)
+  endpoint := "/movie/"+strconv.Itoa(int(movieID))
   body, err := FetchFromTMDB(endpoint,"")
   if err != nil {
     return nil, err

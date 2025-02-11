@@ -14,7 +14,7 @@ func AddFavoriteMovie(userID uint, input structs.MovieInput) error {
 
   newFavorite := structs.FavoriteMovie{
       UserID:      userID,
-      MovieID:     (input.MovieID),
+      MovieID:     input.MovieID,
       Title:       input.Title,
       PosterPath:  input.PosterPath,
       VoteAverage: input.VoteAverage,

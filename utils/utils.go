@@ -7,8 +7,6 @@ import (
 	"myfavouritemovies/structs"
 	"net/http"
 
-	"gorm.io/gorm"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,14 +41,14 @@ func HardcodedUserMiddleware(next http.Handler) http.Handler {
 func GetContextUser(ctx context.Context) (*structs.User, error) {
   user, errUser := ctx.Value("user").(structs.User)
   if !errUser {
-    return nil, errors.New("User is not in context")
+    return nil, errors.New("user is not in context")
   }
   return &user, nil
 }
 
-func GetGenreNameByID(genreID uint, db *gorm.DB) string {
+func GetGenreNameByID(genreID uint) string {
   var genre structs.Genre
-  if err := db.Where("id = ?", genreID).First(&genre).Error; err != nil {
+  if err := database.DB.Where("id = ?", genreID).First(&genre).Error; err != nil {
       return ""
   }
   return genre.Name
