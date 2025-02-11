@@ -80,7 +80,7 @@ type Query {
 }
 
 type Mutation {
-  createUser(nickName: String!, userName: String!, password: String!): User!
+  addUser(nickName: String!, userName: String!, password: String!): Boolean!
   deleteUser: Boolean!
   updateUser(nickName: String, password: String): Boolean!
 

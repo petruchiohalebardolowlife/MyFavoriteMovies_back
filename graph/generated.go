@@ -3,641 +3,641 @@
 package graph
 
 import (
-	"bytes"
-	"context"
-	"embed"
-	"errors"
-	"fmt"
-	"myfavouritemovies/structs"
-	"strconv"
-	"sync"
-	"sync/atomic"
+  "bytes"
+  "context"
+  "embed"
+  "errors"
+  "fmt"
+  "myfavouritemovies/structs"
+  "strconv"
+  "sync"
+  "sync/atomic"
 
-	"github.com/99designs/gqlgen/graphql"
-	"github.com/99designs/gqlgen/graphql/introspection"
-	gqlparser "github.com/vektah/gqlparser/v2"
-	"github.com/vektah/gqlparser/v2/ast"
+  "github.com/99designs/gqlgen/graphql"
+  "github.com/99designs/gqlgen/graphql/introspection"
+  gqlparser "github.com/vektah/gqlparser/v2"
+  "github.com/vektah/gqlparser/v2/ast"
 )
 
 // region    ************************** generated!.gotpl **************************
 
 // NewExecutableSchema creates an ExecutableSchema from the ResolverRoot interface.
 func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
-	return &executableSchema{
-		schema:     cfg.Schema,
-		resolvers:  cfg.Resolvers,
-		directives: cfg.Directives,
-		complexity: cfg.Complexity,
-	}
+  return &executableSchema{
+    schema:     cfg.Schema,
+    resolvers:  cfg.Resolvers,
+    directives: cfg.Directives,
+    complexity: cfg.Complexity,
+  }
 }
 
 type Config struct {
-	Schema     *ast.Schema
-	Resolvers  ResolverRoot
-	Directives DirectiveRoot
-	Complexity ComplexityRoot
+  Schema     *ast.Schema
+  Resolvers  ResolverRoot
+  Directives DirectiveRoot
+  Complexity ComplexityRoot
 }
 
 type ResolverRoot interface {
-	Mutation() MutationResolver
-	Query() QueryResolver
+  Mutation() MutationResolver
+  Query() QueryResolver
 }
 
 type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	FavoriteGenre struct {
-		GenreID func(childComplexity int) int
-		UserID  func(childComplexity int) int
-	}
+  FavoriteGenre struct {
+    GenreID func(childComplexity int) int
+    UserID  func(childComplexity int) int
+  }
 
-	FavoriteMovie struct {
-		Genres      func(childComplexity int) int
-		MovieID     func(childComplexity int) int
-		PosterPath  func(childComplexity int) int
-		Title       func(childComplexity int) int
-		UserID      func(childComplexity int) int
-		VoteAverage func(childComplexity int) int
-		Watched     func(childComplexity int) int
-	}
+  FavoriteMovie struct {
+    Genres      func(childComplexity int) int
+    MovieID     func(childComplexity int) int
+    PosterPath  func(childComplexity int) int
+    Title       func(childComplexity int) int
+    UserID      func(childComplexity int) int
+    VoteAverage func(childComplexity int) int
+    Watched     func(childComplexity int) int
+  }
 
-	Genre struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
-	}
+  Genre struct {
+    ID   func(childComplexity int) int
+    Name func(childComplexity int) int
+  }
 
-	Movie struct {
-		GenreIDs    func(childComplexity int) int
-		ID          func(childComplexity int) int
-		PosterPath  func(childComplexity int) int
-		ReleaseDate func(childComplexity int) int
-		Title       func(childComplexity int) int
-		VoteAverage func(childComplexity int) int
-	}
+  Movie struct {
+    GenreIDs    func(childComplexity int) int
+    ID          func(childComplexity int) int
+    PosterPath  func(childComplexity int) int
+    ReleaseDate func(childComplexity int) int
+    Title       func(childComplexity int) int
+    VoteAverage func(childComplexity int) int
+  }
 
-	MovieDetails struct {
-		Genres      func(childComplexity int) int
-		Overview    func(childComplexity int) int
-		PosterPath  func(childComplexity int) int
-		Rating      func(childComplexity int) int
-		ReleaseDate func(childComplexity int) int
-		Title       func(childComplexity int) int
-	}
+  MovieDetails struct {
+    Genres      func(childComplexity int) int
+    Overview    func(childComplexity int) int
+    PosterPath  func(childComplexity int) int
+    Rating      func(childComplexity int) int
+    ReleaseDate func(childComplexity int) int
+    Title       func(childComplexity int) int
+  }
 
-	Mutation struct {
-		AddFavoriteGenre    func(childComplexity int, genreID int32) int
-		AddFavoriteMovie    func(childComplexity int, movie structs.MovieInput) int
-		CreateUser          func(childComplexity int, nickName string, userName string, password string) int
-		DeleteFavoriteGenre func(childComplexity int, genreID int32) int
-		DeleteFavoriteMovie func(childComplexity int, movieID int32) int
-		DeleteUser          func(childComplexity int) int
-		ToggleWatchedStatus func(childComplexity int, movieID int32) int
-		UpdateUser          func(childComplexity int, nickName *string, password *string) int
-	}
+  Mutation struct {
+    AddFavoriteGenre    func(childComplexity int, genreID int32) int
+    AddFavoriteMovie    func(childComplexity int, movie structs.MovieInput) int
+    AddUser             func(childComplexity int, nickName string, userName string, password string) int
+    DeleteFavoriteGenre func(childComplexity int, genreID int32) int
+    DeleteFavoriteMovie func(childComplexity int, movieID int32) int
+    DeleteUser          func(childComplexity int) int
+    ToggleWatchedStatus func(childComplexity int, movieID int32) int
+    UpdateUser          func(childComplexity int, nickName *string, password *string) int
+  }
 
-	Query struct {
-		GetAllFavoriteGenres func(childComplexity int) int
-		GetAllGenres         func(childComplexity int) int
-		GetFavoriteMovies    func(childComplexity int) int
-		GetFilteredMovies    func(childComplexity int, filter structs.MovieFilter) int
-		GetMovieDetails      func(childComplexity int, movieID int32) int
-		GetUser              func(childComplexity int) int
-	}
+  Query struct {
+    GetAllFavoriteGenres func(childComplexity int) int
+    GetAllGenres         func(childComplexity int) int
+    GetFavoriteMovies    func(childComplexity int) int
+    GetFilteredMovies    func(childComplexity int, filter structs.MovieFilter) int
+    GetMovieDetails      func(childComplexity int, movieID int32) int
+    GetUser              func(childComplexity int) int
+  }
 
-	ResponseFilteredMovies struct {
-		Page    func(childComplexity int) int
-		Results func(childComplexity int) int
-	}
+  ResponseFilteredMovies struct {
+    Page    func(childComplexity int) int
+    Results func(childComplexity int) int
+  }
 
-	User struct {
-		FavoriteGenres func(childComplexity int) int
-		FavoriteMovies func(childComplexity int) int
-		ID             func(childComplexity int) int
-		NickName       func(childComplexity int) int
-		Password       func(childComplexity int) int
-		UserName       func(childComplexity int) int
-	}
+  User struct {
+    FavoriteGenres func(childComplexity int) int
+    FavoriteMovies func(childComplexity int) int
+    ID             func(childComplexity int) int
+    NickName       func(childComplexity int) int
+    Password       func(childComplexity int) int
+    UserName       func(childComplexity int) int
+  }
 }
 
 type MutationResolver interface {
-	CreateUser(ctx context.Context, nickName string, userName string, password string) (*structs.User, error)
-	DeleteUser(ctx context.Context) (bool, error)
-	UpdateUser(ctx context.Context, nickName *string, password *string) (bool, error)
-	AddFavoriteMovie(ctx context.Context, movie structs.MovieInput) (bool, error)
-	DeleteFavoriteMovie(ctx context.Context, movieID int32) (bool, error)
-	ToggleWatchedStatus(ctx context.Context, movieID int32) (bool, error)
-	AddFavoriteGenre(ctx context.Context, genreID int32) (bool, error)
-	DeleteFavoriteGenre(ctx context.Context, genreID int32) (bool, error)
+  AddUser(ctx context.Context, nickName string, userName string, password string) (bool, error)
+  DeleteUser(ctx context.Context) (bool, error)
+  UpdateUser(ctx context.Context, nickName *string, password *string) (bool, error)
+  AddFavoriteMovie(ctx context.Context, movie structs.MovieInput) (bool, error)
+  DeleteFavoriteMovie(ctx context.Context, movieID int32) (bool, error)
+  ToggleWatchedStatus(ctx context.Context, movieID int32) (bool, error)
+  AddFavoriteGenre(ctx context.Context, genreID int32) (bool, error)
+  DeleteFavoriteGenre(ctx context.Context, genreID int32) (bool, error)
 }
 type QueryResolver interface {
-	GetUser(ctx context.Context) (*structs.User, error)
-	GetAllGenres(ctx context.Context) ([]*structs.Genre, error)
-	GetAllFavoriteGenres(ctx context.Context) ([]*structs.FavoriteGenre, error)
-	GetFavoriteMovies(ctx context.Context) ([]*structs.FavoriteMovie, error)
-	GetMovieDetails(ctx context.Context, movieID int32) (*structs.MovieDetails, error)
-	GetFilteredMovies(ctx context.Context, filter structs.MovieFilter) ([]*structs.Movie, error)
+  GetUser(ctx context.Context) (*structs.User, error)
+  GetAllGenres(ctx context.Context) ([]*structs.Genre, error)
+  GetAllFavoriteGenres(ctx context.Context) ([]*structs.FavoriteGenre, error)
+  GetFavoriteMovies(ctx context.Context) ([]*structs.FavoriteMovie, error)
+  GetMovieDetails(ctx context.Context, movieID int32) (*structs.MovieDetails, error)
+  GetFilteredMovies(ctx context.Context, filter structs.MovieFilter) ([]*structs.Movie, error)
 }
 
 type executableSchema struct {
-	schema     *ast.Schema
-	resolvers  ResolverRoot
-	directives DirectiveRoot
-	complexity ComplexityRoot
+  schema     *ast.Schema
+  resolvers  ResolverRoot
+  directives DirectiveRoot
+  complexity ComplexityRoot
 }
 
 func (e *executableSchema) Schema() *ast.Schema {
-	if e.schema != nil {
-		return e.schema
-	}
-	return parsedSchema
+  if e.schema != nil {
+    return e.schema
+  }
+  return parsedSchema
 }
 
 func (e *executableSchema) Complexity(typeName, field string, childComplexity int, rawArgs map[string]any) (int, bool) {
-	ec := executionContext{nil, e, 0, 0, nil}
-	_ = ec
-	switch typeName + "." + field {
+  ec := executionContext{nil, e, 0, 0, nil}
+  _ = ec
+  switch typeName + "." + field {
 
-	case "FavoriteGenre.genreID":
-		if e.complexity.FavoriteGenre.GenreID == nil {
-			break
-		}
+  case "FavoriteGenre.genreID":
+    if e.complexity.FavoriteGenre.GenreID == nil {
+      break
+    }
 
-		return e.complexity.FavoriteGenre.GenreID(childComplexity), true
+    return e.complexity.FavoriteGenre.GenreID(childComplexity), true
 
-	case "FavoriteGenre.userID":
-		if e.complexity.FavoriteGenre.UserID == nil {
-			break
-		}
+  case "FavoriteGenre.userID":
+    if e.complexity.FavoriteGenre.UserID == nil {
+      break
+    }
 
-		return e.complexity.FavoriteGenre.UserID(childComplexity), true
+    return e.complexity.FavoriteGenre.UserID(childComplexity), true
 
-	case "FavoriteMovie.genres":
-		if e.complexity.FavoriteMovie.Genres == nil {
-			break
-		}
+  case "FavoriteMovie.genres":
+    if e.complexity.FavoriteMovie.Genres == nil {
+      break
+    }
 
-		return e.complexity.FavoriteMovie.Genres(childComplexity), true
+    return e.complexity.FavoriteMovie.Genres(childComplexity), true
 
-	case "FavoriteMovie.movieID":
-		if e.complexity.FavoriteMovie.MovieID == nil {
-			break
-		}
+  case "FavoriteMovie.movieID":
+    if e.complexity.FavoriteMovie.MovieID == nil {
+      break
+    }
 
-		return e.complexity.FavoriteMovie.MovieID(childComplexity), true
+    return e.complexity.FavoriteMovie.MovieID(childComplexity), true
 
-	case "FavoriteMovie.posterPath":
-		if e.complexity.FavoriteMovie.PosterPath == nil {
-			break
-		}
+  case "FavoriteMovie.posterPath":
+    if e.complexity.FavoriteMovie.PosterPath == nil {
+      break
+    }
 
-		return e.complexity.FavoriteMovie.PosterPath(childComplexity), true
+    return e.complexity.FavoriteMovie.PosterPath(childComplexity), true
 
-	case "FavoriteMovie.title":
-		if e.complexity.FavoriteMovie.Title == nil {
-			break
-		}
+  case "FavoriteMovie.title":
+    if e.complexity.FavoriteMovie.Title == nil {
+      break
+    }
 
-		return e.complexity.FavoriteMovie.Title(childComplexity), true
+    return e.complexity.FavoriteMovie.Title(childComplexity), true
 
-	case "FavoriteMovie.userID":
-		if e.complexity.FavoriteMovie.UserID == nil {
-			break
-		}
+  case "FavoriteMovie.userID":
+    if e.complexity.FavoriteMovie.UserID == nil {
+      break
+    }
 
-		return e.complexity.FavoriteMovie.UserID(childComplexity), true
+    return e.complexity.FavoriteMovie.UserID(childComplexity), true
 
-	case "FavoriteMovie.voteAverage":
-		if e.complexity.FavoriteMovie.VoteAverage == nil {
-			break
-		}
+  case "FavoriteMovie.voteAverage":
+    if e.complexity.FavoriteMovie.VoteAverage == nil {
+      break
+    }
 
-		return e.complexity.FavoriteMovie.VoteAverage(childComplexity), true
+    return e.complexity.FavoriteMovie.VoteAverage(childComplexity), true
 
-	case "FavoriteMovie.watched":
-		if e.complexity.FavoriteMovie.Watched == nil {
-			break
-		}
+  case "FavoriteMovie.watched":
+    if e.complexity.FavoriteMovie.Watched == nil {
+      break
+    }
 
-		return e.complexity.FavoriteMovie.Watched(childComplexity), true
+    return e.complexity.FavoriteMovie.Watched(childComplexity), true
 
-	case "Genre.id":
-		if e.complexity.Genre.ID == nil {
-			break
-		}
+  case "Genre.id":
+    if e.complexity.Genre.ID == nil {
+      break
+    }
 
-		return e.complexity.Genre.ID(childComplexity), true
+    return e.complexity.Genre.ID(childComplexity), true
 
-	case "Genre.name":
-		if e.complexity.Genre.Name == nil {
-			break
-		}
+  case "Genre.name":
+    if e.complexity.Genre.Name == nil {
+      break
+    }
 
-		return e.complexity.Genre.Name(childComplexity), true
+    return e.complexity.Genre.Name(childComplexity), true
 
-	case "Movie.genreIDs":
-		if e.complexity.Movie.GenreIDs == nil {
-			break
-		}
+  case "Movie.genreIDs":
+    if e.complexity.Movie.GenreIDs == nil {
+      break
+    }
 
-		return e.complexity.Movie.GenreIDs(childComplexity), true
+    return e.complexity.Movie.GenreIDs(childComplexity), true
 
-	case "Movie.id":
-		if e.complexity.Movie.ID == nil {
-			break
-		}
+  case "Movie.id":
+    if e.complexity.Movie.ID == nil {
+      break
+    }
 
-		return e.complexity.Movie.ID(childComplexity), true
+    return e.complexity.Movie.ID(childComplexity), true
 
-	case "Movie.posterPath":
-		if e.complexity.Movie.PosterPath == nil {
-			break
-		}
+  case "Movie.posterPath":
+    if e.complexity.Movie.PosterPath == nil {
+      break
+    }
 
-		return e.complexity.Movie.PosterPath(childComplexity), true
+    return e.complexity.Movie.PosterPath(childComplexity), true
 
-	case "Movie.releaseDate":
-		if e.complexity.Movie.ReleaseDate == nil {
-			break
-		}
+  case "Movie.releaseDate":
+    if e.complexity.Movie.ReleaseDate == nil {
+      break
+    }
 
-		return e.complexity.Movie.ReleaseDate(childComplexity), true
+    return e.complexity.Movie.ReleaseDate(childComplexity), true
 
-	case "Movie.title":
-		if e.complexity.Movie.Title == nil {
-			break
-		}
+  case "Movie.title":
+    if e.complexity.Movie.Title == nil {
+      break
+    }
 
-		return e.complexity.Movie.Title(childComplexity), true
+    return e.complexity.Movie.Title(childComplexity), true
 
-	case "Movie.voteAverage":
-		if e.complexity.Movie.VoteAverage == nil {
-			break
-		}
+  case "Movie.voteAverage":
+    if e.complexity.Movie.VoteAverage == nil {
+      break
+    }
 
-		return e.complexity.Movie.VoteAverage(childComplexity), true
+    return e.complexity.Movie.VoteAverage(childComplexity), true
 
-	case "MovieDetails.genres":
-		if e.complexity.MovieDetails.Genres == nil {
-			break
-		}
+  case "MovieDetails.genres":
+    if e.complexity.MovieDetails.Genres == nil {
+      break
+    }
 
-		return e.complexity.MovieDetails.Genres(childComplexity), true
+    return e.complexity.MovieDetails.Genres(childComplexity), true
 
-	case "MovieDetails.overview":
-		if e.complexity.MovieDetails.Overview == nil {
-			break
-		}
+  case "MovieDetails.overview":
+    if e.complexity.MovieDetails.Overview == nil {
+      break
+    }
 
-		return e.complexity.MovieDetails.Overview(childComplexity), true
+    return e.complexity.MovieDetails.Overview(childComplexity), true
 
-	case "MovieDetails.posterPath":
-		if e.complexity.MovieDetails.PosterPath == nil {
-			break
-		}
+  case "MovieDetails.posterPath":
+    if e.complexity.MovieDetails.PosterPath == nil {
+      break
+    }
 
-		return e.complexity.MovieDetails.PosterPath(childComplexity), true
+    return e.complexity.MovieDetails.PosterPath(childComplexity), true
 
-	case "MovieDetails.rating":
-		if e.complexity.MovieDetails.Rating == nil {
-			break
-		}
+  case "MovieDetails.rating":
+    if e.complexity.MovieDetails.Rating == nil {
+      break
+    }
 
-		return e.complexity.MovieDetails.Rating(childComplexity), true
+    return e.complexity.MovieDetails.Rating(childComplexity), true
 
-	case "MovieDetails.releaseDate":
-		if e.complexity.MovieDetails.ReleaseDate == nil {
-			break
-		}
+  case "MovieDetails.releaseDate":
+    if e.complexity.MovieDetails.ReleaseDate == nil {
+      break
+    }
 
-		return e.complexity.MovieDetails.ReleaseDate(childComplexity), true
+    return e.complexity.MovieDetails.ReleaseDate(childComplexity), true
 
-	case "MovieDetails.title":
-		if e.complexity.MovieDetails.Title == nil {
-			break
-		}
+  case "MovieDetails.title":
+    if e.complexity.MovieDetails.Title == nil {
+      break
+    }
 
-		return e.complexity.MovieDetails.Title(childComplexity), true
+    return e.complexity.MovieDetails.Title(childComplexity), true
 
-	case "Mutation.addFavoriteGenre":
-		if e.complexity.Mutation.AddFavoriteGenre == nil {
-			break
-		}
+  case "Mutation.addFavoriteGenre":
+    if e.complexity.Mutation.AddFavoriteGenre == nil {
+      break
+    }
 
-		args, err := ec.field_Mutation_addFavoriteGenre_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+    args, err := ec.field_Mutation_addFavoriteGenre_args(context.TODO(), rawArgs)
+    if err != nil {
+      return 0, false
+    }
 
-		return e.complexity.Mutation.AddFavoriteGenre(childComplexity, args["genreID"].(int32)), true
+    return e.complexity.Mutation.AddFavoriteGenre(childComplexity, args["genreID"].(int32)), true
 
-	case "Mutation.addFavoriteMovie":
-		if e.complexity.Mutation.AddFavoriteMovie == nil {
-			break
-		}
+  case "Mutation.addFavoriteMovie":
+    if e.complexity.Mutation.AddFavoriteMovie == nil {
+      break
+    }
 
-		args, err := ec.field_Mutation_addFavoriteMovie_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+    args, err := ec.field_Mutation_addFavoriteMovie_args(context.TODO(), rawArgs)
+    if err != nil {
+      return 0, false
+    }
 
-		return e.complexity.Mutation.AddFavoriteMovie(childComplexity, args["movie"].(structs.MovieInput)), true
+    return e.complexity.Mutation.AddFavoriteMovie(childComplexity, args["movie"].(structs.MovieInput)), true
 
-	case "Mutation.createUser":
-		if e.complexity.Mutation.CreateUser == nil {
-			break
-		}
+  case "Mutation.addUser":
+    if e.complexity.Mutation.AddUser == nil {
+      break
+    }
 
-		args, err := ec.field_Mutation_createUser_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+    args, err := ec.field_Mutation_addUser_args(context.TODO(), rawArgs)
+    if err != nil {
+      return 0, false
+    }
 
-		return e.complexity.Mutation.CreateUser(childComplexity, args["nickName"].(string), args["userName"].(string), args["password"].(string)), true
+    return e.complexity.Mutation.AddUser(childComplexity, args["nickName"].(string), args["userName"].(string), args["password"].(string)), true
 
-	case "Mutation.deleteFavoriteGenre":
-		if e.complexity.Mutation.DeleteFavoriteGenre == nil {
-			break
-		}
+  case "Mutation.deleteFavoriteGenre":
+    if e.complexity.Mutation.DeleteFavoriteGenre == nil {
+      break
+    }
 
-		args, err := ec.field_Mutation_deleteFavoriteGenre_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+    args, err := ec.field_Mutation_deleteFavoriteGenre_args(context.TODO(), rawArgs)
+    if err != nil {
+      return 0, false
+    }
 
-		return e.complexity.Mutation.DeleteFavoriteGenre(childComplexity, args["genreID"].(int32)), true
+    return e.complexity.Mutation.DeleteFavoriteGenre(childComplexity, args["genreID"].(int32)), true
 
-	case "Mutation.deleteFavoriteMovie":
-		if e.complexity.Mutation.DeleteFavoriteMovie == nil {
-			break
-		}
+  case "Mutation.deleteFavoriteMovie":
+    if e.complexity.Mutation.DeleteFavoriteMovie == nil {
+      break
+    }
 
-		args, err := ec.field_Mutation_deleteFavoriteMovie_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+    args, err := ec.field_Mutation_deleteFavoriteMovie_args(context.TODO(), rawArgs)
+    if err != nil {
+      return 0, false
+    }
 
-		return e.complexity.Mutation.DeleteFavoriteMovie(childComplexity, args["movieID"].(int32)), true
+    return e.complexity.Mutation.DeleteFavoriteMovie(childComplexity, args["movieID"].(int32)), true
 
-	case "Mutation.deleteUser":
-		if e.complexity.Mutation.DeleteUser == nil {
-			break
-		}
+  case "Mutation.deleteUser":
+    if e.complexity.Mutation.DeleteUser == nil {
+      break
+    }
 
-		return e.complexity.Mutation.DeleteUser(childComplexity), true
+    return e.complexity.Mutation.DeleteUser(childComplexity), true
 
-	case "Mutation.toggleWatchedStatus":
-		if e.complexity.Mutation.ToggleWatchedStatus == nil {
-			break
-		}
+  case "Mutation.toggleWatchedStatus":
+    if e.complexity.Mutation.ToggleWatchedStatus == nil {
+      break
+    }
 
-		args, err := ec.field_Mutation_toggleWatchedStatus_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+    args, err := ec.field_Mutation_toggleWatchedStatus_args(context.TODO(), rawArgs)
+    if err != nil {
+      return 0, false
+    }
 
-		return e.complexity.Mutation.ToggleWatchedStatus(childComplexity, args["movieID"].(int32)), true
+    return e.complexity.Mutation.ToggleWatchedStatus(childComplexity, args["movieID"].(int32)), true
 
-	case "Mutation.updateUser":
-		if e.complexity.Mutation.UpdateUser == nil {
-			break
-		}
+  case "Mutation.updateUser":
+    if e.complexity.Mutation.UpdateUser == nil {
+      break
+    }
 
-		args, err := ec.field_Mutation_updateUser_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+    args, err := ec.field_Mutation_updateUser_args(context.TODO(), rawArgs)
+    if err != nil {
+      return 0, false
+    }
 
-		return e.complexity.Mutation.UpdateUser(childComplexity, args["nickName"].(*string), args["password"].(*string)), true
+    return e.complexity.Mutation.UpdateUser(childComplexity, args["nickName"].(*string), args["password"].(*string)), true
 
-	case "Query.getAllFavoriteGenres":
-		if e.complexity.Query.GetAllFavoriteGenres == nil {
-			break
-		}
+  case "Query.getAllFavoriteGenres":
+    if e.complexity.Query.GetAllFavoriteGenres == nil {
+      break
+    }
 
-		return e.complexity.Query.GetAllFavoriteGenres(childComplexity), true
+    return e.complexity.Query.GetAllFavoriteGenres(childComplexity), true
 
-	case "Query.getAllGenres":
-		if e.complexity.Query.GetAllGenres == nil {
-			break
-		}
+  case "Query.getAllGenres":
+    if e.complexity.Query.GetAllGenres == nil {
+      break
+    }
 
-		return e.complexity.Query.GetAllGenres(childComplexity), true
+    return e.complexity.Query.GetAllGenres(childComplexity), true
 
-	case "Query.getFavoriteMovies":
-		if e.complexity.Query.GetFavoriteMovies == nil {
-			break
-		}
+  case "Query.getFavoriteMovies":
+    if e.complexity.Query.GetFavoriteMovies == nil {
+      break
+    }
 
-		return e.complexity.Query.GetFavoriteMovies(childComplexity), true
+    return e.complexity.Query.GetFavoriteMovies(childComplexity), true
 
-	case "Query.getFilteredMovies":
-		if e.complexity.Query.GetFilteredMovies == nil {
-			break
-		}
+  case "Query.getFilteredMovies":
+    if e.complexity.Query.GetFilteredMovies == nil {
+      break
+    }
 
-		args, err := ec.field_Query_getFilteredMovies_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+    args, err := ec.field_Query_getFilteredMovies_args(context.TODO(), rawArgs)
+    if err != nil {
+      return 0, false
+    }
 
-		return e.complexity.Query.GetFilteredMovies(childComplexity, args["filter"].(structs.MovieFilter)), true
+    return e.complexity.Query.GetFilteredMovies(childComplexity, args["filter"].(structs.MovieFilter)), true
 
-	case "Query.getMovieDetails":
-		if e.complexity.Query.GetMovieDetails == nil {
-			break
-		}
+  case "Query.getMovieDetails":
+    if e.complexity.Query.GetMovieDetails == nil {
+      break
+    }
 
-		args, err := ec.field_Query_getMovieDetails_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+    args, err := ec.field_Query_getMovieDetails_args(context.TODO(), rawArgs)
+    if err != nil {
+      return 0, false
+    }
 
-		return e.complexity.Query.GetMovieDetails(childComplexity, args["movieID"].(int32)), true
+    return e.complexity.Query.GetMovieDetails(childComplexity, args["movieID"].(int32)), true
 
-	case "Query.getUser":
-		if e.complexity.Query.GetUser == nil {
-			break
-		}
+  case "Query.getUser":
+    if e.complexity.Query.GetUser == nil {
+      break
+    }
 
-		return e.complexity.Query.GetUser(childComplexity), true
+    return e.complexity.Query.GetUser(childComplexity), true
 
-	case "ResponseFilteredMovies.page":
-		if e.complexity.ResponseFilteredMovies.Page == nil {
-			break
-		}
+  case "ResponseFilteredMovies.page":
+    if e.complexity.ResponseFilteredMovies.Page == nil {
+      break
+    }
 
-		return e.complexity.ResponseFilteredMovies.Page(childComplexity), true
+    return e.complexity.ResponseFilteredMovies.Page(childComplexity), true
 
-	case "ResponseFilteredMovies.results":
-		if e.complexity.ResponseFilteredMovies.Results == nil {
-			break
-		}
+  case "ResponseFilteredMovies.results":
+    if e.complexity.ResponseFilteredMovies.Results == nil {
+      break
+    }
 
-		return e.complexity.ResponseFilteredMovies.Results(childComplexity), true
+    return e.complexity.ResponseFilteredMovies.Results(childComplexity), true
 
-	case "User.favoriteGenres":
-		if e.complexity.User.FavoriteGenres == nil {
-			break
-		}
+  case "User.favoriteGenres":
+    if e.complexity.User.FavoriteGenres == nil {
+      break
+    }
 
-		return e.complexity.User.FavoriteGenres(childComplexity), true
+    return e.complexity.User.FavoriteGenres(childComplexity), true
 
-	case "User.favoriteMovies":
-		if e.complexity.User.FavoriteMovies == nil {
-			break
-		}
+  case "User.favoriteMovies":
+    if e.complexity.User.FavoriteMovies == nil {
+      break
+    }
 
-		return e.complexity.User.FavoriteMovies(childComplexity), true
+    return e.complexity.User.FavoriteMovies(childComplexity), true
 
-	case "User.id":
-		if e.complexity.User.ID == nil {
-			break
-		}
+  case "User.id":
+    if e.complexity.User.ID == nil {
+      break
+    }
 
-		return e.complexity.User.ID(childComplexity), true
+    return e.complexity.User.ID(childComplexity), true
 
-	case "User.nickName":
-		if e.complexity.User.NickName == nil {
-			break
-		}
+  case "User.nickName":
+    if e.complexity.User.NickName == nil {
+      break
+    }
 
-		return e.complexity.User.NickName(childComplexity), true
+    return e.complexity.User.NickName(childComplexity), true
 
-	case "User.password":
-		if e.complexity.User.Password == nil {
-			break
-		}
+  case "User.password":
+    if e.complexity.User.Password == nil {
+      break
+    }
 
-		return e.complexity.User.Password(childComplexity), true
+    return e.complexity.User.Password(childComplexity), true
 
-	case "User.userName":
-		if e.complexity.User.UserName == nil {
-			break
-		}
+  case "User.userName":
+    if e.complexity.User.UserName == nil {
+      break
+    }
 
-		return e.complexity.User.UserName(childComplexity), true
+    return e.complexity.User.UserName(childComplexity), true
 
-	}
-	return 0, false
+  }
+  return 0, false
 }
 
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
-	opCtx := graphql.GetOperationContext(ctx)
-	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputMovieFilter,
-		ec.unmarshalInputMovieInput,
-		ec.unmarshalInputSignInInput,
-	)
-	first := true
+  opCtx := graphql.GetOperationContext(ctx)
+  ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
+  inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+    ec.unmarshalInputMovieFilter,
+    ec.unmarshalInputMovieInput,
+    ec.unmarshalInputSignInInput,
+  )
+  first := true
 
-	switch opCtx.Operation.Operation {
-	case ast.Query:
-		return func(ctx context.Context) *graphql.Response {
-			var response graphql.Response
-			var data graphql.Marshaler
-			if first {
-				first = false
-				ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
-				data = ec._Query(ctx, opCtx.Operation.SelectionSet)
-			} else {
-				if atomic.LoadInt32(&ec.pendingDeferred) > 0 {
-					result := <-ec.deferredResults
-					atomic.AddInt32(&ec.pendingDeferred, -1)
-					data = result.Result
-					response.Path = result.Path
-					response.Label = result.Label
-					response.Errors = result.Errors
-				} else {
-					return nil
-				}
-			}
-			var buf bytes.Buffer
-			data.MarshalGQL(&buf)
-			response.Data = buf.Bytes()
-			if atomic.LoadInt32(&ec.deferred) > 0 {
-				hasNext := atomic.LoadInt32(&ec.pendingDeferred) > 0
-				response.HasNext = &hasNext
-			}
+  switch opCtx.Operation.Operation {
+  case ast.Query:
+    return func(ctx context.Context) *graphql.Response {
+      var response graphql.Response
+      var data graphql.Marshaler
+      if first {
+        first = false
+        ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
+        data = ec._Query(ctx, opCtx.Operation.SelectionSet)
+      } else {
+        if atomic.LoadInt32(&ec.pendingDeferred) > 0 {
+          result := <-ec.deferredResults
+          atomic.AddInt32(&ec.pendingDeferred, -1)
+          data = result.Result
+          response.Path = result.Path
+          response.Label = result.Label
+          response.Errors = result.Errors
+        } else {
+          return nil
+        }
+      }
+      var buf bytes.Buffer
+      data.MarshalGQL(&buf)
+      response.Data = buf.Bytes()
+      if atomic.LoadInt32(&ec.deferred) > 0 {
+        hasNext := atomic.LoadInt32(&ec.pendingDeferred) > 0
+        response.HasNext = &hasNext
+      }
 
-			return &response
-		}
-	case ast.Mutation:
-		return func(ctx context.Context) *graphql.Response {
-			if !first {
-				return nil
-			}
-			first = false
-			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
-			data := ec._Mutation(ctx, opCtx.Operation.SelectionSet)
-			var buf bytes.Buffer
-			data.MarshalGQL(&buf)
+      return &response
+    }
+  case ast.Mutation:
+    return func(ctx context.Context) *graphql.Response {
+      if !first {
+        return nil
+      }
+      first = false
+      ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
+      data := ec._Mutation(ctx, opCtx.Operation.SelectionSet)
+      var buf bytes.Buffer
+      data.MarshalGQL(&buf)
 
-			return &graphql.Response{
-				Data: buf.Bytes(),
-			}
-		}
+      return &graphql.Response{
+        Data: buf.Bytes(),
+      }
+    }
 
-	default:
-		return graphql.OneShot(graphql.ErrorResponse(ctx, "unsupported GraphQL operation"))
-	}
+  default:
+    return graphql.OneShot(graphql.ErrorResponse(ctx, "unsupported GraphQL operation"))
+  }
 }
 
 type executionContext struct {
-	*graphql.OperationContext
-	*executableSchema
-	deferred        int32
-	pendingDeferred int32
-	deferredResults chan graphql.DeferredResult
+  *graphql.OperationContext
+  *executableSchema
+  deferred        int32
+  pendingDeferred int32
+  deferredResults chan graphql.DeferredResult
 }
 
 func (ec *executionContext) processDeferredGroup(dg graphql.DeferredGroup) {
-	atomic.AddInt32(&ec.pendingDeferred, 1)
-	go func() {
-		ctx := graphql.WithFreshResponseContext(dg.Context)
-		dg.FieldSet.Dispatch(ctx)
-		ds := graphql.DeferredResult{
-			Path:   dg.Path,
-			Label:  dg.Label,
-			Result: dg.FieldSet,
-			Errors: graphql.GetErrors(ctx),
-		}
-		// null fields should bubble up
-		if dg.FieldSet.Invalids > 0 {
-			ds.Result = graphql.Null
-		}
-		ec.deferredResults <- ds
-	}()
+  atomic.AddInt32(&ec.pendingDeferred, 1)
+  go func() {
+    ctx := graphql.WithFreshResponseContext(dg.Context)
+    dg.FieldSet.Dispatch(ctx)
+    ds := graphql.DeferredResult{
+      Path:   dg.Path,
+      Label:  dg.Label,
+      Result: dg.FieldSet,
+      Errors: graphql.GetErrors(ctx),
+    }
+    // null fields should bubble up
+    if dg.FieldSet.Invalids > 0 {
+      ds.Result = graphql.Null
+    }
+    ec.deferredResults <- ds
+  }()
 }
 
 func (ec *executionContext) introspectSchema() (*introspection.Schema, error) {
-	if ec.DisableIntrospection {
-		return nil, errors.New("introspection disabled")
-	}
-	return introspection.WrapSchema(ec.Schema()), nil
+  if ec.DisableIntrospection {
+    return nil, errors.New("introspection disabled")
+  }
+  return introspection.WrapSchema(ec.Schema()), nil
 }
 
 func (ec *executionContext) introspectType(name string) (*introspection.Type, error) {
-	if ec.DisableIntrospection {
-		return nil, errors.New("introspection disabled")
-	}
-	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
+  if ec.DisableIntrospection {
+    return nil, errors.New("introspection disabled")
+  }
+  return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
 //go:embed "schema.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
-	data, err := sourcesFS.ReadFile(filename)
-	if err != nil {
-		panic(fmt.Sprintf("codegen problem: %s not available", filename))
-	}
-	return string(data)
+  data, err := sourcesFS.ReadFile(filename)
+  if err != nil {
+    panic(fmt.Sprintf("codegen problem: %s not available", filename))
+  }
+  return string(data)
 }
 
 var sources = []*ast.Source{
-	{Name: "schema.graphqls", Input: sourceData("schema.graphqls"), BuiltIn: false},
+  {Name: "schema.graphqls", Input: sourceData("schema.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -646,379 +646,379 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // region    ***************************** args.gotpl *****************************
 
 func (ec *executionContext) field_Mutation_addFavoriteGenre_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Mutation_addFavoriteGenre_argsGenreID(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["genreID"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field_Mutation_addFavoriteGenre_argsGenreID(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["genreID"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field_Mutation_addFavoriteGenre_argsGenreID(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("genreID"))
-	if tmp, ok := rawArgs["genreID"]; ok {
-		return ec.unmarshalNID2int32(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("genreID"))
+  if tmp, ok := rawArgs["genreID"]; ok {
+    return ec.unmarshalNID2int32(ctx, tmp)
+  }
 
-	var zeroVal int32
-	return zeroVal, nil
+  var zeroVal int32
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_addFavoriteMovie_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Mutation_addFavoriteMovie_argsMovie(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["movie"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field_Mutation_addFavoriteMovie_argsMovie(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["movie"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field_Mutation_addFavoriteMovie_argsMovie(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (structs.MovieInput, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movie"))
-	if tmp, ok := rawArgs["movie"]; ok {
-		return ec.unmarshalNMovieInput2myfavouritemoviesᚋstructsᚐMovieInput(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movie"))
+  if tmp, ok := rawArgs["movie"]; ok {
+    return ec.unmarshalNMovieInput2myfavouritemoviesᚋstructsᚐMovieInput(ctx, tmp)
+  }
 
-	var zeroVal structs.MovieInput
-	return zeroVal, nil
+  var zeroVal structs.MovieInput
+  return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Mutation_createUser_argsNickName(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["nickName"] = arg0
-	arg1, err := ec.field_Mutation_createUser_argsUserName(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["userName"] = arg1
-	arg2, err := ec.field_Mutation_createUser_argsPassword(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["password"] = arg2
-	return args, nil
+func (ec *executionContext) field_Mutation_addUser_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field_Mutation_addUser_argsNickName(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["nickName"] = arg0
+  arg1, err := ec.field_Mutation_addUser_argsUserName(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["userName"] = arg1
+  arg2, err := ec.field_Mutation_addUser_argsPassword(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["password"] = arg2
+  return args, nil
 }
-func (ec *executionContext) field_Mutation_createUser_argsNickName(
-	ctx context.Context,
-	rawArgs map[string]any,
+func (ec *executionContext) field_Mutation_addUser_argsNickName(
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("nickName"))
-	if tmp, ok := rawArgs["nickName"]; ok {
-		return ec.unmarshalNString2string(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("nickName"))
+  if tmp, ok := rawArgs["nickName"]; ok {
+    return ec.unmarshalNString2string(ctx, tmp)
+  }
 
-	var zeroVal string
-	return zeroVal, nil
+  var zeroVal string
+  return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_createUser_argsUserName(
-	ctx context.Context,
-	rawArgs map[string]any,
+func (ec *executionContext) field_Mutation_addUser_argsUserName(
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userName"))
-	if tmp, ok := rawArgs["userName"]; ok {
-		return ec.unmarshalNString2string(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userName"))
+  if tmp, ok := rawArgs["userName"]; ok {
+    return ec.unmarshalNString2string(ctx, tmp)
+  }
 
-	var zeroVal string
-	return zeroVal, nil
+  var zeroVal string
+  return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_createUser_argsPassword(
-	ctx context.Context,
-	rawArgs map[string]any,
+func (ec *executionContext) field_Mutation_addUser_argsPassword(
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-	if tmp, ok := rawArgs["password"]; ok {
-		return ec.unmarshalNString2string(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+  if tmp, ok := rawArgs["password"]; ok {
+    return ec.unmarshalNString2string(ctx, tmp)
+  }
 
-	var zeroVal string
-	return zeroVal, nil
+  var zeroVal string
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_deleteFavoriteGenre_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Mutation_deleteFavoriteGenre_argsGenreID(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["genreID"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field_Mutation_deleteFavoriteGenre_argsGenreID(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["genreID"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field_Mutation_deleteFavoriteGenre_argsGenreID(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("genreID"))
-	if tmp, ok := rawArgs["genreID"]; ok {
-		return ec.unmarshalNID2int32(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("genreID"))
+  if tmp, ok := rawArgs["genreID"]; ok {
+    return ec.unmarshalNID2int32(ctx, tmp)
+  }
 
-	var zeroVal int32
-	return zeroVal, nil
+  var zeroVal int32
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_deleteFavoriteMovie_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Mutation_deleteFavoriteMovie_argsMovieID(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["movieID"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field_Mutation_deleteFavoriteMovie_argsMovieID(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["movieID"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field_Mutation_deleteFavoriteMovie_argsMovieID(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
-	if tmp, ok := rawArgs["movieID"]; ok {
-		return ec.unmarshalNID2int32(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
+  if tmp, ok := rawArgs["movieID"]; ok {
+    return ec.unmarshalNID2int32(ctx, tmp)
+  }
 
-	var zeroVal int32
-	return zeroVal, nil
+  var zeroVal int32
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_toggleWatchedStatus_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Mutation_toggleWatchedStatus_argsMovieID(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["movieID"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field_Mutation_toggleWatchedStatus_argsMovieID(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["movieID"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field_Mutation_toggleWatchedStatus_argsMovieID(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
-	if tmp, ok := rawArgs["movieID"]; ok {
-		return ec.unmarshalNID2int32(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
+  if tmp, ok := rawArgs["movieID"]; ok {
+    return ec.unmarshalNID2int32(ctx, tmp)
+  }
 
-	var zeroVal int32
-	return zeroVal, nil
+  var zeroVal int32
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Mutation_updateUser_argsNickName(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["nickName"] = arg0
-	arg1, err := ec.field_Mutation_updateUser_argsPassword(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["password"] = arg1
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field_Mutation_updateUser_argsNickName(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["nickName"] = arg0
+  arg1, err := ec.field_Mutation_updateUser_argsPassword(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["password"] = arg1
+  return args, nil
 }
 func (ec *executionContext) field_Mutation_updateUser_argsNickName(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (*string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("nickName"))
-	if tmp, ok := rawArgs["nickName"]; ok {
-		return ec.unmarshalOString2ᚖstring(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("nickName"))
+  if tmp, ok := rawArgs["nickName"]; ok {
+    return ec.unmarshalOString2ᚖstring(ctx, tmp)
+  }
 
-	var zeroVal *string
-	return zeroVal, nil
+  var zeroVal *string
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_updateUser_argsPassword(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (*string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-	if tmp, ok := rawArgs["password"]; ok {
-		return ec.unmarshalOString2ᚖstring(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+  if tmp, ok := rawArgs["password"]; ok {
+    return ec.unmarshalOString2ᚖstring(ctx, tmp)
+  }
 
-	var zeroVal *string
-	return zeroVal, nil
+  var zeroVal *string
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Query___type_argsName(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["name"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field_Query___type_argsName(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["name"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field_Query___type_argsName(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-	if tmp, ok := rawArgs["name"]; ok {
-		return ec.unmarshalNString2string(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+  if tmp, ok := rawArgs["name"]; ok {
+    return ec.unmarshalNString2string(ctx, tmp)
+  }
 
-	var zeroVal string
-	return zeroVal, nil
+  var zeroVal string
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query_getFilteredMovies_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Query_getFilteredMovies_argsFilter(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["filter"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field_Query_getFilteredMovies_argsFilter(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["filter"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field_Query_getFilteredMovies_argsFilter(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (structs.MovieFilter, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-	if tmp, ok := rawArgs["filter"]; ok {
-		return ec.unmarshalNMovieFilter2myfavouritemoviesᚋstructsᚐMovieFilter(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+  if tmp, ok := rawArgs["filter"]; ok {
+    return ec.unmarshalNMovieFilter2myfavouritemoviesᚋstructsᚐMovieFilter(ctx, tmp)
+  }
 
-	var zeroVal structs.MovieFilter
-	return zeroVal, nil
+  var zeroVal structs.MovieFilter
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query_getMovieDetails_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Query_getMovieDetails_argsMovieID(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["movieID"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field_Query_getMovieDetails_argsMovieID(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["movieID"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field_Query_getMovieDetails_argsMovieID(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (int32, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
-	if tmp, ok := rawArgs["movieID"]; ok {
-		return ec.unmarshalNID2int32(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
+  if tmp, ok := rawArgs["movieID"]; ok {
+    return ec.unmarshalNID2int32(ctx, tmp)
+  }
 
-	var zeroVal int32
-	return zeroVal, nil
+  var zeroVal int32
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field___Directive_args_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field___Directive_args_argsIncludeDeprecated(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["includeDeprecated"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field___Directive_args_argsIncludeDeprecated(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["includeDeprecated"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field___Directive_args_argsIncludeDeprecated(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (*bool, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
-	if tmp, ok := rawArgs["includeDeprecated"]; ok {
-		return ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
+  if tmp, ok := rawArgs["includeDeprecated"]; ok {
+    return ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+  }
 
-	var zeroVal *bool
-	return zeroVal, nil
+  var zeroVal *bool
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field___Field_args_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field___Field_args_argsIncludeDeprecated(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["includeDeprecated"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field___Field_args_argsIncludeDeprecated(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["includeDeprecated"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field___Field_args_argsIncludeDeprecated(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (*bool, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
-	if tmp, ok := rawArgs["includeDeprecated"]; ok {
-		return ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
+  if tmp, ok := rawArgs["includeDeprecated"]; ok {
+    return ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+  }
 
-	var zeroVal *bool
-	return zeroVal, nil
+  var zeroVal *bool
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field___Type_enumValues_argsIncludeDeprecated(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["includeDeprecated"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field___Type_enumValues_argsIncludeDeprecated(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["includeDeprecated"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field___Type_enumValues_argsIncludeDeprecated(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (bool, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
-	if tmp, ok := rawArgs["includeDeprecated"]; ok {
-		return ec.unmarshalOBoolean2bool(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
+  if tmp, ok := rawArgs["includeDeprecated"]; ok {
+    return ec.unmarshalOBoolean2bool(ctx, tmp)
+  }
 
-	var zeroVal bool
-	return zeroVal, nil
+  var zeroVal bool
+  return zeroVal, nil
 }
 
 func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field___Type_fields_argsIncludeDeprecated(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["includeDeprecated"] = arg0
-	return args, nil
+  var err error
+  args := map[string]any{}
+  arg0, err := ec.field___Type_fields_argsIncludeDeprecated(ctx, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  args["includeDeprecated"] = arg0
+  return args, nil
 }
 func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
-	ctx context.Context,
-	rawArgs map[string]any,
+  ctx context.Context,
+  rawArgs map[string]any,
 ) (bool, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
-	if tmp, ok := rawArgs["includeDeprecated"]; ok {
-		return ec.unmarshalOBoolean2bool(ctx, tmp)
-	}
+  ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
+  if tmp, ok := rawArgs["includeDeprecated"]; ok {
+    return ec.unmarshalOBoolean2bool(ctx, tmp)
+  }
 
-	var zeroVal bool
-	return zeroVal, nil
+  var zeroVal bool
+  return zeroVal, nil
 }
 
 // endregion ***************************** args.gotpl *****************************
@@ -1030,4280 +1030,4266 @@ func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
 // region    **************************** field.gotpl *****************************
 
 func (ec *executionContext) _FavoriteGenre_userID(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteGenre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteGenre_userID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int32)
-	fc.Result = res
-	return ec.marshalNID2int32(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_FavoriteGenre_userID(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.UserID, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(int32)
+  fc.Result = res
+  return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteGenre_userID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteGenre",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "FavoriteGenre",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type ID does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _FavoriteGenre_genreID(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteGenre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteGenre_genreID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.GenreID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int32)
-	fc.Result = res
-	return ec.marshalNID2int32(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_FavoriteGenre_genreID(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.GenreID, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(int32)
+  fc.Result = res
+  return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteGenre_genreID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteGenre",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "FavoriteGenre",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type ID does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _FavoriteMovie_userID(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteMovie_userID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int32)
-	fc.Result = res
-	return ec.marshalNID2int32(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_FavoriteMovie_userID(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.UserID, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(int32)
+  fc.Result = res
+  return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteMovie_userID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteMovie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "FavoriteMovie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type ID does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _FavoriteMovie_movieID(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteMovie_movieID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MovieID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int32)
-	fc.Result = res
-	return ec.marshalNID2int32(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_FavoriteMovie_movieID(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.MovieID, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(int32)
+  fc.Result = res
+  return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteMovie_movieID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteMovie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "FavoriteMovie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type ID does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _FavoriteMovie_title(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteMovie_title(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Title, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_FavoriteMovie_title(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Title, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteMovie_title(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteMovie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "FavoriteMovie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _FavoriteMovie_posterPath(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteMovie_posterPath(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PosterPath, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_FavoriteMovie_posterPath(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.PosterPath, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteMovie_posterPath(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteMovie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "FavoriteMovie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _FavoriteMovie_voteAverage(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteMovie_voteAverage(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.VoteAverage, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_FavoriteMovie_voteAverage(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.VoteAverage, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(float64)
+  fc.Result = res
+  return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteMovie_voteAverage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteMovie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "FavoriteMovie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Float does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _FavoriteMovie_watched(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteMovie_watched(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Watched, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_FavoriteMovie_watched(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Watched, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteMovie_watched(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteMovie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "FavoriteMovie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _FavoriteMovie_genres(ctx context.Context, field graphql.CollectedField, obj *structs.FavoriteMovie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FavoriteMovie_genres(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Genres, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*structs.Genre)
-	fc.Result = res
-	return ec.marshalNGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐGenreᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_FavoriteMovie_genres(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Genres, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]*structs.Genre)
+  fc.Result = res
+  return ec.marshalNGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐGenreᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteMovie_genres(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FavoriteMovie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Genre_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Genre_name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Genre", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "FavoriteMovie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "id":
+        return ec.fieldContext_Genre_id(ctx, field)
+      case "name":
+        return ec.fieldContext_Genre_name(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type Genre", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Genre_id(ctx context.Context, field graphql.CollectedField, obj *structs.Genre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Genre_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int32)
-	fc.Result = res
-	return ec.marshalNID2int32(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Genre_id(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.ID, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(int32)
+  fc.Result = res
+  return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Genre_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Genre",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Genre",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type ID does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Genre_name(ctx context.Context, field graphql.CollectedField, obj *structs.Genre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Genre_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Genre_name(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Name, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Genre_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Genre",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Genre",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Movie_id(ctx context.Context, field graphql.CollectedField, obj *structs.Movie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Movie_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int32)
-	fc.Result = res
-	return ec.marshalNID2int32(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Movie_id(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.ID, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(int32)
+  fc.Result = res
+  return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Movie_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Movie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Movie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type ID does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Movie_title(ctx context.Context, field graphql.CollectedField, obj *structs.Movie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Movie_title(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Title, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Movie_title(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Title, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Movie_title(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Movie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Movie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Movie_posterPath(ctx context.Context, field graphql.CollectedField, obj *structs.Movie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Movie_posterPath(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PosterPath, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Movie_posterPath(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.PosterPath, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Movie_posterPath(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Movie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Movie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Movie_voteAverage(ctx context.Context, field graphql.CollectedField, obj *structs.Movie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Movie_voteAverage(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.VoteAverage, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Movie_voteAverage(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.VoteAverage, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(float64)
+  fc.Result = res
+  return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Movie_voteAverage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Movie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Movie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Float does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Movie_genreIDs(ctx context.Context, field graphql.CollectedField, obj *structs.Movie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Movie_genreIDs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.GenreIDs, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]int32)
-	fc.Result = res
-	return ec.marshalNID2ᚕint32ᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Movie_genreIDs(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.GenreIDs, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]int32)
+  fc.Result = res
+  return ec.marshalNID2ᚕint32ᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Movie_genreIDs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Movie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Movie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type ID does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Movie_releaseDate(ctx context.Context, field graphql.CollectedField, obj *structs.Movie) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Movie_releaseDate(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ReleaseDate, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Movie_releaseDate(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.ReleaseDate, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Movie_releaseDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Movie",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Movie",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _MovieDetails_title(ctx context.Context, field graphql.CollectedField, obj *structs.MovieDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MovieDetails_title(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Title, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_MovieDetails_title(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Title, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MovieDetails_title(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MovieDetails",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "MovieDetails",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _MovieDetails_rating(ctx context.Context, field graphql.CollectedField, obj *structs.MovieDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MovieDetails_rating(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Rating, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_MovieDetails_rating(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Rating, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(float64)
+  fc.Result = res
+  return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MovieDetails_rating(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MovieDetails",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "MovieDetails",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Float does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _MovieDetails_releaseDate(ctx context.Context, field graphql.CollectedField, obj *structs.MovieDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MovieDetails_releaseDate(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ReleaseDate, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_MovieDetails_releaseDate(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.ReleaseDate, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MovieDetails_releaseDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MovieDetails",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "MovieDetails",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _MovieDetails_posterPath(ctx context.Context, field graphql.CollectedField, obj *structs.MovieDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MovieDetails_posterPath(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PosterPath, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_MovieDetails_posterPath(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.PosterPath, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MovieDetails_posterPath(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MovieDetails",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "MovieDetails",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _MovieDetails_genres(ctx context.Context, field graphql.CollectedField, obj *structs.MovieDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MovieDetails_genres(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Genres, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*structs.Genre)
-	fc.Result = res
-	return ec.marshalNGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐGenreᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_MovieDetails_genres(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Genres, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]*structs.Genre)
+  fc.Result = res
+  return ec.marshalNGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐGenreᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MovieDetails_genres(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MovieDetails",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Genre_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Genre_name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Genre", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "MovieDetails",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "id":
+        return ec.fieldContext_Genre_id(ctx, field)
+      case "name":
+        return ec.fieldContext_Genre_name(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type Genre", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _MovieDetails_overview(ctx context.Context, field graphql.CollectedField, obj *structs.MovieDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MovieDetails_overview(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Overview, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_MovieDetails_overview(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Overview, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MovieDetails_overview(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MovieDetails",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "MovieDetails",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createUser(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUser(rctx, fc.Args["nickName"].(string), fc.Args["userName"].(string), fc.Args["password"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*structs.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖmyfavouritemoviesᚋstructsᚐUser(ctx, field.Selections, res)
+func (ec *executionContext) _Mutation_addUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+  fc, err := ec.fieldContext_Mutation_addUser(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Mutation().AddUser(rctx, fc.Args["nickName"].(string), fc.Args["userName"].(string), fc.Args["password"].(string))
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "nickName":
-				return ec.fieldContext_User_nickName(ctx, field)
-			case "userName":
-				return ec.fieldContext_User_userName(ctx, field)
-			case "password":
-				return ec.fieldContext_User_password(ctx, field)
-			case "favoriteMovies":
-				return ec.fieldContext_User_favoriteMovies(ctx, field)
-			case "favoriteGenres":
-				return ec.fieldContext_User_favoriteGenres(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+func (ec *executionContext) fieldContext_Mutation_addUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+  fc = &graphql.FieldContext{
+    Object:     "Mutation",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field_Mutation_addUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_deleteUser(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteUser(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Mutation_deleteUser(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Mutation().DeleteUser(rctx)
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteUser(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Mutation",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_updateUser(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUser(rctx, fc.Args["nickName"].(*string), fc.Args["password"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Mutation_updateUser(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Mutation().UpdateUser(rctx, fc.Args["nickName"].(*string), fc.Args["password"].(*string))
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Mutation",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field_Mutation_updateUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Mutation_addFavoriteMovie(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_addFavoriteMovie(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddFavoriteMovie(rctx, fc.Args["movie"].(structs.MovieInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Mutation_addFavoriteMovie(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Mutation().AddFavoriteMovie(rctx, fc.Args["movie"].(structs.MovieInput))
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addFavoriteMovie(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_addFavoriteMovie_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Mutation",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field_Mutation_addFavoriteMovie_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Mutation_deleteFavoriteMovie(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_deleteFavoriteMovie(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteFavoriteMovie(rctx, fc.Args["movieID"].(int32))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Mutation_deleteFavoriteMovie(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Mutation().DeleteFavoriteMovie(rctx, fc.Args["movieID"].(int32))
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteFavoriteMovie(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteFavoriteMovie_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Mutation",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field_Mutation_deleteFavoriteMovie_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Mutation_toggleWatchedStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_toggleWatchedStatus(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ToggleWatchedStatus(rctx, fc.Args["movieID"].(int32))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Mutation_toggleWatchedStatus(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Mutation().ToggleWatchedStatus(rctx, fc.Args["movieID"].(int32))
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_toggleWatchedStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_toggleWatchedStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Mutation",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field_Mutation_toggleWatchedStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Mutation_addFavoriteGenre(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_addFavoriteGenre(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddFavoriteGenre(rctx, fc.Args["genreID"].(int32))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Mutation_addFavoriteGenre(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Mutation().AddFavoriteGenre(rctx, fc.Args["genreID"].(int32))
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addFavoriteGenre(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_addFavoriteGenre_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Mutation",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field_Mutation_addFavoriteGenre_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Mutation_deleteFavoriteGenre(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_deleteFavoriteGenre(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteFavoriteGenre(rctx, fc.Args["genreID"].(int32))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Mutation_deleteFavoriteGenre(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Mutation().DeleteFavoriteGenre(rctx, fc.Args["genreID"].(int32))
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteFavoriteGenre(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteFavoriteGenre_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Mutation",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field_Mutation_deleteFavoriteGenre_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Query_getUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getUser(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUser(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*structs.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖmyfavouritemoviesᚋstructsᚐUser(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Query_getUser(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Query().GetUser(rctx)
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(*structs.User)
+  fc.Result = res
+  return ec.marshalNUser2ᚖmyfavouritemoviesᚋstructsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getUser(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "nickName":
-				return ec.fieldContext_User_nickName(ctx, field)
-			case "userName":
-				return ec.fieldContext_User_userName(ctx, field)
-			case "password":
-				return ec.fieldContext_User_password(ctx, field)
-			case "favoriteMovies":
-				return ec.fieldContext_User_favoriteMovies(ctx, field)
-			case "favoriteGenres":
-				return ec.fieldContext_User_favoriteGenres(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Query",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "id":
+        return ec.fieldContext_User_id(ctx, field)
+      case "nickName":
+        return ec.fieldContext_User_nickName(ctx, field)
+      case "userName":
+        return ec.fieldContext_User_userName(ctx, field)
+      case "password":
+        return ec.fieldContext_User_password(ctx, field)
+      case "favoriteMovies":
+        return ec.fieldContext_User_favoriteMovies(ctx, field)
+      case "favoriteGenres":
+        return ec.fieldContext_User_favoriteGenres(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Query_getAllGenres(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getAllGenres(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAllGenres(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*structs.Genre)
-	fc.Result = res
-	return ec.marshalNGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐGenreᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Query_getAllGenres(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Query().GetAllGenres(rctx)
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]*structs.Genre)
+  fc.Result = res
+  return ec.marshalNGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐGenreᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getAllGenres(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Genre_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Genre_name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Genre", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Query",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "id":
+        return ec.fieldContext_Genre_id(ctx, field)
+      case "name":
+        return ec.fieldContext_Genre_name(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type Genre", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Query_getAllFavoriteGenres(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getAllFavoriteGenres(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAllFavoriteGenres(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*structs.FavoriteGenre)
-	fc.Result = res
-	return ec.marshalOFavoriteGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteGenreᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Query_getAllFavoriteGenres(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Query().GetAllFavoriteGenres(rctx)
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.([]*structs.FavoriteGenre)
+  fc.Result = res
+  return ec.marshalOFavoriteGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteGenreᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getAllFavoriteGenres(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "userID":
-				return ec.fieldContext_FavoriteGenre_userID(ctx, field)
-			case "genreID":
-				return ec.fieldContext_FavoriteGenre_genreID(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type FavoriteGenre", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Query",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "userID":
+        return ec.fieldContext_FavoriteGenre_userID(ctx, field)
+      case "genreID":
+        return ec.fieldContext_FavoriteGenre_genreID(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type FavoriteGenre", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Query_getFavoriteMovies(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getFavoriteMovies(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetFavoriteMovies(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*structs.FavoriteMovie)
-	fc.Result = res
-	return ec.marshalOFavoriteMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteMovieᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Query_getFavoriteMovies(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Query().GetFavoriteMovies(rctx)
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.([]*structs.FavoriteMovie)
+  fc.Result = res
+  return ec.marshalOFavoriteMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteMovieᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getFavoriteMovies(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "userID":
-				return ec.fieldContext_FavoriteMovie_userID(ctx, field)
-			case "movieID":
-				return ec.fieldContext_FavoriteMovie_movieID(ctx, field)
-			case "title":
-				return ec.fieldContext_FavoriteMovie_title(ctx, field)
-			case "posterPath":
-				return ec.fieldContext_FavoriteMovie_posterPath(ctx, field)
-			case "voteAverage":
-				return ec.fieldContext_FavoriteMovie_voteAverage(ctx, field)
-			case "watched":
-				return ec.fieldContext_FavoriteMovie_watched(ctx, field)
-			case "genres":
-				return ec.fieldContext_FavoriteMovie_genres(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type FavoriteMovie", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Query",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "userID":
+        return ec.fieldContext_FavoriteMovie_userID(ctx, field)
+      case "movieID":
+        return ec.fieldContext_FavoriteMovie_movieID(ctx, field)
+      case "title":
+        return ec.fieldContext_FavoriteMovie_title(ctx, field)
+      case "posterPath":
+        return ec.fieldContext_FavoriteMovie_posterPath(ctx, field)
+      case "voteAverage":
+        return ec.fieldContext_FavoriteMovie_voteAverage(ctx, field)
+      case "watched":
+        return ec.fieldContext_FavoriteMovie_watched(ctx, field)
+      case "genres":
+        return ec.fieldContext_FavoriteMovie_genres(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type FavoriteMovie", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Query_getMovieDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getMovieDetails(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetMovieDetails(rctx, fc.Args["movieID"].(int32))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*structs.MovieDetails)
-	fc.Result = res
-	return ec.marshalNMovieDetails2ᚖmyfavouritemoviesᚋstructsᚐMovieDetails(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Query_getMovieDetails(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Query().GetMovieDetails(rctx, fc.Args["movieID"].(int32))
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(*structs.MovieDetails)
+  fc.Result = res
+  return ec.marshalNMovieDetails2ᚖmyfavouritemoviesᚋstructsᚐMovieDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getMovieDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "title":
-				return ec.fieldContext_MovieDetails_title(ctx, field)
-			case "rating":
-				return ec.fieldContext_MovieDetails_rating(ctx, field)
-			case "releaseDate":
-				return ec.fieldContext_MovieDetails_releaseDate(ctx, field)
-			case "posterPath":
-				return ec.fieldContext_MovieDetails_posterPath(ctx, field)
-			case "genres":
-				return ec.fieldContext_MovieDetails_genres(ctx, field)
-			case "overview":
-				return ec.fieldContext_MovieDetails_overview(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MovieDetails", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getMovieDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Query",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "title":
+        return ec.fieldContext_MovieDetails_title(ctx, field)
+      case "rating":
+        return ec.fieldContext_MovieDetails_rating(ctx, field)
+      case "releaseDate":
+        return ec.fieldContext_MovieDetails_releaseDate(ctx, field)
+      case "posterPath":
+        return ec.fieldContext_MovieDetails_posterPath(ctx, field)
+      case "genres":
+        return ec.fieldContext_MovieDetails_genres(ctx, field)
+      case "overview":
+        return ec.fieldContext_MovieDetails_overview(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type MovieDetails", field.Name)
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field_Query_getMovieDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Query_getFilteredMovies(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getFilteredMovies(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetFilteredMovies(rctx, fc.Args["filter"].(structs.MovieFilter))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*structs.Movie)
-	fc.Result = res
-	return ec.marshalOMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐMovie(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Query_getFilteredMovies(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.resolvers.Query().GetFilteredMovies(rctx, fc.Args["filter"].(structs.MovieFilter))
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.([]*structs.Movie)
+  fc.Result = res
+  return ec.marshalOMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐMovie(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getFilteredMovies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Movie_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Movie_title(ctx, field)
-			case "posterPath":
-				return ec.fieldContext_Movie_posterPath(ctx, field)
-			case "voteAverage":
-				return ec.fieldContext_Movie_voteAverage(ctx, field)
-			case "genreIDs":
-				return ec.fieldContext_Movie_genreIDs(ctx, field)
-			case "releaseDate":
-				return ec.fieldContext_Movie_releaseDate(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Movie", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getFilteredMovies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Query",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: true,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "id":
+        return ec.fieldContext_Movie_id(ctx, field)
+      case "title":
+        return ec.fieldContext_Movie_title(ctx, field)
+      case "posterPath":
+        return ec.fieldContext_Movie_posterPath(ctx, field)
+      case "voteAverage":
+        return ec.fieldContext_Movie_voteAverage(ctx, field)
+      case "genreIDs":
+        return ec.fieldContext_Movie_genreIDs(ctx, field)
+      case "releaseDate":
+        return ec.fieldContext_Movie_releaseDate(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type Movie", field.Name)
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field_Query_getFilteredMovies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query___type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.introspectType(fc.Args["name"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*introspection.Type)
-	fc.Result = res
-	return ec.marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Query___type(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.introspectType(fc.Args["name"].(string))
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*introspection.Type)
+  fc.Result = res
+  return ec.marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query___type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "kind":
-				return ec.fieldContext___Type_kind(ctx, field)
-			case "name":
-				return ec.fieldContext___Type_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Type_description(ctx, field)
-			case "fields":
-				return ec.fieldContext___Type_fields(ctx, field)
-			case "interfaces":
-				return ec.fieldContext___Type_interfaces(ctx, field)
-			case "possibleTypes":
-				return ec.fieldContext___Type_possibleTypes(ctx, field)
-			case "enumValues":
-				return ec.fieldContext___Type_enumValues(ctx, field)
-			case "inputFields":
-				return ec.fieldContext___Type_inputFields(ctx, field)
-			case "ofType":
-				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
-			case "isOneOf":
-				return ec.fieldContext___Type_isOneOf(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query___type_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Query",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "kind":
+        return ec.fieldContext___Type_kind(ctx, field)
+      case "name":
+        return ec.fieldContext___Type_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Type_description(ctx, field)
+      case "fields":
+        return ec.fieldContext___Type_fields(ctx, field)
+      case "interfaces":
+        return ec.fieldContext___Type_interfaces(ctx, field)
+      case "possibleTypes":
+        return ec.fieldContext___Type_possibleTypes(ctx, field)
+      case "enumValues":
+        return ec.fieldContext___Type_enumValues(ctx, field)
+      case "inputFields":
+        return ec.fieldContext___Type_inputFields(ctx, field)
+      case "ofType":
+        return ec.fieldContext___Type_ofType(ctx, field)
+      case "specifiedByURL":
+        return ec.fieldContext___Type_specifiedByURL(ctx, field)
+      case "isOneOf":
+        return ec.fieldContext___Type_isOneOf(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field_Query___type_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query___schema(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.introspectSchema()
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*introspection.Schema)
-	fc.Result = res
-	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_Query___schema(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return ec.introspectSchema()
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*introspection.Schema)
+  fc.Result = res
+  return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "description":
-				return ec.fieldContext___Schema_description(ctx, field)
-			case "types":
-				return ec.fieldContext___Schema_types(ctx, field)
-			case "queryType":
-				return ec.fieldContext___Schema_queryType(ctx, field)
-			case "mutationType":
-				return ec.fieldContext___Schema_mutationType(ctx, field)
-			case "subscriptionType":
-				return ec.fieldContext___Schema_subscriptionType(ctx, field)
-			case "directives":
-				return ec.fieldContext___Schema_directives(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "Query",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "description":
+        return ec.fieldContext___Schema_description(ctx, field)
+      case "types":
+        return ec.fieldContext___Schema_types(ctx, field)
+      case "queryType":
+        return ec.fieldContext___Schema_queryType(ctx, field)
+      case "mutationType":
+        return ec.fieldContext___Schema_mutationType(ctx, field)
+      case "subscriptionType":
+        return ec.fieldContext___Schema_subscriptionType(ctx, field)
+      case "directives":
+        return ec.fieldContext___Schema_directives(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _ResponseFilteredMovies_page(ctx context.Context, field graphql.CollectedField, obj *structs.ResponseFilteredMovies) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ResponseFilteredMovies_page(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Page, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int32)
-	fc.Result = res
-	return ec.marshalNInt2int32(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_ResponseFilteredMovies_page(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Page, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(int32)
+  fc.Result = res
+  return ec.marshalNInt2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ResponseFilteredMovies_page(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ResponseFilteredMovies",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "ResponseFilteredMovies",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Int does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _ResponseFilteredMovies_results(ctx context.Context, field graphql.CollectedField, obj *structs.ResponseFilteredMovies) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ResponseFilteredMovies_results(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Results, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*structs.Movie)
-	fc.Result = res
-	return ec.marshalOMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐMovieᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_ResponseFilteredMovies_results(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Results, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.([]*structs.Movie)
+  fc.Result = res
+  return ec.marshalOMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐMovieᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ResponseFilteredMovies_results(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ResponseFilteredMovies",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Movie_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Movie_title(ctx, field)
-			case "posterPath":
-				return ec.fieldContext_Movie_posterPath(ctx, field)
-			case "voteAverage":
-				return ec.fieldContext_Movie_voteAverage(ctx, field)
-			case "genreIDs":
-				return ec.fieldContext_Movie_genreIDs(ctx, field)
-			case "releaseDate":
-				return ec.fieldContext_Movie_releaseDate(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Movie", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "ResponseFilteredMovies",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "id":
+        return ec.fieldContext_Movie_id(ctx, field)
+      case "title":
+        return ec.fieldContext_Movie_title(ctx, field)
+      case "posterPath":
+        return ec.fieldContext_Movie_posterPath(ctx, field)
+      case "voteAverage":
+        return ec.fieldContext_Movie_voteAverage(ctx, field)
+      case "genreIDs":
+        return ec.fieldContext_Movie_genreIDs(ctx, field)
+      case "releaseDate":
+        return ec.fieldContext_Movie_releaseDate(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type Movie", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *structs.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int32)
-	fc.Result = res
-	return ec.marshalNID2int32(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_User_id(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.ID, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(int32)
+  fc.Result = res
+  return ec.marshalNID2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "User",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type ID does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _User_nickName(ctx context.Context, field graphql.CollectedField, obj *structs.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_nickName(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.NickName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_User_nickName(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.NickName, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_nickName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "User",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _User_userName(ctx context.Context, field graphql.CollectedField, obj *structs.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_userName(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_User_userName(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.UserName, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_userName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "User",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _User_password(ctx context.Context, field graphql.CollectedField, obj *structs.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_password(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Password, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_User_password(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Password, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_password(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "User",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _User_favoriteMovies(ctx context.Context, field graphql.CollectedField, obj *structs.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_favoriteMovies(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FavoriteMovies, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*structs.FavoriteMovie)
-	fc.Result = res
-	return ec.marshalNFavoriteMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteMovieᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_User_favoriteMovies(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.FavoriteMovies, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]*structs.FavoriteMovie)
+  fc.Result = res
+  return ec.marshalNFavoriteMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteMovieᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_favoriteMovies(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "userID":
-				return ec.fieldContext_FavoriteMovie_userID(ctx, field)
-			case "movieID":
-				return ec.fieldContext_FavoriteMovie_movieID(ctx, field)
-			case "title":
-				return ec.fieldContext_FavoriteMovie_title(ctx, field)
-			case "posterPath":
-				return ec.fieldContext_FavoriteMovie_posterPath(ctx, field)
-			case "voteAverage":
-				return ec.fieldContext_FavoriteMovie_voteAverage(ctx, field)
-			case "watched":
-				return ec.fieldContext_FavoriteMovie_watched(ctx, field)
-			case "genres":
-				return ec.fieldContext_FavoriteMovie_genres(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type FavoriteMovie", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "User",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "userID":
+        return ec.fieldContext_FavoriteMovie_userID(ctx, field)
+      case "movieID":
+        return ec.fieldContext_FavoriteMovie_movieID(ctx, field)
+      case "title":
+        return ec.fieldContext_FavoriteMovie_title(ctx, field)
+      case "posterPath":
+        return ec.fieldContext_FavoriteMovie_posterPath(ctx, field)
+      case "voteAverage":
+        return ec.fieldContext_FavoriteMovie_voteAverage(ctx, field)
+      case "watched":
+        return ec.fieldContext_FavoriteMovie_watched(ctx, field)
+      case "genres":
+        return ec.fieldContext_FavoriteMovie_genres(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type FavoriteMovie", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) _User_favoriteGenres(ctx context.Context, field graphql.CollectedField, obj *structs.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_favoriteGenres(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FavoriteGenres, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*structs.FavoriteGenre)
-	fc.Result = res
-	return ec.marshalNFavoriteGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteGenreᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext_User_favoriteGenres(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.FavoriteGenres, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]*structs.FavoriteGenre)
+  fc.Result = res
+  return ec.marshalNFavoriteGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteGenreᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_favoriteGenres(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "userID":
-				return ec.fieldContext_FavoriteGenre_userID(ctx, field)
-			case "genreID":
-				return ec.fieldContext_FavoriteGenre_genreID(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type FavoriteGenre", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "User",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "userID":
+        return ec.fieldContext_FavoriteGenre_userID(ctx, field)
+      case "genreID":
+        return ec.fieldContext_FavoriteGenre_genreID(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type FavoriteGenre", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Directive_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Directive_name(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Name, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Directive_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Directive",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Directive",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Directive_description(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Directive_description(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Description(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Directive_description(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Description(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Directive_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Directive",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Directive",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Directive_locations(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Directive_locations(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Locations, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalN__DirectiveLocation2ᚕstringᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Directive_locations(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Locations, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]string)
+  fc.Result = res
+  return ec.marshalN__DirectiveLocation2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Directive_locations(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Directive",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type __DirectiveLocation does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Directive",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type __DirectiveLocation does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Directive_args(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Directive_args(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Args, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]introspection.InputValue)
-	fc.Result = res
-	return ec.marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Directive_args(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Args, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]introspection.InputValue)
+  fc.Result = res
+  return ec.marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Directive_args(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Directive",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext___InputValue_name(ctx, field)
-			case "description":
-				return ec.fieldContext___InputValue_description(ctx, field)
-			case "type":
-				return ec.fieldContext___InputValue_type(ctx, field)
-			case "defaultValue":
-				return ec.fieldContext___InputValue_defaultValue(ctx, field)
-			case "isDeprecated":
-				return ec.fieldContext___InputValue_isDeprecated(ctx, field)
-			case "deprecationReason":
-				return ec.fieldContext___InputValue_deprecationReason(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __InputValue", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field___Directive_args_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Directive",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "name":
+        return ec.fieldContext___InputValue_name(ctx, field)
+      case "description":
+        return ec.fieldContext___InputValue_description(ctx, field)
+      case "type":
+        return ec.fieldContext___InputValue_type(ctx, field)
+      case "defaultValue":
+        return ec.fieldContext___InputValue_defaultValue(ctx, field)
+      case "isDeprecated":
+        return ec.fieldContext___InputValue_isDeprecated(ctx, field)
+      case "deprecationReason":
+        return ec.fieldContext___InputValue_deprecationReason(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __InputValue", field.Name)
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field___Directive_args_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Directive_isRepeatable(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Directive_isRepeatable(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsRepeatable, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Directive_isRepeatable(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.IsRepeatable, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Directive_isRepeatable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Directive",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Directive",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___EnumValue_name(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___EnumValue_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___EnumValue_name(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Name, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___EnumValue_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__EnumValue",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__EnumValue",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___EnumValue_description(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___EnumValue_description(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Description(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___EnumValue_description(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Description(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___EnumValue_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__EnumValue",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__EnumValue",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___EnumValue_isDeprecated(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___EnumValue_isDeprecated(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsDeprecated(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___EnumValue_isDeprecated(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.IsDeprecated(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___EnumValue_isDeprecated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__EnumValue",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__EnumValue",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___EnumValue_deprecationReason(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___EnumValue_deprecationReason(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeprecationReason(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___EnumValue_deprecationReason(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.DeprecationReason(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___EnumValue_deprecationReason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__EnumValue",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__EnumValue",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Field_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Field_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Field_name(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Name, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Field_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Field",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Field",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Field_description(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Field_description(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Description(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Field_description(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Description(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Field_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Field",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Field",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Field_args(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Field_args(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Args, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]introspection.InputValue)
-	fc.Result = res
-	return ec.marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Field_args(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Args, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]introspection.InputValue)
+  fc.Result = res
+  return ec.marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Field_args(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Field",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext___InputValue_name(ctx, field)
-			case "description":
-				return ec.fieldContext___InputValue_description(ctx, field)
-			case "type":
-				return ec.fieldContext___InputValue_type(ctx, field)
-			case "defaultValue":
-				return ec.fieldContext___InputValue_defaultValue(ctx, field)
-			case "isDeprecated":
-				return ec.fieldContext___InputValue_isDeprecated(ctx, field)
-			case "deprecationReason":
-				return ec.fieldContext___InputValue_deprecationReason(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __InputValue", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field___Field_args_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Field",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "name":
+        return ec.fieldContext___InputValue_name(ctx, field)
+      case "description":
+        return ec.fieldContext___InputValue_description(ctx, field)
+      case "type":
+        return ec.fieldContext___InputValue_type(ctx, field)
+      case "defaultValue":
+        return ec.fieldContext___InputValue_defaultValue(ctx, field)
+      case "isDeprecated":
+        return ec.fieldContext___InputValue_isDeprecated(ctx, field)
+      case "deprecationReason":
+        return ec.fieldContext___InputValue_deprecationReason(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __InputValue", field.Name)
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field___Field_args_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Field_type(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Field_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*introspection.Type)
-	fc.Result = res
-	return ec.marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Field_type(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Type, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(*introspection.Type)
+  fc.Result = res
+  return ec.marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Field_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Field",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "kind":
-				return ec.fieldContext___Type_kind(ctx, field)
-			case "name":
-				return ec.fieldContext___Type_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Type_description(ctx, field)
-			case "fields":
-				return ec.fieldContext___Type_fields(ctx, field)
-			case "interfaces":
-				return ec.fieldContext___Type_interfaces(ctx, field)
-			case "possibleTypes":
-				return ec.fieldContext___Type_possibleTypes(ctx, field)
-			case "enumValues":
-				return ec.fieldContext___Type_enumValues(ctx, field)
-			case "inputFields":
-				return ec.fieldContext___Type_inputFields(ctx, field)
-			case "ofType":
-				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
-			case "isOneOf":
-				return ec.fieldContext___Type_isOneOf(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Field",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "kind":
+        return ec.fieldContext___Type_kind(ctx, field)
+      case "name":
+        return ec.fieldContext___Type_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Type_description(ctx, field)
+      case "fields":
+        return ec.fieldContext___Type_fields(ctx, field)
+      case "interfaces":
+        return ec.fieldContext___Type_interfaces(ctx, field)
+      case "possibleTypes":
+        return ec.fieldContext___Type_possibleTypes(ctx, field)
+      case "enumValues":
+        return ec.fieldContext___Type_enumValues(ctx, field)
+      case "inputFields":
+        return ec.fieldContext___Type_inputFields(ctx, field)
+      case "ofType":
+        return ec.fieldContext___Type_ofType(ctx, field)
+      case "specifiedByURL":
+        return ec.fieldContext___Type_specifiedByURL(ctx, field)
+      case "isOneOf":
+        return ec.fieldContext___Type_isOneOf(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Field_isDeprecated(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Field_isDeprecated(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsDeprecated(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Field_isDeprecated(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.IsDeprecated(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Field_isDeprecated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Field",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Field",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Field_deprecationReason(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Field_deprecationReason(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeprecationReason(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Field_deprecationReason(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.DeprecationReason(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Field_deprecationReason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Field",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Field",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___InputValue_name(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___InputValue_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___InputValue_name(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Name, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___InputValue_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__InputValue",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__InputValue",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___InputValue_description(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___InputValue_description(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Description(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___InputValue_description(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Description(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___InputValue_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__InputValue",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__InputValue",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___InputValue_type(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___InputValue_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*introspection.Type)
-	fc.Result = res
-	return ec.marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___InputValue_type(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Type, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(*introspection.Type)
+  fc.Result = res
+  return ec.marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___InputValue_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__InputValue",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "kind":
-				return ec.fieldContext___Type_kind(ctx, field)
-			case "name":
-				return ec.fieldContext___Type_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Type_description(ctx, field)
-			case "fields":
-				return ec.fieldContext___Type_fields(ctx, field)
-			case "interfaces":
-				return ec.fieldContext___Type_interfaces(ctx, field)
-			case "possibleTypes":
-				return ec.fieldContext___Type_possibleTypes(ctx, field)
-			case "enumValues":
-				return ec.fieldContext___Type_enumValues(ctx, field)
-			case "inputFields":
-				return ec.fieldContext___Type_inputFields(ctx, field)
-			case "ofType":
-				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
-			case "isOneOf":
-				return ec.fieldContext___Type_isOneOf(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__InputValue",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "kind":
+        return ec.fieldContext___Type_kind(ctx, field)
+      case "name":
+        return ec.fieldContext___Type_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Type_description(ctx, field)
+      case "fields":
+        return ec.fieldContext___Type_fields(ctx, field)
+      case "interfaces":
+        return ec.fieldContext___Type_interfaces(ctx, field)
+      case "possibleTypes":
+        return ec.fieldContext___Type_possibleTypes(ctx, field)
+      case "enumValues":
+        return ec.fieldContext___Type_enumValues(ctx, field)
+      case "inputFields":
+        return ec.fieldContext___Type_inputFields(ctx, field)
+      case "ofType":
+        return ec.fieldContext___Type_ofType(ctx, field)
+      case "specifiedByURL":
+        return ec.fieldContext___Type_specifiedByURL(ctx, field)
+      case "isOneOf":
+        return ec.fieldContext___Type_isOneOf(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___InputValue_defaultValue(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___InputValue_defaultValue(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DefaultValue, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___InputValue_defaultValue(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.DefaultValue, nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___InputValue_defaultValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__InputValue",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__InputValue",
+    Field:      field,
+    IsMethod:   false,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___InputValue_isDeprecated(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___InputValue_isDeprecated(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsDeprecated(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___InputValue_isDeprecated(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.IsDeprecated(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___InputValue_isDeprecated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__InputValue",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__InputValue",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___InputValue_deprecationReason(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___InputValue_deprecationReason(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeprecationReason(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___InputValue_deprecationReason(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.DeprecationReason(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___InputValue_deprecationReason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__InputValue",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__InputValue",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Schema_description(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Schema_description(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Description(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Schema_description(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Description(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Schema_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Schema",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Schema",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Schema_types(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Schema_types(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Types(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]introspection.Type)
-	fc.Result = res
-	return ec.marshalN__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐTypeᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Schema_types(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Types(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]introspection.Type)
+  fc.Result = res
+  return ec.marshalN__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Schema_types(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Schema",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "kind":
-				return ec.fieldContext___Type_kind(ctx, field)
-			case "name":
-				return ec.fieldContext___Type_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Type_description(ctx, field)
-			case "fields":
-				return ec.fieldContext___Type_fields(ctx, field)
-			case "interfaces":
-				return ec.fieldContext___Type_interfaces(ctx, field)
-			case "possibleTypes":
-				return ec.fieldContext___Type_possibleTypes(ctx, field)
-			case "enumValues":
-				return ec.fieldContext___Type_enumValues(ctx, field)
-			case "inputFields":
-				return ec.fieldContext___Type_inputFields(ctx, field)
-			case "ofType":
-				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
-			case "isOneOf":
-				return ec.fieldContext___Type_isOneOf(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Schema",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "kind":
+        return ec.fieldContext___Type_kind(ctx, field)
+      case "name":
+        return ec.fieldContext___Type_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Type_description(ctx, field)
+      case "fields":
+        return ec.fieldContext___Type_fields(ctx, field)
+      case "interfaces":
+        return ec.fieldContext___Type_interfaces(ctx, field)
+      case "possibleTypes":
+        return ec.fieldContext___Type_possibleTypes(ctx, field)
+      case "enumValues":
+        return ec.fieldContext___Type_enumValues(ctx, field)
+      case "inputFields":
+        return ec.fieldContext___Type_inputFields(ctx, field)
+      case "ofType":
+        return ec.fieldContext___Type_ofType(ctx, field)
+      case "specifiedByURL":
+        return ec.fieldContext___Type_specifiedByURL(ctx, field)
+      case "isOneOf":
+        return ec.fieldContext___Type_isOneOf(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Schema_queryType(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Schema_queryType(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.QueryType(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*introspection.Type)
-	fc.Result = res
-	return ec.marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Schema_queryType(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.QueryType(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(*introspection.Type)
+  fc.Result = res
+  return ec.marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Schema_queryType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Schema",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "kind":
-				return ec.fieldContext___Type_kind(ctx, field)
-			case "name":
-				return ec.fieldContext___Type_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Type_description(ctx, field)
-			case "fields":
-				return ec.fieldContext___Type_fields(ctx, field)
-			case "interfaces":
-				return ec.fieldContext___Type_interfaces(ctx, field)
-			case "possibleTypes":
-				return ec.fieldContext___Type_possibleTypes(ctx, field)
-			case "enumValues":
-				return ec.fieldContext___Type_enumValues(ctx, field)
-			case "inputFields":
-				return ec.fieldContext___Type_inputFields(ctx, field)
-			case "ofType":
-				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
-			case "isOneOf":
-				return ec.fieldContext___Type_isOneOf(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Schema",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "kind":
+        return ec.fieldContext___Type_kind(ctx, field)
+      case "name":
+        return ec.fieldContext___Type_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Type_description(ctx, field)
+      case "fields":
+        return ec.fieldContext___Type_fields(ctx, field)
+      case "interfaces":
+        return ec.fieldContext___Type_interfaces(ctx, field)
+      case "possibleTypes":
+        return ec.fieldContext___Type_possibleTypes(ctx, field)
+      case "enumValues":
+        return ec.fieldContext___Type_enumValues(ctx, field)
+      case "inputFields":
+        return ec.fieldContext___Type_inputFields(ctx, field)
+      case "ofType":
+        return ec.fieldContext___Type_ofType(ctx, field)
+      case "specifiedByURL":
+        return ec.fieldContext___Type_specifiedByURL(ctx, field)
+      case "isOneOf":
+        return ec.fieldContext___Type_isOneOf(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Schema_mutationType(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Schema_mutationType(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MutationType(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*introspection.Type)
-	fc.Result = res
-	return ec.marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Schema_mutationType(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.MutationType(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*introspection.Type)
+  fc.Result = res
+  return ec.marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Schema_mutationType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Schema",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "kind":
-				return ec.fieldContext___Type_kind(ctx, field)
-			case "name":
-				return ec.fieldContext___Type_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Type_description(ctx, field)
-			case "fields":
-				return ec.fieldContext___Type_fields(ctx, field)
-			case "interfaces":
-				return ec.fieldContext___Type_interfaces(ctx, field)
-			case "possibleTypes":
-				return ec.fieldContext___Type_possibleTypes(ctx, field)
-			case "enumValues":
-				return ec.fieldContext___Type_enumValues(ctx, field)
-			case "inputFields":
-				return ec.fieldContext___Type_inputFields(ctx, field)
-			case "ofType":
-				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
-			case "isOneOf":
-				return ec.fieldContext___Type_isOneOf(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Schema",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "kind":
+        return ec.fieldContext___Type_kind(ctx, field)
+      case "name":
+        return ec.fieldContext___Type_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Type_description(ctx, field)
+      case "fields":
+        return ec.fieldContext___Type_fields(ctx, field)
+      case "interfaces":
+        return ec.fieldContext___Type_interfaces(ctx, field)
+      case "possibleTypes":
+        return ec.fieldContext___Type_possibleTypes(ctx, field)
+      case "enumValues":
+        return ec.fieldContext___Type_enumValues(ctx, field)
+      case "inputFields":
+        return ec.fieldContext___Type_inputFields(ctx, field)
+      case "ofType":
+        return ec.fieldContext___Type_ofType(ctx, field)
+      case "specifiedByURL":
+        return ec.fieldContext___Type_specifiedByURL(ctx, field)
+      case "isOneOf":
+        return ec.fieldContext___Type_isOneOf(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Schema_subscriptionType(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Schema_subscriptionType(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.SubscriptionType(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*introspection.Type)
-	fc.Result = res
-	return ec.marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Schema_subscriptionType(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.SubscriptionType(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*introspection.Type)
+  fc.Result = res
+  return ec.marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Schema_subscriptionType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Schema",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "kind":
-				return ec.fieldContext___Type_kind(ctx, field)
-			case "name":
-				return ec.fieldContext___Type_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Type_description(ctx, field)
-			case "fields":
-				return ec.fieldContext___Type_fields(ctx, field)
-			case "interfaces":
-				return ec.fieldContext___Type_interfaces(ctx, field)
-			case "possibleTypes":
-				return ec.fieldContext___Type_possibleTypes(ctx, field)
-			case "enumValues":
-				return ec.fieldContext___Type_enumValues(ctx, field)
-			case "inputFields":
-				return ec.fieldContext___Type_inputFields(ctx, field)
-			case "ofType":
-				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
-			case "isOneOf":
-				return ec.fieldContext___Type_isOneOf(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Schema",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "kind":
+        return ec.fieldContext___Type_kind(ctx, field)
+      case "name":
+        return ec.fieldContext___Type_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Type_description(ctx, field)
+      case "fields":
+        return ec.fieldContext___Type_fields(ctx, field)
+      case "interfaces":
+        return ec.fieldContext___Type_interfaces(ctx, field)
+      case "possibleTypes":
+        return ec.fieldContext___Type_possibleTypes(ctx, field)
+      case "enumValues":
+        return ec.fieldContext___Type_enumValues(ctx, field)
+      case "inputFields":
+        return ec.fieldContext___Type_inputFields(ctx, field)
+      case "ofType":
+        return ec.fieldContext___Type_ofType(ctx, field)
+      case "specifiedByURL":
+        return ec.fieldContext___Type_specifiedByURL(ctx, field)
+      case "isOneOf":
+        return ec.fieldContext___Type_isOneOf(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Schema_directives(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Schema_directives(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Directives(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]introspection.Directive)
-	fc.Result = res
-	return ec.marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirectiveᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Schema_directives(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Directives(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.([]introspection.Directive)
+  fc.Result = res
+  return ec.marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirectiveᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Schema_directives(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Schema",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext___Directive_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Directive_description(ctx, field)
-			case "locations":
-				return ec.fieldContext___Directive_locations(ctx, field)
-			case "args":
-				return ec.fieldContext___Directive_args(ctx, field)
-			case "isRepeatable":
-				return ec.fieldContext___Directive_isRepeatable(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Directive", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Schema",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "name":
+        return ec.fieldContext___Directive_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Directive_description(ctx, field)
+      case "locations":
+        return ec.fieldContext___Directive_locations(ctx, field)
+      case "args":
+        return ec.fieldContext___Directive_args(ctx, field)
+      case "isRepeatable":
+        return ec.fieldContext___Directive_isRepeatable(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Directive", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_kind(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_kind(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Kind(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalN__TypeKind2string(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_kind(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Kind(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    if !graphql.HasFieldError(ctx, fc) {
+      ec.Errorf(ctx, "must not be null")
+    }
+    return graphql.Null
+  }
+  res := resTmp.(string)
+  fc.Result = res
+  return ec.marshalN__TypeKind2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_kind(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type __TypeKind does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type __TypeKind does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_name(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Name(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_description(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_description(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Description(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_description(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Description(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_fields(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_fields(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Fields(fc.Args["includeDeprecated"].(bool)), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]introspection.Field)
-	fc.Result = res
-	return ec.marshalO__Field2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐFieldᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_fields(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Fields(fc.Args["includeDeprecated"].(bool)), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.([]introspection.Field)
+  fc.Result = res
+  return ec.marshalO__Field2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐFieldᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_fields(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext___Field_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Field_description(ctx, field)
-			case "args":
-				return ec.fieldContext___Field_args(ctx, field)
-			case "type":
-				return ec.fieldContext___Field_type(ctx, field)
-			case "isDeprecated":
-				return ec.fieldContext___Field_isDeprecated(ctx, field)
-			case "deprecationReason":
-				return ec.fieldContext___Field_deprecationReason(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Field", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field___Type_fields_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "name":
+        return ec.fieldContext___Field_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Field_description(ctx, field)
+      case "args":
+        return ec.fieldContext___Field_args(ctx, field)
+      case "type":
+        return ec.fieldContext___Field_type(ctx, field)
+      case "isDeprecated":
+        return ec.fieldContext___Field_isDeprecated(ctx, field)
+      case "deprecationReason":
+        return ec.fieldContext___Field_deprecationReason(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Field", field.Name)
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field___Type_fields_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_interfaces(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_interfaces(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Interfaces(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]introspection.Type)
-	fc.Result = res
-	return ec.marshalO__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐTypeᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_interfaces(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.Interfaces(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.([]introspection.Type)
+  fc.Result = res
+  return ec.marshalO__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_interfaces(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "kind":
-				return ec.fieldContext___Type_kind(ctx, field)
-			case "name":
-				return ec.fieldContext___Type_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Type_description(ctx, field)
-			case "fields":
-				return ec.fieldContext___Type_fields(ctx, field)
-			case "interfaces":
-				return ec.fieldContext___Type_interfaces(ctx, field)
-			case "possibleTypes":
-				return ec.fieldContext___Type_possibleTypes(ctx, field)
-			case "enumValues":
-				return ec.fieldContext___Type_enumValues(ctx, field)
-			case "inputFields":
-				return ec.fieldContext___Type_inputFields(ctx, field)
-			case "ofType":
-				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
-			case "isOneOf":
-				return ec.fieldContext___Type_isOneOf(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "kind":
+        return ec.fieldContext___Type_kind(ctx, field)
+      case "name":
+        return ec.fieldContext___Type_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Type_description(ctx, field)
+      case "fields":
+        return ec.fieldContext___Type_fields(ctx, field)
+      case "interfaces":
+        return ec.fieldContext___Type_interfaces(ctx, field)
+      case "possibleTypes":
+        return ec.fieldContext___Type_possibleTypes(ctx, field)
+      case "enumValues":
+        return ec.fieldContext___Type_enumValues(ctx, field)
+      case "inputFields":
+        return ec.fieldContext___Type_inputFields(ctx, field)
+      case "ofType":
+        return ec.fieldContext___Type_ofType(ctx, field)
+      case "specifiedByURL":
+        return ec.fieldContext___Type_specifiedByURL(ctx, field)
+      case "isOneOf":
+        return ec.fieldContext___Type_isOneOf(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_possibleTypes(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_possibleTypes(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PossibleTypes(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]introspection.Type)
-	fc.Result = res
-	return ec.marshalO__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐTypeᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_possibleTypes(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.PossibleTypes(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.([]introspection.Type)
+  fc.Result = res
+  return ec.marshalO__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_possibleTypes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "kind":
-				return ec.fieldContext___Type_kind(ctx, field)
-			case "name":
-				return ec.fieldContext___Type_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Type_description(ctx, field)
-			case "fields":
-				return ec.fieldContext___Type_fields(ctx, field)
-			case "interfaces":
-				return ec.fieldContext___Type_interfaces(ctx, field)
-			case "possibleTypes":
-				return ec.fieldContext___Type_possibleTypes(ctx, field)
-			case "enumValues":
-				return ec.fieldContext___Type_enumValues(ctx, field)
-			case "inputFields":
-				return ec.fieldContext___Type_inputFields(ctx, field)
-			case "ofType":
-				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
-			case "isOneOf":
-				return ec.fieldContext___Type_isOneOf(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "kind":
+        return ec.fieldContext___Type_kind(ctx, field)
+      case "name":
+        return ec.fieldContext___Type_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Type_description(ctx, field)
+      case "fields":
+        return ec.fieldContext___Type_fields(ctx, field)
+      case "interfaces":
+        return ec.fieldContext___Type_interfaces(ctx, field)
+      case "possibleTypes":
+        return ec.fieldContext___Type_possibleTypes(ctx, field)
+      case "enumValues":
+        return ec.fieldContext___Type_enumValues(ctx, field)
+      case "inputFields":
+        return ec.fieldContext___Type_inputFields(ctx, field)
+      case "ofType":
+        return ec.fieldContext___Type_ofType(ctx, field)
+      case "specifiedByURL":
+        return ec.fieldContext___Type_specifiedByURL(ctx, field)
+      case "isOneOf":
+        return ec.fieldContext___Type_isOneOf(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_enumValues(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_enumValues(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EnumValues(fc.Args["includeDeprecated"].(bool)), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]introspection.EnumValue)
-	fc.Result = res
-	return ec.marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_enumValues(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.EnumValues(fc.Args["includeDeprecated"].(bool)), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.([]introspection.EnumValue)
+  fc.Result = res
+  return ec.marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_enumValues(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext___EnumValue_name(ctx, field)
-			case "description":
-				return ec.fieldContext___EnumValue_description(ctx, field)
-			case "isDeprecated":
-				return ec.fieldContext___EnumValue_isDeprecated(ctx, field)
-			case "deprecationReason":
-				return ec.fieldContext___EnumValue_deprecationReason(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __EnumValue", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field___Type_enumValues_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "name":
+        return ec.fieldContext___EnumValue_name(ctx, field)
+      case "description":
+        return ec.fieldContext___EnumValue_description(ctx, field)
+      case "isDeprecated":
+        return ec.fieldContext___EnumValue_isDeprecated(ctx, field)
+      case "deprecationReason":
+        return ec.fieldContext___EnumValue_deprecationReason(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __EnumValue", field.Name)
+    },
+  }
+  defer func() {
+    if r := recover(); r != nil {
+      err = ec.Recover(ctx, r)
+      ec.Error(ctx, err)
+    }
+  }()
+  ctx = graphql.WithFieldContext(ctx, fc)
+  if fc.Args, err = ec.field___Type_enumValues_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+    ec.Error(ctx, err)
+    return fc, err
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_inputFields(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_inputFields(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.InputFields(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]introspection.InputValue)
-	fc.Result = res
-	return ec.marshalO__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_inputFields(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.InputFields(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.([]introspection.InputValue)
+  fc.Result = res
+  return ec.marshalO__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_inputFields(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext___InputValue_name(ctx, field)
-			case "description":
-				return ec.fieldContext___InputValue_description(ctx, field)
-			case "type":
-				return ec.fieldContext___InputValue_type(ctx, field)
-			case "defaultValue":
-				return ec.fieldContext___InputValue_defaultValue(ctx, field)
-			case "isDeprecated":
-				return ec.fieldContext___InputValue_isDeprecated(ctx, field)
-			case "deprecationReason":
-				return ec.fieldContext___InputValue_deprecationReason(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __InputValue", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "name":
+        return ec.fieldContext___InputValue_name(ctx, field)
+      case "description":
+        return ec.fieldContext___InputValue_description(ctx, field)
+      case "type":
+        return ec.fieldContext___InputValue_type(ctx, field)
+      case "defaultValue":
+        return ec.fieldContext___InputValue_defaultValue(ctx, field)
+      case "isDeprecated":
+        return ec.fieldContext___InputValue_isDeprecated(ctx, field)
+      case "deprecationReason":
+        return ec.fieldContext___InputValue_deprecationReason(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __InputValue", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_ofType(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.OfType(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*introspection.Type)
-	fc.Result = res
-	return ec.marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_ofType(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.OfType(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*introspection.Type)
+  fc.Result = res
+  return ec.marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_ofType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "kind":
-				return ec.fieldContext___Type_kind(ctx, field)
-			case "name":
-				return ec.fieldContext___Type_name(ctx, field)
-			case "description":
-				return ec.fieldContext___Type_description(ctx, field)
-			case "fields":
-				return ec.fieldContext___Type_fields(ctx, field)
-			case "interfaces":
-				return ec.fieldContext___Type_interfaces(ctx, field)
-			case "possibleTypes":
-				return ec.fieldContext___Type_possibleTypes(ctx, field)
-			case "enumValues":
-				return ec.fieldContext___Type_enumValues(ctx, field)
-			case "inputFields":
-				return ec.fieldContext___Type_inputFields(ctx, field)
-			case "ofType":
-				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
-			case "isOneOf":
-				return ec.fieldContext___Type_isOneOf(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      switch field.Name {
+      case "kind":
+        return ec.fieldContext___Type_kind(ctx, field)
+      case "name":
+        return ec.fieldContext___Type_name(ctx, field)
+      case "description":
+        return ec.fieldContext___Type_description(ctx, field)
+      case "fields":
+        return ec.fieldContext___Type_fields(ctx, field)
+      case "interfaces":
+        return ec.fieldContext___Type_interfaces(ctx, field)
+      case "possibleTypes":
+        return ec.fieldContext___Type_possibleTypes(ctx, field)
+      case "enumValues":
+        return ec.fieldContext___Type_enumValues(ctx, field)
+      case "inputFields":
+        return ec.fieldContext___Type_inputFields(ctx, field)
+      case "ofType":
+        return ec.fieldContext___Type_ofType(ctx, field)
+      case "specifiedByURL":
+        return ec.fieldContext___Type_specifiedByURL(ctx, field)
+      case "isOneOf":
+        return ec.fieldContext___Type_isOneOf(ctx, field)
+      }
+      return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_specifiedByURL(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_specifiedByURL(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.SpecifiedByURL(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_specifiedByURL(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.SpecifiedByURL(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(*string)
+  fc.Result = res
+  return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type String does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 func (ec *executionContext) ___Type_isOneOf(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_isOneOf(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsOneOf(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+  fc, err := ec.fieldContext___Type_isOneOf(ctx, field)
+  if err != nil {
+    return graphql.Null
+  }
+  ctx = graphql.WithFieldContext(ctx, fc)
+  defer func() {
+    if r := recover(); r != nil {
+      ec.Error(ctx, ec.Recover(ctx, r))
+      ret = graphql.Null
+    }
+  }()
+  resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+    ctx = rctx // use context from middleware stack in children
+    return obj.IsOneOf(), nil
+  })
+  if err != nil {
+    ec.Error(ctx, err)
+    return graphql.Null
+  }
+  if resTmp == nil {
+    return graphql.Null
+  }
+  res := resTmp.(bool)
+  fc.Result = res
+  return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Type",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
+  fc = &graphql.FieldContext{
+    Object:     "__Type",
+    Field:      field,
+    IsMethod:   true,
+    IsResolver: false,
+    Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+      return nil, errors.New("field of type Boolean does not have child fields")
+    },
+  }
+  return fc, nil
 }
 
 // endregion **************************** field.gotpl *****************************
@@ -5311,140 +5297,140 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 // region    **************************** input.gotpl *****************************
 
 func (ec *executionContext) unmarshalInputMovieFilter(ctx context.Context, obj any) (structs.MovieFilter, error) {
-	var it structs.MovieFilter
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
+  var it structs.MovieFilter
+  asMap := map[string]any{}
+  for k, v := range obj.(map[string]any) {
+    asMap[k] = v
+  }
 
-	fieldsInOrder := [...]string{"genreIDs", "popularity", "year", "page"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "genreIDs":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genreIDs"))
-			data, err := ec.unmarshalOInt2ᚕint32ᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.GenreIDs = data
-		case "popularity":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("popularity"))
-			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Popularity = data
-		case "year":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("year"))
-			data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Year = data
-		case "page":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
-			data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Page = data
-		}
-	}
+  fieldsInOrder := [...]string{"genreIDs", "popularity", "year", "page"}
+  for _, k := range fieldsInOrder {
+    v, ok := asMap[k]
+    if !ok {
+      continue
+    }
+    switch k {
+    case "genreIDs":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genreIDs"))
+      data, err := ec.unmarshalOInt2ᚕint32ᚄ(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.GenreIDs = data
+    case "popularity":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("popularity"))
+      data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.Popularity = data
+    case "year":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("year"))
+      data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.Year = data
+    case "page":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+      data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.Page = data
+    }
+  }
 
-	return it, nil
+  return it, nil
 }
 
 func (ec *executionContext) unmarshalInputMovieInput(ctx context.Context, obj any) (structs.MovieInput, error) {
-	var it structs.MovieInput
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
+  var it structs.MovieInput
+  asMap := map[string]any{}
+  for k, v := range obj.(map[string]any) {
+    asMap[k] = v
+  }
 
-	fieldsInOrder := [...]string{"movieID", "title", "posterPath", "voteAverage", "genreIDs"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "movieID":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
-			data, err := ec.unmarshalNID2int32(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.MovieID = data
-		case "title":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Title = data
-		case "posterPath":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("posterPath"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.PosterPath = data
-		case "voteAverage":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("voteAverage"))
-			data, err := ec.unmarshalNFloat2float64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.VoteAverage = data
-		case "genreIDs":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genreIDs"))
-			data, err := ec.unmarshalNID2ᚕint32ᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.GenreIDs = data
-		}
-	}
+  fieldsInOrder := [...]string{"movieID", "title", "posterPath", "voteAverage", "genreIDs"}
+  for _, k := range fieldsInOrder {
+    v, ok := asMap[k]
+    if !ok {
+      continue
+    }
+    switch k {
+    case "movieID":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
+      data, err := ec.unmarshalNID2int32(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.MovieID = data
+    case "title":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+      data, err := ec.unmarshalNString2string(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.Title = data
+    case "posterPath":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("posterPath"))
+      data, err := ec.unmarshalNString2string(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.PosterPath = data
+    case "voteAverage":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("voteAverage"))
+      data, err := ec.unmarshalNFloat2float64(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.VoteAverage = data
+    case "genreIDs":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genreIDs"))
+      data, err := ec.unmarshalNID2ᚕint32ᚄ(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.GenreIDs = data
+    }
+  }
 
-	return it, nil
+  return it, nil
 }
 
 func (ec *executionContext) unmarshalInputSignInInput(ctx context.Context, obj any) (structs.SignInInput, error) {
-	var it structs.SignInInput
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
+  var it structs.SignInInput
+  asMap := map[string]any{}
+  for k, v := range obj.(map[string]any) {
+    asMap[k] = v
+  }
 
-	fieldsInOrder := [...]string{"username", "password"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "username":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Username = data
-		case "password":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Password = data
-		}
-	}
+  fieldsInOrder := [...]string{"username", "password"}
+  for _, k := range fieldsInOrder {
+    v, ok := asMap[k]
+    if !ok {
+      continue
+    }
+    switch k {
+    case "username":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+      data, err := ec.unmarshalNString2string(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.Username = data
+    case "password":
+      ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+      data, err := ec.unmarshalNString2string(ctx, v)
+      if err != nil {
+        return it, err
+      }
+      it.Password = data
+    }
+  }
 
-	return it, nil
+  return it, nil
 }
 
 // endregion **************************** input.gotpl *****************************
@@ -5458,993 +5444,993 @@ func (ec *executionContext) unmarshalInputSignInInput(ctx context.Context, obj a
 var favoriteGenreImplementors = []string{"FavoriteGenre"}
 
 func (ec *executionContext) _FavoriteGenre(ctx context.Context, sel ast.SelectionSet, obj *structs.FavoriteGenre) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, favoriteGenreImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, favoriteGenreImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("FavoriteGenre")
-		case "userID":
-			out.Values[i] = ec._FavoriteGenre_userID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "genreID":
-			out.Values[i] = ec._FavoriteGenre_genreID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("FavoriteGenre")
+    case "userID":
+      out.Values[i] = ec._FavoriteGenre_userID(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "genreID":
+      out.Values[i] = ec._FavoriteGenre_genreID(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var favoriteMovieImplementors = []string{"FavoriteMovie"}
 
 func (ec *executionContext) _FavoriteMovie(ctx context.Context, sel ast.SelectionSet, obj *structs.FavoriteMovie) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, favoriteMovieImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, favoriteMovieImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("FavoriteMovie")
-		case "userID":
-			out.Values[i] = ec._FavoriteMovie_userID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "movieID":
-			out.Values[i] = ec._FavoriteMovie_movieID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "title":
-			out.Values[i] = ec._FavoriteMovie_title(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "posterPath":
-			out.Values[i] = ec._FavoriteMovie_posterPath(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "voteAverage":
-			out.Values[i] = ec._FavoriteMovie_voteAverage(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "watched":
-			out.Values[i] = ec._FavoriteMovie_watched(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "genres":
-			out.Values[i] = ec._FavoriteMovie_genres(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("FavoriteMovie")
+    case "userID":
+      out.Values[i] = ec._FavoriteMovie_userID(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "movieID":
+      out.Values[i] = ec._FavoriteMovie_movieID(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "title":
+      out.Values[i] = ec._FavoriteMovie_title(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "posterPath":
+      out.Values[i] = ec._FavoriteMovie_posterPath(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "voteAverage":
+      out.Values[i] = ec._FavoriteMovie_voteAverage(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "watched":
+      out.Values[i] = ec._FavoriteMovie_watched(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "genres":
+      out.Values[i] = ec._FavoriteMovie_genres(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var genreImplementors = []string{"Genre"}
 
 func (ec *executionContext) _Genre(ctx context.Context, sel ast.SelectionSet, obj *structs.Genre) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, genreImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, genreImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Genre")
-		case "id":
-			out.Values[i] = ec._Genre_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "name":
-			out.Values[i] = ec._Genre_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("Genre")
+    case "id":
+      out.Values[i] = ec._Genre_id(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "name":
+      out.Values[i] = ec._Genre_name(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var movieImplementors = []string{"Movie"}
 
 func (ec *executionContext) _Movie(ctx context.Context, sel ast.SelectionSet, obj *structs.Movie) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, movieImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, movieImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Movie")
-		case "id":
-			out.Values[i] = ec._Movie_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "title":
-			out.Values[i] = ec._Movie_title(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "posterPath":
-			out.Values[i] = ec._Movie_posterPath(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "voteAverage":
-			out.Values[i] = ec._Movie_voteAverage(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "genreIDs":
-			out.Values[i] = ec._Movie_genreIDs(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "releaseDate":
-			out.Values[i] = ec._Movie_releaseDate(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("Movie")
+    case "id":
+      out.Values[i] = ec._Movie_id(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "title":
+      out.Values[i] = ec._Movie_title(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "posterPath":
+      out.Values[i] = ec._Movie_posterPath(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "voteAverage":
+      out.Values[i] = ec._Movie_voteAverage(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "genreIDs":
+      out.Values[i] = ec._Movie_genreIDs(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "releaseDate":
+      out.Values[i] = ec._Movie_releaseDate(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var movieDetailsImplementors = []string{"MovieDetails"}
 
 func (ec *executionContext) _MovieDetails(ctx context.Context, sel ast.SelectionSet, obj *structs.MovieDetails) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, movieDetailsImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, movieDetailsImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("MovieDetails")
-		case "title":
-			out.Values[i] = ec._MovieDetails_title(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "rating":
-			out.Values[i] = ec._MovieDetails_rating(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "releaseDate":
-			out.Values[i] = ec._MovieDetails_releaseDate(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "posterPath":
-			out.Values[i] = ec._MovieDetails_posterPath(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "genres":
-			out.Values[i] = ec._MovieDetails_genres(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "overview":
-			out.Values[i] = ec._MovieDetails_overview(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("MovieDetails")
+    case "title":
+      out.Values[i] = ec._MovieDetails_title(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "rating":
+      out.Values[i] = ec._MovieDetails_rating(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "releaseDate":
+      out.Values[i] = ec._MovieDetails_releaseDate(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "posterPath":
+      out.Values[i] = ec._MovieDetails_posterPath(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "genres":
+      out.Values[i] = ec._MovieDetails_genres(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "overview":
+      out.Values[i] = ec._MovieDetails_overview(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
-	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
-		Object: "Mutation",
-	})
+  fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
+  ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+    Object: "Mutation",
+  })
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
-			Object: field.Name,
-			Field:  field,
-		})
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
+      Object: field.Name,
+      Field:  field,
+    })
 
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createUser":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createUser(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deleteUser":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteUser(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "updateUser":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateUser(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "addFavoriteMovie":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_addFavoriteMovie(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deleteFavoriteMovie":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteFavoriteMovie(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "toggleWatchedStatus":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_toggleWatchedStatus(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "addFavoriteGenre":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_addFavoriteGenre(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deleteFavoriteGenre":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteFavoriteGenre(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("Mutation")
+    case "addUser":
+      out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+        return ec._Mutation_addUser(ctx, field)
+      })
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "deleteUser":
+      out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+        return ec._Mutation_deleteUser(ctx, field)
+      })
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "updateUser":
+      out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+        return ec._Mutation_updateUser(ctx, field)
+      })
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "addFavoriteMovie":
+      out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+        return ec._Mutation_addFavoriteMovie(ctx, field)
+      })
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "deleteFavoriteMovie":
+      out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+        return ec._Mutation_deleteFavoriteMovie(ctx, field)
+      })
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "toggleWatchedStatus":
+      out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+        return ec._Mutation_toggleWatchedStatus(ctx, field)
+      })
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "addFavoriteGenre":
+      out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+        return ec._Mutation_addFavoriteGenre(ctx, field)
+      })
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "deleteFavoriteGenre":
+      out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+        return ec._Mutation_deleteFavoriteGenre(ctx, field)
+      })
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, queryImplementors)
-	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
-		Object: "Query",
-	})
+  fields := graphql.CollectFields(ec.OperationContext, sel, queryImplementors)
+  ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+    Object: "Query",
+  })
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
-			Object: field.Name,
-			Field:  field,
-		})
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
+      Object: field.Name,
+      Field:  field,
+    })
 
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Query")
-		case "getUser":
-			field := field
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("Query")
+    case "getUser":
+      field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getUser(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
+      innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+        defer func() {
+          if r := recover(); r != nil {
+            ec.Error(ctx, ec.Recover(ctx, r))
+          }
+        }()
+        res = ec._Query_getUser(ctx, field)
+        if res == graphql.Null {
+          atomic.AddUint32(&fs.Invalids, 1)
+        }
+        return res
+      }
 
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
+      rrm := func(ctx context.Context) graphql.Marshaler {
+        return ec.OperationContext.RootResolverMiddleware(ctx,
+          func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+      }
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getAllGenres":
-			field := field
+      out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+    case "getAllGenres":
+      field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getAllGenres(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
+      innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+        defer func() {
+          if r := recover(); r != nil {
+            ec.Error(ctx, ec.Recover(ctx, r))
+          }
+        }()
+        res = ec._Query_getAllGenres(ctx, field)
+        if res == graphql.Null {
+          atomic.AddUint32(&fs.Invalids, 1)
+        }
+        return res
+      }
 
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
+      rrm := func(ctx context.Context) graphql.Marshaler {
+        return ec.OperationContext.RootResolverMiddleware(ctx,
+          func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+      }
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getAllFavoriteGenres":
-			field := field
+      out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+    case "getAllFavoriteGenres":
+      field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getAllFavoriteGenres(ctx, field)
-				return res
-			}
+      innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+        defer func() {
+          if r := recover(); r != nil {
+            ec.Error(ctx, ec.Recover(ctx, r))
+          }
+        }()
+        res = ec._Query_getAllFavoriteGenres(ctx, field)
+        return res
+      }
 
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
+      rrm := func(ctx context.Context) graphql.Marshaler {
+        return ec.OperationContext.RootResolverMiddleware(ctx,
+          func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+      }
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getFavoriteMovies":
-			field := field
+      out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+    case "getFavoriteMovies":
+      field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getFavoriteMovies(ctx, field)
-				return res
-			}
+      innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+        defer func() {
+          if r := recover(); r != nil {
+            ec.Error(ctx, ec.Recover(ctx, r))
+          }
+        }()
+        res = ec._Query_getFavoriteMovies(ctx, field)
+        return res
+      }
 
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
+      rrm := func(ctx context.Context) graphql.Marshaler {
+        return ec.OperationContext.RootResolverMiddleware(ctx,
+          func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+      }
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getMovieDetails":
-			field := field
+      out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+    case "getMovieDetails":
+      field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getMovieDetails(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
+      innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+        defer func() {
+          if r := recover(); r != nil {
+            ec.Error(ctx, ec.Recover(ctx, r))
+          }
+        }()
+        res = ec._Query_getMovieDetails(ctx, field)
+        if res == graphql.Null {
+          atomic.AddUint32(&fs.Invalids, 1)
+        }
+        return res
+      }
 
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
+      rrm := func(ctx context.Context) graphql.Marshaler {
+        return ec.OperationContext.RootResolverMiddleware(ctx,
+          func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+      }
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getFilteredMovies":
-			field := field
+      out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+    case "getFilteredMovies":
+      field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getFilteredMovies(ctx, field)
-				return res
-			}
+      innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+        defer func() {
+          if r := recover(); r != nil {
+            ec.Error(ctx, ec.Recover(ctx, r))
+          }
+        }()
+        res = ec._Query_getFilteredMovies(ctx, field)
+        return res
+      }
 
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
+      rrm := func(ctx context.Context) graphql.Marshaler {
+        return ec.OperationContext.RootResolverMiddleware(ctx,
+          func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+      }
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "__type":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Query___type(ctx, field)
-			})
-		case "__schema":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Query___schema(ctx, field)
-			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+      out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+    case "__type":
+      out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+        return ec._Query___type(ctx, field)
+      })
+    case "__schema":
+      out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+        return ec._Query___schema(ctx, field)
+      })
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var responseFilteredMoviesImplementors = []string{"ResponseFilteredMovies"}
 
 func (ec *executionContext) _ResponseFilteredMovies(ctx context.Context, sel ast.SelectionSet, obj *structs.ResponseFilteredMovies) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, responseFilteredMoviesImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, responseFilteredMoviesImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ResponseFilteredMovies")
-		case "page":
-			out.Values[i] = ec._ResponseFilteredMovies_page(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "results":
-			out.Values[i] = ec._ResponseFilteredMovies_results(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("ResponseFilteredMovies")
+    case "page":
+      out.Values[i] = ec._ResponseFilteredMovies_page(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "results":
+      out.Values[i] = ec._ResponseFilteredMovies_results(ctx, field, obj)
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var userImplementors = []string{"User"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *structs.User) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("User")
-		case "id":
-			out.Values[i] = ec._User_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "nickName":
-			out.Values[i] = ec._User_nickName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "userName":
-			out.Values[i] = ec._User_userName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "password":
-			out.Values[i] = ec._User_password(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "favoriteMovies":
-			out.Values[i] = ec._User_favoriteMovies(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "favoriteGenres":
-			out.Values[i] = ec._User_favoriteGenres(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("User")
+    case "id":
+      out.Values[i] = ec._User_id(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "nickName":
+      out.Values[i] = ec._User_nickName(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "userName":
+      out.Values[i] = ec._User_userName(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "password":
+      out.Values[i] = ec._User_password(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "favoriteMovies":
+      out.Values[i] = ec._User_favoriteMovies(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "favoriteGenres":
+      out.Values[i] = ec._User_favoriteGenres(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, __DirectiveImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, __DirectiveImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("__Directive")
-		case "name":
-			out.Values[i] = ec.___Directive_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "description":
-			out.Values[i] = ec.___Directive_description(ctx, field, obj)
-		case "locations":
-			out.Values[i] = ec.___Directive_locations(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "args":
-			out.Values[i] = ec.___Directive_args(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "isRepeatable":
-			out.Values[i] = ec.___Directive_isRepeatable(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("__Directive")
+    case "name":
+      out.Values[i] = ec.___Directive_name(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "description":
+      out.Values[i] = ec.___Directive_description(ctx, field, obj)
+    case "locations":
+      out.Values[i] = ec.___Directive_locations(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "args":
+      out.Values[i] = ec.___Directive_args(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "isRepeatable":
+      out.Values[i] = ec.___Directive_isRepeatable(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var __EnumValueImplementors = []string{"__EnumValue"}
 
 func (ec *executionContext) ___EnumValue(ctx context.Context, sel ast.SelectionSet, obj *introspection.EnumValue) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, __EnumValueImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, __EnumValueImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("__EnumValue")
-		case "name":
-			out.Values[i] = ec.___EnumValue_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "description":
-			out.Values[i] = ec.___EnumValue_description(ctx, field, obj)
-		case "isDeprecated":
-			out.Values[i] = ec.___EnumValue_isDeprecated(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deprecationReason":
-			out.Values[i] = ec.___EnumValue_deprecationReason(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("__EnumValue")
+    case "name":
+      out.Values[i] = ec.___EnumValue_name(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "description":
+      out.Values[i] = ec.___EnumValue_description(ctx, field, obj)
+    case "isDeprecated":
+      out.Values[i] = ec.___EnumValue_isDeprecated(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "deprecationReason":
+      out.Values[i] = ec.___EnumValue_deprecationReason(ctx, field, obj)
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var __FieldImplementors = []string{"__Field"}
 
 func (ec *executionContext) ___Field(ctx context.Context, sel ast.SelectionSet, obj *introspection.Field) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, __FieldImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, __FieldImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("__Field")
-		case "name":
-			out.Values[i] = ec.___Field_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "description":
-			out.Values[i] = ec.___Field_description(ctx, field, obj)
-		case "args":
-			out.Values[i] = ec.___Field_args(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "type":
-			out.Values[i] = ec.___Field_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "isDeprecated":
-			out.Values[i] = ec.___Field_isDeprecated(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deprecationReason":
-			out.Values[i] = ec.___Field_deprecationReason(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("__Field")
+    case "name":
+      out.Values[i] = ec.___Field_name(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "description":
+      out.Values[i] = ec.___Field_description(ctx, field, obj)
+    case "args":
+      out.Values[i] = ec.___Field_args(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "type":
+      out.Values[i] = ec.___Field_type(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "isDeprecated":
+      out.Values[i] = ec.___Field_isDeprecated(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "deprecationReason":
+      out.Values[i] = ec.___Field_deprecationReason(ctx, field, obj)
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var __InputValueImplementors = []string{"__InputValue"}
 
 func (ec *executionContext) ___InputValue(ctx context.Context, sel ast.SelectionSet, obj *introspection.InputValue) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, __InputValueImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, __InputValueImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("__InputValue")
-		case "name":
-			out.Values[i] = ec.___InputValue_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "description":
-			out.Values[i] = ec.___InputValue_description(ctx, field, obj)
-		case "type":
-			out.Values[i] = ec.___InputValue_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "defaultValue":
-			out.Values[i] = ec.___InputValue_defaultValue(ctx, field, obj)
-		case "isDeprecated":
-			out.Values[i] = ec.___InputValue_isDeprecated(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deprecationReason":
-			out.Values[i] = ec.___InputValue_deprecationReason(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("__InputValue")
+    case "name":
+      out.Values[i] = ec.___InputValue_name(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "description":
+      out.Values[i] = ec.___InputValue_description(ctx, field, obj)
+    case "type":
+      out.Values[i] = ec.___InputValue_type(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "defaultValue":
+      out.Values[i] = ec.___InputValue_defaultValue(ctx, field, obj)
+    case "isDeprecated":
+      out.Values[i] = ec.___InputValue_isDeprecated(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "deprecationReason":
+      out.Values[i] = ec.___InputValue_deprecationReason(ctx, field, obj)
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var __SchemaImplementors = []string{"__Schema"}
 
 func (ec *executionContext) ___Schema(ctx context.Context, sel ast.SelectionSet, obj *introspection.Schema) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, __SchemaImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, __SchemaImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("__Schema")
-		case "description":
-			out.Values[i] = ec.___Schema_description(ctx, field, obj)
-		case "types":
-			out.Values[i] = ec.___Schema_types(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "queryType":
-			out.Values[i] = ec.___Schema_queryType(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "mutationType":
-			out.Values[i] = ec.___Schema_mutationType(ctx, field, obj)
-		case "subscriptionType":
-			out.Values[i] = ec.___Schema_subscriptionType(ctx, field, obj)
-		case "directives":
-			out.Values[i] = ec.___Schema_directives(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("__Schema")
+    case "description":
+      out.Values[i] = ec.___Schema_description(ctx, field, obj)
+    case "types":
+      out.Values[i] = ec.___Schema_types(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "queryType":
+      out.Values[i] = ec.___Schema_queryType(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "mutationType":
+      out.Values[i] = ec.___Schema_mutationType(ctx, field, obj)
+    case "subscriptionType":
+      out.Values[i] = ec.___Schema_subscriptionType(ctx, field, obj)
+    case "directives":
+      out.Values[i] = ec.___Schema_directives(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 var __TypeImplementors = []string{"__Type"}
 
 func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, obj *introspection.Type) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, __TypeImplementors)
+  fields := graphql.CollectFields(ec.OperationContext, sel, __TypeImplementors)
 
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("__Type")
-		case "kind":
-			out.Values[i] = ec.___Type_kind(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "name":
-			out.Values[i] = ec.___Type_name(ctx, field, obj)
-		case "description":
-			out.Values[i] = ec.___Type_description(ctx, field, obj)
-		case "fields":
-			out.Values[i] = ec.___Type_fields(ctx, field, obj)
-		case "interfaces":
-			out.Values[i] = ec.___Type_interfaces(ctx, field, obj)
-		case "possibleTypes":
-			out.Values[i] = ec.___Type_possibleTypes(ctx, field, obj)
-		case "enumValues":
-			out.Values[i] = ec.___Type_enumValues(ctx, field, obj)
-		case "inputFields":
-			out.Values[i] = ec.___Type_inputFields(ctx, field, obj)
-		case "ofType":
-			out.Values[i] = ec.___Type_ofType(ctx, field, obj)
-		case "specifiedByURL":
-			out.Values[i] = ec.___Type_specifiedByURL(ctx, field, obj)
-		case "isOneOf":
-			out.Values[i] = ec.___Type_isOneOf(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
+  out := graphql.NewFieldSet(fields)
+  deferred := make(map[string]*graphql.FieldSet)
+  for i, field := range fields {
+    switch field.Name {
+    case "__typename":
+      out.Values[i] = graphql.MarshalString("__Type")
+    case "kind":
+      out.Values[i] = ec.___Type_kind(ctx, field, obj)
+      if out.Values[i] == graphql.Null {
+        out.Invalids++
+      }
+    case "name":
+      out.Values[i] = ec.___Type_name(ctx, field, obj)
+    case "description":
+      out.Values[i] = ec.___Type_description(ctx, field, obj)
+    case "fields":
+      out.Values[i] = ec.___Type_fields(ctx, field, obj)
+    case "interfaces":
+      out.Values[i] = ec.___Type_interfaces(ctx, field, obj)
+    case "possibleTypes":
+      out.Values[i] = ec.___Type_possibleTypes(ctx, field, obj)
+    case "enumValues":
+      out.Values[i] = ec.___Type_enumValues(ctx, field, obj)
+    case "inputFields":
+      out.Values[i] = ec.___Type_inputFields(ctx, field, obj)
+    case "ofType":
+      out.Values[i] = ec.___Type_ofType(ctx, field, obj)
+    case "specifiedByURL":
+      out.Values[i] = ec.___Type_specifiedByURL(ctx, field, obj)
+    case "isOneOf":
+      out.Values[i] = ec.___Type_isOneOf(ctx, field, obj)
+    default:
+      panic("unknown field " + strconv.Quote(field.Name))
+    }
+  }
+  out.Dispatch(ctx)
+  if out.Invalids > 0 {
+    return graphql.Null
+  }
 
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+  atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
+  for label, dfs := range deferred {
+    ec.processDeferredGroup(graphql.DeferredGroup{
+      Label:    label,
+      Path:     graphql.GetPath(ctx),
+      FieldSet: dfs,
+      Context:  ctx,
+    })
+  }
 
-	return out
+  return out
 }
 
 // endregion **************************** object.gotpl ****************************
@@ -6452,1076 +6438,1076 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // region    ***************************** type.gotpl *****************************
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
-	res, err := graphql.UnmarshalBoolean(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+  res, err := graphql.UnmarshalBoolean(v)
+  return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
-	res := graphql.MarshalBoolean(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
+  res := graphql.MarshalBoolean(v)
+  if res == graphql.Null {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+  }
+  return res
 }
 
 func (ec *executionContext) marshalNFavoriteGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteGenreᚄ(ctx context.Context, sel ast.SelectionSet, v []*structs.FavoriteGenre) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFavoriteGenre2ᚖmyfavouritemoviesᚋstructsᚐFavoriteGenre(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalNFavoriteGenre2ᚖmyfavouritemoviesᚋstructsᚐFavoriteGenre(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalNFavoriteGenre2ᚖmyfavouritemoviesᚋstructsᚐFavoriteGenre(ctx context.Context, sel ast.SelectionSet, v *structs.FavoriteGenre) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._FavoriteGenre(ctx, sel, v)
+  if v == nil {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+    return graphql.Null
+  }
+  return ec._FavoriteGenre(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNFavoriteMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteMovieᚄ(ctx context.Context, sel ast.SelectionSet, v []*structs.FavoriteMovie) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFavoriteMovie2ᚖmyfavouritemoviesᚋstructsᚐFavoriteMovie(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalNFavoriteMovie2ᚖmyfavouritemoviesᚋstructsᚐFavoriteMovie(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalNFavoriteMovie2ᚖmyfavouritemoviesᚋstructsᚐFavoriteMovie(ctx context.Context, sel ast.SelectionSet, v *structs.FavoriteMovie) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._FavoriteMovie(ctx, sel, v)
+  if v == nil {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+    return graphql.Null
+  }
+  return ec._FavoriteMovie(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v any) (float64, error) {
-	res, err := graphql.UnmarshalFloatContext(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
+  res, err := graphql.UnmarshalFloatContext(ctx, v)
+  return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
-	res := graphql.MarshalFloatContext(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return graphql.WrapContextMarshaler(ctx, res)
+  res := graphql.MarshalFloatContext(v)
+  if res == graphql.Null {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+  }
+  return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) marshalNGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐGenreᚄ(ctx context.Context, sel ast.SelectionSet, v []*structs.Genre) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNGenre2ᚖmyfavouritemoviesᚋstructsᚐGenre(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalNGenre2ᚖmyfavouritemoviesᚋstructsᚐGenre(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalNGenre2ᚖmyfavouritemoviesᚋstructsᚐGenre(ctx context.Context, sel ast.SelectionSet, v *structs.Genre) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Genre(ctx, sel, v)
+  if v == nil {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+    return graphql.Null
+  }
+  return ec._Genre(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2int32(ctx context.Context, v any) (int32, error) {
-	res, err := graphql.UnmarshalInt32(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+  res, err := graphql.UnmarshalInt32(v)
+  return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNID2int32(ctx context.Context, sel ast.SelectionSet, v int32) graphql.Marshaler {
-	res := graphql.MarshalInt32(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
+  res := graphql.MarshalInt32(v)
+  if res == graphql.Null {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+  }
+  return res
 }
 
 func (ec *executionContext) unmarshalNID2ᚕint32ᚄ(ctx context.Context, v any) ([]int32, error) {
-	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]int32, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNID2int32(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
+  var vSlice []any
+  if v != nil {
+    vSlice = graphql.CoerceList(v)
+  }
+  var err error
+  res := make([]int32, len(vSlice))
+  for i := range vSlice {
+    ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+    res[i], err = ec.unmarshalNID2int32(ctx, vSlice[i])
+    if err != nil {
+      return nil, err
+    }
+  }
+  return res, nil
 }
 
 func (ec *executionContext) marshalNID2ᚕint32ᚄ(ctx context.Context, sel ast.SelectionSet, v []int32) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNID2int32(ctx, sel, v[i])
-	}
+  ret := make(graphql.Array, len(v))
+  for i := range v {
+    ret[i] = ec.marshalNID2int32(ctx, sel, v[i])
+  }
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) unmarshalNInt2int32(ctx context.Context, v any) (int32, error) {
-	res, err := graphql.UnmarshalInt32(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+  res, err := graphql.UnmarshalInt32(v)
+  return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNInt2int32(ctx context.Context, sel ast.SelectionSet, v int32) graphql.Marshaler {
-	res := graphql.MarshalInt32(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
+  res := graphql.MarshalInt32(v)
+  if res == graphql.Null {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+  }
+  return res
 }
 
 func (ec *executionContext) marshalNMovie2ᚖmyfavouritemoviesᚋstructsᚐMovie(ctx context.Context, sel ast.SelectionSet, v *structs.Movie) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Movie(ctx, sel, v)
+  if v == nil {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+    return graphql.Null
+  }
+  return ec._Movie(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNMovieDetails2myfavouritemoviesᚋstructsᚐMovieDetails(ctx context.Context, sel ast.SelectionSet, v structs.MovieDetails) graphql.Marshaler {
-	return ec._MovieDetails(ctx, sel, &v)
+  return ec._MovieDetails(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNMovieDetails2ᚖmyfavouritemoviesᚋstructsᚐMovieDetails(ctx context.Context, sel ast.SelectionSet, v *structs.MovieDetails) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._MovieDetails(ctx, sel, v)
+  if v == nil {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+    return graphql.Null
+  }
+  return ec._MovieDetails(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNMovieFilter2myfavouritemoviesᚋstructsᚐMovieFilter(ctx context.Context, v any) (structs.MovieFilter, error) {
-	res, err := ec.unmarshalInputMovieFilter(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
+  res, err := ec.unmarshalInputMovieFilter(ctx, v)
+  return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNMovieInput2myfavouritemoviesᚋstructsᚐMovieInput(ctx context.Context, v any) (structs.MovieInput, error) {
-	res, err := ec.unmarshalInputMovieInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
+  res, err := ec.unmarshalInputMovieInput(ctx, v)
+  return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+  res, err := graphql.UnmarshalString(v)
+  return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalString(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
+  res := graphql.MarshalString(v)
+  if res == graphql.Null {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+  }
+  return res
 }
 
 func (ec *executionContext) marshalNUser2myfavouritemoviesᚋstructsᚐUser(ctx context.Context, sel ast.SelectionSet, v structs.User) graphql.Marshaler {
-	return ec._User(ctx, sel, &v)
+  return ec._User(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUser2ᚖmyfavouritemoviesᚋstructsᚐUser(ctx context.Context, sel ast.SelectionSet, v *structs.User) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._User(ctx, sel, v)
+  if v == nil {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+    return graphql.Null
+  }
+  return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
-	return ec.___Directive(ctx, sel, &v)
+  return ec.___Directive(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirectiveᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.Directive) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) unmarshalN__DirectiveLocation2string(ctx context.Context, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+  res, err := graphql.UnmarshalString(v)
+  return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__DirectiveLocation2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalString(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
+  res := graphql.MarshalString(v)
+  if res == graphql.Null {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+  }
+  return res
 }
 
 func (ec *executionContext) unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
-	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalN__DirectiveLocation2string(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
+  var vSlice []any
+  if v != nil {
+    vSlice = graphql.CoerceList(v)
+  }
+  var err error
+  res := make([]string, len(vSlice))
+  for i := range vSlice {
+    ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+    res[i], err = ec.unmarshalN__DirectiveLocation2string(ctx, vSlice[i])
+    if err != nil {
+      return nil, err
+    }
+  }
+  return res, nil
 }
 
 func (ec *executionContext) marshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__DirectiveLocation2string(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalN__DirectiveLocation2string(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalN__EnumValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx context.Context, sel ast.SelectionSet, v introspection.EnumValue) graphql.Marshaler {
-	return ec.___EnumValue(ctx, sel, &v)
+  return ec.___EnumValue(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalN__Field2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐField(ctx context.Context, sel ast.SelectionSet, v introspection.Field) graphql.Marshaler {
-	return ec.___Field(ctx, sel, &v)
+  return ec.___Field(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalN__InputValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValue(ctx context.Context, sel ast.SelectionSet, v introspection.InputValue) graphql.Marshaler {
-	return ec.___InputValue(ctx, sel, &v)
+  return ec.___InputValue(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.InputValue) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__InputValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValue(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalN__InputValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValue(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalN__Type2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx context.Context, sel ast.SelectionSet, v introspection.Type) graphql.Marshaler {
-	return ec.___Type(ctx, sel, &v)
+  return ec.___Type(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalN__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.Type) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__Type2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalN__Type2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx context.Context, sel ast.SelectionSet, v *introspection.Type) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec.___Type(ctx, sel, v)
+  if v == nil {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+    return graphql.Null
+  }
+  return ec.___Type(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalN__TypeKind2string(ctx context.Context, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+  res, err := graphql.UnmarshalString(v)
+  return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalString(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
+  res := graphql.MarshalString(v)
+  if res == graphql.Null {
+    if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+      ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+    }
+  }
+  return res
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (bool, error) {
-	res, err := graphql.UnmarshalBoolean(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+  res, err := graphql.UnmarshalBoolean(v)
+  return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
-	res := graphql.MarshalBoolean(v)
-	return res
+  res := graphql.MarshalBoolean(v)
+  return res
 }
 
 func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v any) (*bool, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalBoolean(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+  if v == nil {
+    return nil, nil
+  }
+  res, err := graphql.UnmarshalBoolean(v)
+  return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast.SelectionSet, v *bool) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalBoolean(*v)
-	return res
+  if v == nil {
+    return graphql.Null
+  }
+  res := graphql.MarshalBoolean(*v)
+  return res
 }
 
 func (ec *executionContext) marshalOFavoriteGenre2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteGenreᚄ(ctx context.Context, sel ast.SelectionSet, v []*structs.FavoriteGenre) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFavoriteGenre2ᚖmyfavouritemoviesᚋstructsᚐFavoriteGenre(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  if v == nil {
+    return graphql.Null
+  }
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalNFavoriteGenre2ᚖmyfavouritemoviesᚋstructsᚐFavoriteGenre(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalOFavoriteMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐFavoriteMovieᚄ(ctx context.Context, sel ast.SelectionSet, v []*structs.FavoriteMovie) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFavoriteMovie2ᚖmyfavouritemoviesᚋstructsᚐFavoriteMovie(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  if v == nil {
+    return graphql.Null
+  }
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalNFavoriteMovie2ᚖmyfavouritemoviesᚋstructsᚐFavoriteMovie(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v any) (*float64, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalFloatContext(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+  if v == nil {
+    return nil, nil
+  }
+  res, err := graphql.UnmarshalFloatContext(ctx, v)
+  return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalFloatContext(*v)
-	return graphql.WrapContextMarshaler(ctx, res)
+  if v == nil {
+    return graphql.Null
+  }
+  res := graphql.MarshalFloatContext(*v)
+  return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) unmarshalOInt2ᚕint32ᚄ(ctx context.Context, v any) ([]int32, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]int32, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNInt2int32(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
+  if v == nil {
+    return nil, nil
+  }
+  var vSlice []any
+  if v != nil {
+    vSlice = graphql.CoerceList(v)
+  }
+  var err error
+  res := make([]int32, len(vSlice))
+  for i := range vSlice {
+    ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+    res[i], err = ec.unmarshalNInt2int32(ctx, vSlice[i])
+    if err != nil {
+      return nil, err
+    }
+  }
+  return res, nil
 }
 
 func (ec *executionContext) marshalOInt2ᚕint32ᚄ(ctx context.Context, sel ast.SelectionSet, v []int32) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNInt2int32(ctx, sel, v[i])
-	}
+  if v == nil {
+    return graphql.Null
+  }
+  ret := make(graphql.Array, len(v))
+  for i := range v {
+    ret[i] = ec.marshalNInt2int32(ctx, sel, v[i])
+  }
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint32(ctx context.Context, v any) (*int32, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalInt32(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+  if v == nil {
+    return nil, nil
+  }
+  res, err := graphql.UnmarshalInt32(v)
+  return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOInt2ᚖint32(ctx context.Context, sel ast.SelectionSet, v *int32) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalInt32(*v)
-	return res
+  if v == nil {
+    return graphql.Null
+  }
+  res := graphql.MarshalInt32(*v)
+  return res
 }
 
 func (ec *executionContext) marshalOMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐMovie(ctx context.Context, sel ast.SelectionSet, v []*structs.Movie) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOMovie2ᚖmyfavouritemoviesᚋstructsᚐMovie(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  if v == nil {
+    return graphql.Null
+  }
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalOMovie2ᚖmyfavouritemoviesᚋstructsᚐMovie(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalOMovie2ᚕᚖmyfavouritemoviesᚋstructsᚐMovieᚄ(ctx context.Context, sel ast.SelectionSet, v []*structs.Movie) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNMovie2ᚖmyfavouritemoviesᚋstructsᚐMovie(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  if v == nil {
+    return graphql.Null
+  }
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalNMovie2ᚖmyfavouritemoviesᚋstructsᚐMovie(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalOMovie2ᚖmyfavouritemoviesᚋstructsᚐMovie(ctx context.Context, sel ast.SelectionSet, v *structs.Movie) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Movie(ctx, sel, v)
+  if v == nil {
+    return graphql.Null
+  }
+  return ec._Movie(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+  if v == nil {
+    return nil, nil
+  }
+  res, err := graphql.UnmarshalString(v)
+  return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalString(*v)
-	return res
+  if v == nil {
+    return graphql.Null
+  }
+  res := graphql.MarshalString(*v)
+  return res
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__EnumValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  if v == nil {
+    return graphql.Null
+  }
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalN__EnumValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalO__Field2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐFieldᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.Field) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__Field2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐField(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  if v == nil {
+    return graphql.Null
+  }
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalN__Field2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐField(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalO__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.InputValue) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__InputValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValue(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  if v == nil {
+    return graphql.Null
+  }
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalN__InputValue2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValue(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx context.Context, sel ast.SelectionSet, v *introspection.Schema) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec.___Schema(ctx, sel, v)
+  if v == nil {
+    return graphql.Null
+  }
+  return ec.___Schema(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.Type) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalN__Type2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+  if v == nil {
+    return graphql.Null
+  }
+  ret := make(graphql.Array, len(v))
+  var wg sync.WaitGroup
+  isLen1 := len(v) == 1
+  if !isLen1 {
+    wg.Add(len(v))
+  }
+  for i := range v {
+    i := i
+    fc := &graphql.FieldContext{
+      Index:  &i,
+      Result: &v[i],
+    }
+    ctx := graphql.WithFieldContext(ctx, fc)
+    f := func(i int) {
+      defer func() {
+        if r := recover(); r != nil {
+          ec.Error(ctx, ec.Recover(ctx, r))
+          ret = nil
+        }
+      }()
+      if !isLen1 {
+        defer wg.Done()
+      }
+      ret[i] = ec.marshalN__Type2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx, sel, v[i])
+    }
+    if isLen1 {
+      f(i)
+    } else {
+      go f(i)
+    }
 
-	}
-	wg.Wait()
+  }
+  wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
+  for _, e := range ret {
+    if e == graphql.Null {
+      return graphql.Null
+    }
+  }
 
-	return ret
+  return ret
 }
 
 func (ec *executionContext) marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐType(ctx context.Context, sel ast.SelectionSet, v *introspection.Type) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec.___Type(ctx, sel, v)
+  if v == nil {
+    return graphql.Null
+  }
+  return ec.___Type(ctx, sel, v)
 }
 
 // endregion ***************************** type.gotpl *****************************

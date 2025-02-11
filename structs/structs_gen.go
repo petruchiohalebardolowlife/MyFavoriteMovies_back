@@ -3,18 +3,18 @@
 package structs
 
 type MovieFilter struct {
-	GenreIDs   []int32  `json:"genreIDs,omitempty"`
-	Popularity *float64 `json:"popularity,omitempty"`
-	Year       *int32   `json:"year,omitempty"`
-	Page       *int32   `json:"page,omitempty"`
+  GenreIDs   []int32  `json:"genreIDs,omitempty"`
+  Popularity *float64 `json:"popularity,omitempty"`
+  Year       *int32   `json:"year,omitempty"`
+  Page       *int32   `json:"page,omitempty"`
 }
 
 type MovieInput struct {
-	MovieID     int32   `json:"movieID"`
-	Title       string  `json:"title"`
-	PosterPath  string  `json:"posterPath"`
-	VoteAverage float64 `json:"voteAverage"`
-	GenreIDs    []int32 `json:"genreIDs"`
+  MovieID     int32   `json:"movieID"`
+  Title       string  `json:"title"`
+  PosterPath  string  `json:"posterPath"`
+  VoteAverage float64 `json:"voteAverage"`
+  GenreIDs    []int32 `json:"genreIDs"`
 }
 
 type Mutation struct {
@@ -24,11 +24,11 @@ type Query struct {
 }
 
 type ResponseFilteredMovies struct {
-	Page    int32    `json:"page"`
-	Results []*Movie `json:"results,omitempty"`
+  Page    int32    `json:"page"`
+  Results []*Movie `json:"results,omitempty"`
 }
 
 type SignInInput struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+  Username string `json:"username"`
+  Password string `json:"password"`
 }

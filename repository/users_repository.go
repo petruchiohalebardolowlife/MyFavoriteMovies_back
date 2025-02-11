@@ -10,6 +10,9 @@ func AddUser(user *structs.User) error {
   if user.NickName == "" || user.UserName == "" || user.Password == "" {
     return errors.New("Some of filed are empty")
   }
+  if err:=database.DB.Where("user_name = ?", user.UserName).First(&structs.User{}).Error; err == nil {
+    return errors.New("User with this username already exist")
+  }
 
   if err := database.DB.Create(user).Error; err != nil {
     return err
