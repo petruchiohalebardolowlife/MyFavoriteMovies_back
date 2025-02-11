@@ -22,12 +22,13 @@ import (
 
 func main() {
   db := database.InitDB()
-  if db == nil {
+  if db != nil {
+    fmt.Println("Database tables created successfully!")
+  } else {
     log.Fatal("Failed to initialize the database.")
   }
-  fmt.Println("Database tables created successfully!")
-  resolver := &graph.Resolver{}
 
+  resolver := &graph.Resolver{}
   genres, err := service.FetchGenres()
   if err != nil {
     log.Fatalf("Failed to fetch genres: %v", err)
@@ -35,7 +36,6 @@ func main() {
   if err := repository.SaveGenresToDB(genres); err != nil {
     log.Fatalf("Failed to add genres: %v", err)
   }
-
   srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
 
   srv.AddTransport(transport.Options{})
