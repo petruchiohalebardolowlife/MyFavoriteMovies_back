@@ -7,7 +7,7 @@ import (
 	"myfavouritemovies/utils"
 )
 
-func AddFavoriteMovie(userID int32, input structs.MovieInput) error {
+func AddFavoriteMovie(userID uint, input structs.MovieInput) error {
   if _, err := utils.FindFavoriteMovie(userID, input.MovieID); err == nil {
       return errors.New("movie already in favorites")
   }
@@ -36,7 +36,7 @@ func AddFavoriteMovie(userID int32, input structs.MovieInput) error {
   return nil
 }
 
-func ToggleWatchedStatus(userID, movieID int32) error {
+func ToggleWatchedStatus(userID, movieID uint) error {
   favMovie, err := utils.FindFavoriteMovie(userID, movieID)
   if err != nil {
       return errors.New("favorite movie not found")
@@ -51,7 +51,7 @@ func ToggleWatchedStatus(userID, movieID int32) error {
   return nil
 }
 
-func DeleteFavoriteMovie(userID, movieID int32) error {
+func DeleteFavoriteMovie(userID, movieID uint) error {
   existingMovie, err := utils.FindFavoriteMovie(userID, movieID)
   if err != nil {
       return errors.New("favorite movie not found")
@@ -64,7 +64,7 @@ func DeleteFavoriteMovie(userID, movieID int32) error {
   return nil
 }
 
-func GetFavoriteMovies(userID int32) ([]*structs.FavoriteMovie, error) {
+func GetFavoriteMovies(userID uint) ([]*structs.FavoriteMovie, error) {
   var favMovies []*structs.FavoriteMovie
   if err := database.DB.
       Preload("Genres").

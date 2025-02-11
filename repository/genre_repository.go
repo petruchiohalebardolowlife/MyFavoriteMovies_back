@@ -41,7 +41,7 @@ func SaveGenresToDB(genres []structs.Genre) error {
   return nil
 }
 
-func AddFavoriteGenre(userID, genreID int32) error {
+func AddFavoriteGenre(userID, genreID uint) error {
   err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
       First(&structs.FavoriteGenre{}).Error
   if err == nil {
@@ -60,7 +60,7 @@ func AddFavoriteGenre(userID, genreID int32) error {
   return nil
 }
 
-func DeleteFavoriteGenre(userID, genreID int32) error {
+func DeleteFavoriteGenre(userID, genreID uint) error {
   var favGenre structs.FavoriteGenre
   if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
       First(&favGenre).Error; err != nil {
@@ -74,7 +74,7 @@ func DeleteFavoriteGenre(userID, genreID int32) error {
   return nil
 }
 
-func GetFavoriteGenres (userID int32) ([]*structs.FavoriteGenre ,error) {
+func GetFavoriteGenres (userID uint) ([]*structs.FavoriteGenre ,error) {
   var favGenres []*structs.FavoriteGenre
   if err := database.DB.Where("user_id = ?", userID).Find(&favGenres).Error; err != nil {
     return nil, errors.New("No favorite genres")

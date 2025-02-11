@@ -6,7 +6,7 @@ import (
 
 type User struct {
   gorm.Model
-  ID             int32            `json:"id"`
+  ID             uint            `json:"id"`
   NickName       string           `json:"nickName"`
   UserName       string           `json:"userName"`
   Password       string           `json:"password"`
@@ -16,14 +16,14 @@ type User struct {
 
 type Genre struct {
   gorm.Model
-  ID   int32  `gorm:"primaryKey" json:"id"`
+  ID   uint  `gorm:"primaryKey" json:"id"`
   Name string `json:"name"`
 }
 
 type FavoriteMovie struct {
   gorm.Model
-  UserID      int32    `json:"user_id"`
-  MovieID     int32    `json:"movie_id"`
+  UserID      uint    `json:"user_id"`
+  MovieID     uint    `json:"movie_id"`
   Title       string   `json:"title"`
   PosterPath  string   `json:"poster_path"`
   VoteAverage float64  `json:"vote_average"`
@@ -33,13 +33,13 @@ type FavoriteMovie struct {
 
 type FavoriteGenre struct {
   gorm.Model
-  UserID  int32
-  GenreID int32
+  UserID  uint
+  GenreID uint
 }
 
 type SignIn struct {
-  Username string `json:"username"`
-  Password string `json:"password"`
+  Username uint `json:"username"`
+  Password uint `json:"password"`
 }
 
 type MovieDetails struct {
@@ -52,10 +52,10 @@ type MovieDetails struct {
 }
 
 type Movie struct {
-  ID          int32   `json:"id"`
+  ID          uint   `json:"id"`
   Title       string  `json:"title"`
   PosterPath  string  `json:"poster_path"`
   VoteAverage float64 `json:"vote_average"`
-  GenreIDs    []int32 `json:"genre_ids"`
+  GenreIDs    []uint `json:"genre_ids"`
   ReleaseDate string  `json:"release_date"`
 }

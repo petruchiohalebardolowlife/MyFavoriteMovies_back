@@ -47,7 +47,7 @@ func UpdateUser(user *structs.User, nickName *string, password *string) error {
   return nil
 }
 
-func DeleteUser(userID int32) error {
+func DeleteUser(userID uint) error {
   if err := database.DB.Where("id = ?", userID).Delete(&structs.User{}).Error; err != nil {
       return errors.New("User not found")
   }

@@ -21,7 +21,7 @@ func BindJSON (c *gin.Context, input interface{}) bool {
 }
 
 
-func FindFavoriteMovie(userID, movieID int32) (structs.FavoriteMovie, error) {
+func FindFavoriteMovie(userID, movieID uint) (structs.FavoriteMovie, error) {
   var favMovie structs.FavoriteMovie
   err := database.DB.Where("user_id = ? AND movie_id = ?", userID, movieID).First(&favMovie).Error
   return favMovie, err
@@ -48,7 +48,7 @@ func GetContextUser(ctx context.Context) (*structs.User, error) {
   return &user, nil
 }
 
-func GetGenreNameByID(genreID int32, db *gorm.DB) string {
+func GetGenreNameByID(genreID uint, db *gorm.DB) string {
   var genre structs.Genre
   if err := db.Where("id = ?", genreID).First(&genre).Error; err != nil {
       return ""

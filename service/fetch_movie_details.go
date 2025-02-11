@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func FetchMovieDetails(movieID int32) (*structs.MovieDetails, error) {
+func FetchMovieDetails(movieID uint) (*structs.MovieDetails, error) {
   endpoint := "/movie/"+strconv.FormatInt(int64(movieID), 10)
   body, err := FetchFromTMDB(endpoint,"")
   if err != nil {

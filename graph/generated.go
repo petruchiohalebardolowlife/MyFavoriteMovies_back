@@ -86,13 +86,13 @@ type ComplexityRoot struct {
   }
 
   Mutation struct {
-    AddFavoriteGenre    func(childComplexity int, genreID int32) int
+    AddFavoriteGenre    func(childComplexity int, genreID uint) int
     AddFavoriteMovie    func(childComplexity int, movie structs.MovieInput) int
     AddUser             func(childComplexity int, nickName string, userName string, password string) int
-    DeleteFavoriteGenre func(childComplexity int, genreID int32) int
-    DeleteFavoriteMovie func(childComplexity int, movieID int32) int
+    DeleteFavoriteGenre func(childComplexity int, genreID uint) int
+    DeleteFavoriteMovie func(childComplexity int, movieID uint) int
     DeleteUser          func(childComplexity int) int
-    ToggleWatchedStatus func(childComplexity int, movieID int32) int
+    ToggleWatchedStatus func(childComplexity int, movieID uint) int
     UpdateUser          func(childComplexity int, nickName *string, password *string) int
   }
 
@@ -101,7 +101,7 @@ type ComplexityRoot struct {
     GetAllGenres         func(childComplexity int) int
     GetFavoriteMovies    func(childComplexity int) int
     GetFilteredMovies    func(childComplexity int, filter structs.MovieFilter) int
-    GetMovieDetails      func(childComplexity int, movieID int32) int
+    GetMovieDetails      func(childComplexity int, movieID uint) int
     GetUser              func(childComplexity int) int
   }
 
@@ -125,17 +125,17 @@ type MutationResolver interface {
   DeleteUser(ctx context.Context) (bool, error)
   UpdateUser(ctx context.Context, nickName *string, password *string) (bool, error)
   AddFavoriteMovie(ctx context.Context, movie structs.MovieInput) (bool, error)
-  DeleteFavoriteMovie(ctx context.Context, movieID int32) (bool, error)
-  ToggleWatchedStatus(ctx context.Context, movieID int32) (bool, error)
-  AddFavoriteGenre(ctx context.Context, genreID int32) (bool, error)
-  DeleteFavoriteGenre(ctx context.Context, genreID int32) (bool, error)
+  DeleteFavoriteMovie(ctx context.Context, movieID uint) (bool, error)
+  ToggleWatchedStatus(ctx context.Context, movieID uint) (bool, error)
+  AddFavoriteGenre(ctx context.Context, genreID uint) (bool, error)
+  DeleteFavoriteGenre(ctx context.Context, genreID uint) (bool, error)
 }
 type QueryResolver interface {
   GetUser(ctx context.Context) (*structs.User, error)
   GetAllGenres(ctx context.Context) ([]*structs.Genre, error)
   GetAllFavoriteGenres(ctx context.Context) ([]*structs.FavoriteGenre, error)
   GetFavoriteMovies(ctx context.Context) ([]*structs.FavoriteMovie, error)
-  GetMovieDetails(ctx context.Context, movieID int32) (*structs.MovieDetails, error)
+  GetMovieDetails(ctx context.Context, movieID uint) (*structs.MovieDetails, error)
   GetFilteredMovies(ctx context.Context, filter structs.MovieFilter) ([]*structs.Movie, error)
 }
 
@@ -329,7 +329,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
       return 0, false
     }
 
-    return e.complexity.Mutation.AddFavoriteGenre(childComplexity, args["genreID"].(int32)), true
+    return e.complexity.Mutation.AddFavoriteGenre(childComplexity, args["genreID"].(uint)), true
 
   case "Mutation.addFavoriteMovie":
     if e.complexity.Mutation.AddFavoriteMovie == nil {
@@ -365,7 +365,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
       return 0, false
     }
 
-    return e.complexity.Mutation.DeleteFavoriteGenre(childComplexity, args["genreID"].(int32)), true
+    return e.complexity.Mutation.DeleteFavoriteGenre(childComplexity, args["genreID"].(uint)), true
 
   case "Mutation.deleteFavoriteMovie":
     if e.complexity.Mutation.DeleteFavoriteMovie == nil {
@@ -377,7 +377,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
       return 0, false
     }
 
-    return e.complexity.Mutation.DeleteFavoriteMovie(childComplexity, args["movieID"].(int32)), true
+    return e.complexity.Mutation.DeleteFavoriteMovie(childComplexity, args["movieID"].(uint)), true
 
   case "Mutation.deleteUser":
     if e.complexity.Mutation.DeleteUser == nil {
@@ -396,7 +396,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
       return 0, false
     }
 
-    return e.complexity.Mutation.ToggleWatchedStatus(childComplexity, args["movieID"].(int32)), true
+    return e.complexity.Mutation.ToggleWatchedStatus(childComplexity, args["movieID"].(uint)), true
 
   case "Mutation.updateUser":
     if e.complexity.Mutation.UpdateUser == nil {
@@ -453,7 +453,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
       return 0, false
     }
 
-    return e.complexity.Query.GetMovieDetails(childComplexity, args["movieID"].(int32)), true
+    return e.complexity.Query.GetMovieDetails(childComplexity, args["movieID"].(uint)), true
 
   case "Query.getUser":
     if e.complexity.Query.GetUser == nil {
@@ -658,13 +658,13 @@ func (ec *executionContext) field_Mutation_addFavoriteGenre_args(ctx context.Con
 func (ec *executionContext) field_Mutation_addFavoriteGenre_argsGenreID(
   ctx context.Context,
   rawArgs map[string]any,
-) (int32, error) {
+) (uint, error) {
   ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("genreID"))
   if tmp, ok := rawArgs["genreID"]; ok {
-    return ec.unmarshalNID2int32(ctx, tmp)
+    return ec.unmarshalNID2uint(ctx, tmp)
   }
 
-  var zeroVal int32
+  var zeroVal uint
   return zeroVal, nil
 }
 
@@ -763,13 +763,13 @@ func (ec *executionContext) field_Mutation_deleteFavoriteGenre_args(ctx context.
 func (ec *executionContext) field_Mutation_deleteFavoriteGenre_argsGenreID(
   ctx context.Context,
   rawArgs map[string]any,
-) (int32, error) {
+) (uint, error) {
   ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("genreID"))
   if tmp, ok := rawArgs["genreID"]; ok {
-    return ec.unmarshalNID2int32(ctx, tmp)
+    return ec.unmarshalNID2uint(ctx, tmp)
   }
 
-  var zeroVal int32
+  var zeroVal uint
   return zeroVal, nil
 }
 
@@ -786,13 +786,13 @@ func (ec *executionContext) field_Mutation_deleteFavoriteMovie_args(ctx context.
 func (ec *executionContext) field_Mutation_deleteFavoriteMovie_argsMovieID(
   ctx context.Context,
   rawArgs map[string]any,
-) (int32, error) {
+) (uint, error) {
   ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
   if tmp, ok := rawArgs["movieID"]; ok {
-    return ec.unmarshalNID2int32(ctx, tmp)
+    return ec.unmarshalNID2uint(ctx, tmp)
   }
 
-  var zeroVal int32
+  var zeroVal uint
   return zeroVal, nil
 }
 
@@ -809,13 +809,13 @@ func (ec *executionContext) field_Mutation_toggleWatchedStatus_args(ctx context.
 func (ec *executionContext) field_Mutation_toggleWatchedStatus_argsMovieID(
   ctx context.Context,
   rawArgs map[string]any,
-) (int32, error) {
+) (uint, error) {
   ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
   if tmp, ok := rawArgs["movieID"]; ok {
-    return ec.unmarshalNID2int32(ctx, tmp)
+    return ec.unmarshalNID2uint(ctx, tmp)
   }
 
-  var zeroVal int32
+  var zeroVal uint
   return zeroVal, nil
 }
 
@@ -919,13 +919,13 @@ func (ec *executionContext) field_Query_getMovieDetails_args(ctx context.Context
 func (ec *executionContext) field_Query_getMovieDetails_argsMovieID(
   ctx context.Context,
   rawArgs map[string]any,
-) (int32, error) {
+) (uint, error) {
   ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
   if tmp, ok := rawArgs["movieID"]; ok {
-    return ec.unmarshalNID2int32(ctx, tmp)
+    return ec.unmarshalNID2uint(ctx, tmp)
   }
 
-  var zeroVal int32
+  var zeroVal uint
   return zeroVal, nil
 }
 
@@ -1055,9 +1055,9 @@ func (ec *executionContext) _FavoriteGenre_userID(ctx context.Context, field gra
     }
     return graphql.Null
   }
-  res := resTmp.(int32)
+  res := resTmp.(uint)
   fc.Result = res
-  return ec.marshalNID2int32(ctx, field.Selections, res)
+  return ec.marshalNID2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteGenre_userID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1099,9 +1099,9 @@ func (ec *executionContext) _FavoriteGenre_genreID(ctx context.Context, field gr
     }
     return graphql.Null
   }
-  res := resTmp.(int32)
+  res := resTmp.(uint)
   fc.Result = res
-  return ec.marshalNID2int32(ctx, field.Selections, res)
+  return ec.marshalNID2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteGenre_genreID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1143,9 +1143,9 @@ func (ec *executionContext) _FavoriteMovie_userID(ctx context.Context, field gra
     }
     return graphql.Null
   }
-  res := resTmp.(int32)
+  res := resTmp.(uint)
   fc.Result = res
-  return ec.marshalNID2int32(ctx, field.Selections, res)
+  return ec.marshalNID2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteMovie_userID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1187,9 +1187,9 @@ func (ec *executionContext) _FavoriteMovie_movieID(ctx context.Context, field gr
     }
     return graphql.Null
   }
-  res := resTmp.(int32)
+  res := resTmp.(uint)
   fc.Result = res
-  return ec.marshalNID2int32(ctx, field.Selections, res)
+  return ec.marshalNID2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FavoriteMovie_movieID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1457,9 +1457,9 @@ func (ec *executionContext) _Genre_id(ctx context.Context, field graphql.Collect
     }
     return graphql.Null
   }
-  res := resTmp.(int32)
+  res := resTmp.(uint)
   fc.Result = res
-  return ec.marshalNID2int32(ctx, field.Selections, res)
+  return ec.marshalNID2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Genre_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1545,9 +1545,9 @@ func (ec *executionContext) _Movie_id(ctx context.Context, field graphql.Collect
     }
     return graphql.Null
   }
-  res := resTmp.(int32)
+  res := resTmp.(uint)
   fc.Result = res
-  return ec.marshalNID2int32(ctx, field.Selections, res)
+  return ec.marshalNID2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Movie_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1721,9 +1721,9 @@ func (ec *executionContext) _Movie_genreIDs(ctx context.Context, field graphql.C
     }
     return graphql.Null
   }
-  res := resTmp.([]int32)
+  res := resTmp.([]uint)
   fc.Result = res
-  return ec.marshalNID2ᚕint32ᚄ(ctx, field.Selections, res)
+  return ec.marshalNID2ᚕuintᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Movie_genreIDs(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2276,7 +2276,7 @@ func (ec *executionContext) _Mutation_deleteFavoriteMovie(ctx context.Context, f
   }()
   resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
     ctx = rctx // use context from middleware stack in children
-    return ec.resolvers.Mutation().DeleteFavoriteMovie(rctx, fc.Args["movieID"].(int32))
+    return ec.resolvers.Mutation().DeleteFavoriteMovie(rctx, fc.Args["movieID"].(uint))
   })
   if err != nil {
     ec.Error(ctx, err)
@@ -2331,7 +2331,7 @@ func (ec *executionContext) _Mutation_toggleWatchedStatus(ctx context.Context, f
   }()
   resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
     ctx = rctx // use context from middleware stack in children
-    return ec.resolvers.Mutation().ToggleWatchedStatus(rctx, fc.Args["movieID"].(int32))
+    return ec.resolvers.Mutation().ToggleWatchedStatus(rctx, fc.Args["movieID"].(uint))
   })
   if err != nil {
     ec.Error(ctx, err)
@@ -2386,7 +2386,7 @@ func (ec *executionContext) _Mutation_addFavoriteGenre(ctx context.Context, fiel
   }()
   resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
     ctx = rctx // use context from middleware stack in children
-    return ec.resolvers.Mutation().AddFavoriteGenre(rctx, fc.Args["genreID"].(int32))
+    return ec.resolvers.Mutation().AddFavoriteGenre(rctx, fc.Args["genreID"].(uint))
   })
   if err != nil {
     ec.Error(ctx, err)
@@ -2441,7 +2441,7 @@ func (ec *executionContext) _Mutation_deleteFavoriteGenre(ctx context.Context, f
   }()
   resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
     ctx = rctx // use context from middleware stack in children
-    return ec.resolvers.Mutation().DeleteFavoriteGenre(rctx, fc.Args["genreID"].(int32))
+    return ec.resolvers.Mutation().DeleteFavoriteGenre(rctx, fc.Args["genreID"].(uint))
   })
   if err != nil {
     ec.Error(ctx, err)
@@ -2708,7 +2708,7 @@ func (ec *executionContext) _Query_getMovieDetails(ctx context.Context, field gr
   }()
   resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
     ctx = rctx // use context from middleware stack in children
-    return ec.resolvers.Query().GetMovieDetails(rctx, fc.Args["movieID"].(int32))
+    return ec.resolvers.Query().GetMovieDetails(rctx, fc.Args["movieID"].(uint))
   })
   if err != nil {
     ec.Error(ctx, err)
@@ -2986,9 +2986,9 @@ func (ec *executionContext) _ResponseFilteredMovies_page(ctx context.Context, fi
     }
     return graphql.Null
   }
-  res := resTmp.(int32)
+  res := resTmp.(uint)
   fc.Result = res
-  return ec.marshalNInt2int32(ctx, field.Selections, res)
+  return ec.marshalNInt2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ResponseFilteredMovies_page(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3085,9 +3085,9 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
     }
     return graphql.Null
   }
-  res := resTmp.(int32)
+  res := resTmp.(uint)
   fc.Result = res
-  return ec.marshalNID2int32(ctx, field.Selections, res)
+  return ec.marshalNID2uint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5312,7 +5312,7 @@ func (ec *executionContext) unmarshalInputMovieFilter(ctx context.Context, obj a
     switch k {
     case "genreIDs":
       ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genreIDs"))
-      data, err := ec.unmarshalOInt2ᚕint32ᚄ(ctx, v)
+      data, err := ec.unmarshalOInt2ᚕuintᚄ(ctx, v)
       if err != nil {
         return it, err
       }
@@ -5326,14 +5326,14 @@ func (ec *executionContext) unmarshalInputMovieFilter(ctx context.Context, obj a
       it.Popularity = data
     case "year":
       ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("year"))
-      data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+      data, err := ec.unmarshalOInt2ᚖuint(ctx, v)
       if err != nil {
         return it, err
       }
       it.Year = data
     case "page":
       ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
-      data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
+      data, err := ec.unmarshalOInt2ᚖuint(ctx, v)
       if err != nil {
         return it, err
       }
@@ -5360,7 +5360,7 @@ func (ec *executionContext) unmarshalInputMovieInput(ctx context.Context, obj an
     switch k {
     case "movieID":
       ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("movieID"))
-      data, err := ec.unmarshalNID2int32(ctx, v)
+      data, err := ec.unmarshalNID2uint(ctx, v)
       if err != nil {
         return it, err
       }
@@ -5388,7 +5388,7 @@ func (ec *executionContext) unmarshalInputMovieInput(ctx context.Context, obj an
       it.VoteAverage = data
     case "genreIDs":
       ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genreIDs"))
-      data, err := ec.unmarshalNID2ᚕint32ᚄ(ctx, v)
+      data, err := ec.unmarshalNID2ᚕuintᚄ(ctx, v)
       if err != nil {
         return it, err
       }
@@ -6629,13 +6629,13 @@ func (ec *executionContext) marshalNGenre2ᚖmyfavouritemoviesᚋstructsᚐGenre
   return ec._Genre(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNID2int32(ctx context.Context, v any) (int32, error) {
-  res, err := graphql.UnmarshalInt32(v)
+func (ec *executionContext) unmarshalNID2uint(ctx context.Context, v any) (uint, error) {
+  res, err := graphql.UnmarshalUintID(v)
   return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNID2int32(ctx context.Context, sel ast.SelectionSet, v int32) graphql.Marshaler {
-  res := graphql.MarshalInt32(v)
+func (ec *executionContext) marshalNID2uint(ctx context.Context, sel ast.SelectionSet, v uint) graphql.Marshaler {
+  res := graphql.MarshalUintID(v)
   if res == graphql.Null {
     if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
       ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -6644,16 +6644,16 @@ func (ec *executionContext) marshalNID2int32(ctx context.Context, sel ast.Select
   return res
 }
 
-func (ec *executionContext) unmarshalNID2ᚕint32ᚄ(ctx context.Context, v any) ([]int32, error) {
+func (ec *executionContext) unmarshalNID2ᚕuintᚄ(ctx context.Context, v any) ([]uint, error) {
   var vSlice []any
   if v != nil {
     vSlice = graphql.CoerceList(v)
   }
   var err error
-  res := make([]int32, len(vSlice))
+  res := make([]uint, len(vSlice))
   for i := range vSlice {
     ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-    res[i], err = ec.unmarshalNID2int32(ctx, vSlice[i])
+    res[i], err = ec.unmarshalNID2uint(ctx, vSlice[i])
     if err != nil {
       return nil, err
     }
@@ -6661,10 +6661,10 @@ func (ec *executionContext) unmarshalNID2ᚕint32ᚄ(ctx context.Context, v any)
   return res, nil
 }
 
-func (ec *executionContext) marshalNID2ᚕint32ᚄ(ctx context.Context, sel ast.SelectionSet, v []int32) graphql.Marshaler {
+func (ec *executionContext) marshalNID2ᚕuintᚄ(ctx context.Context, sel ast.SelectionSet, v []uint) graphql.Marshaler {
   ret := make(graphql.Array, len(v))
   for i := range v {
-    ret[i] = ec.marshalNID2int32(ctx, sel, v[i])
+    ret[i] = ec.marshalNID2uint(ctx, sel, v[i])
   }
 
   for _, e := range ret {
@@ -6676,13 +6676,13 @@ func (ec *executionContext) marshalNID2ᚕint32ᚄ(ctx context.Context, sel ast.
   return ret
 }
 
-func (ec *executionContext) unmarshalNInt2int32(ctx context.Context, v any) (int32, error) {
-  res, err := graphql.UnmarshalInt32(v)
+func (ec *executionContext) unmarshalNInt2uint(ctx context.Context, v any) (uint, error) {
+  res, err := graphql.UnmarshalUint(v)
   return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNInt2int32(ctx context.Context, sel ast.SelectionSet, v int32) graphql.Marshaler {
-  res := graphql.MarshalInt32(v)
+func (ec *executionContext) marshalNInt2uint(ctx context.Context, sel ast.SelectionSet, v uint) graphql.Marshaler {
+  res := graphql.MarshalUint(v)
   if res == graphql.Null {
     if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
       ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7143,7 +7143,7 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
   return graphql.WrapContextMarshaler(ctx, res)
 }
 
-func (ec *executionContext) unmarshalOInt2ᚕint32ᚄ(ctx context.Context, v any) ([]int32, error) {
+func (ec *executionContext) unmarshalOInt2ᚕuintᚄ(ctx context.Context, v any) ([]uint, error) {
   if v == nil {
     return nil, nil
   }
@@ -7152,10 +7152,10 @@ func (ec *executionContext) unmarshalOInt2ᚕint32ᚄ(ctx context.Context, v any
     vSlice = graphql.CoerceList(v)
   }
   var err error
-  res := make([]int32, len(vSlice))
+  res := make([]uint, len(vSlice))
   for i := range vSlice {
     ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-    res[i], err = ec.unmarshalNInt2int32(ctx, vSlice[i])
+    res[i], err = ec.unmarshalNInt2uint(ctx, vSlice[i])
     if err != nil {
       return nil, err
     }
@@ -7163,13 +7163,13 @@ func (ec *executionContext) unmarshalOInt2ᚕint32ᚄ(ctx context.Context, v any
   return res, nil
 }
 
-func (ec *executionContext) marshalOInt2ᚕint32ᚄ(ctx context.Context, sel ast.SelectionSet, v []int32) graphql.Marshaler {
+func (ec *executionContext) marshalOInt2ᚕuintᚄ(ctx context.Context, sel ast.SelectionSet, v []uint) graphql.Marshaler {
   if v == nil {
     return graphql.Null
   }
   ret := make(graphql.Array, len(v))
   for i := range v {
-    ret[i] = ec.marshalNInt2int32(ctx, sel, v[i])
+    ret[i] = ec.marshalNInt2uint(ctx, sel, v[i])
   }
 
   for _, e := range ret {
@@ -7181,19 +7181,19 @@ func (ec *executionContext) marshalOInt2ᚕint32ᚄ(ctx context.Context, sel ast
   return ret
 }
 
-func (ec *executionContext) unmarshalOInt2ᚖint32(ctx context.Context, v any) (*int32, error) {
+func (ec *executionContext) unmarshalOInt2ᚖuint(ctx context.Context, v any) (*uint, error) {
   if v == nil {
     return nil, nil
   }
-  res, err := graphql.UnmarshalInt32(v)
+  res, err := graphql.UnmarshalUint(v)
   return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOInt2ᚖint32(ctx context.Context, sel ast.SelectionSet, v *int32) graphql.Marshaler {
+func (ec *executionContext) marshalOInt2ᚖuint(ctx context.Context, sel ast.SelectionSet, v *uint) graphql.Marshaler {
   if v == nil {
     return graphql.Null
   }
-  res := graphql.MarshalInt32(*v)
+  res := graphql.MarshalUint(*v)
   return res
 }
 

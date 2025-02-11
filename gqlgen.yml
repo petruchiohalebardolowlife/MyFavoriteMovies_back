@@ -39,13 +39,13 @@ models:
       - myfavouritemovies/structs.Movie
   ID:
     model:
-      - github.com/99designs/gqlgen/graphql.Int32
+      - github.com/99designs/gqlgen/graphql.UintID
   UUID:
     model:
       - github.com/99designs/gqlgen/graphql.UUID
   Int:
     model:
-      - github.com/99designs/gqlgen/graphql.Int32
+      - github.com/99designs/gqlgen/graphql.Uint
   Int64:
     model:
       - github.com/99designs/gqlgen/graphql.Int

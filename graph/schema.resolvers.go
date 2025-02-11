@@ -56,7 +56,7 @@ func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie structs.M
   return true, nil
 }
 
-func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, movieID int32) (bool, error) {
+func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, movieID uint) (bool, error) {
   user, errUser := utils.GetContextUser(ctx)
   if errUser != nil {
     return false, errUser
@@ -67,7 +67,7 @@ func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, movieID int3
   return true, nil
 }
 
-func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, movieID int32) (bool, error) {
+func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, movieID uint) (bool, error) {
   user, errUser := utils.GetContextUser(ctx)
   if errUser != nil {
     return false, errUser
@@ -78,7 +78,7 @@ func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, movieID int3
   return true, nil
 }
 
-func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, genreID int32) (bool, error) {
+func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, genreID uint) (bool, error) {
   user, errUser := utils.GetContextUser(ctx)
   if errUser != nil {
     return false, errUser
@@ -89,7 +89,7 @@ func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, genreID int32) 
   return true, nil
 }
 
-func (r *mutationResolver) DeleteFavoriteGenre(ctx context.Context, genreID int32) (bool, error) {
+func (r *mutationResolver) DeleteFavoriteGenre(ctx context.Context, genreID uint) (bool, error) {
   user, errUser := utils.GetContextUser(ctx)
   if errUser != nil {
     return false, errUser
@@ -141,7 +141,7 @@ func (r *queryResolver) GetFavoriteMovies(ctx context.Context) ([]*structs.Favor
   return favMovies, nil
 }
 
-func (r *queryResolver) GetMovieDetails(ctx context.Context, movieID int32) (*structs.MovieDetails, error) {
+func (r *queryResolver) GetMovieDetails(ctx context.Context, movieID uint) (*structs.MovieDetails, error) {
   movieDetails, err := service.FetchMovieDetails(movieID)
   if err != nil {
     return nil, err
@@ -159,9 +159,7 @@ func (r *queryResolver) GetFilteredMovies(ctx context.Context, filter structs.Mo
 }
 
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
-
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
-
-type Resolver struct {}
+type Resolver struct{}
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
