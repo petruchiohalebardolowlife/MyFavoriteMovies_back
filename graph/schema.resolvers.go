@@ -53,6 +53,7 @@ func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie structs.M
   if err := repository.AddFavoriteMovie(user.ID, movie); err != nil {
     return false, err
   }
+
   return true, nil
 }
 
@@ -64,6 +65,7 @@ func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, movieID uint
   if err := repository.DeleteFavoriteMovie(user.ID, movieID); err != nil {
     return false, err
   }
+
   return true, nil
 }
 
@@ -75,6 +77,7 @@ func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, movieID uint
   if err := repository.ToggleWatchedStatus(user.ID, movieID); err != nil {
     return false, err
   }
+
   return true, nil
 }
 
@@ -86,6 +89,7 @@ func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, genreID uint) (
   if err := repository.AddFavoriteGenre(user.ID, genreID); err != nil {
     return false, err
   }
+
   return true, nil
 }
 
@@ -97,6 +101,7 @@ func (r *mutationResolver) DeleteFavoriteGenre(ctx context.Context, genreID uint
   if err := repository.DeleteFavoriteGenre(user.ID, genreID); err != nil {
     return false, err
   }
+
   return true, nil
 }
 
@@ -105,6 +110,7 @@ func (r *queryResolver) GetUser(ctx context.Context) (*structs.User, error) {
   if errUser != nil {
     return nil, errUser
   }
+  
   return user, nil
 }
 
@@ -126,6 +132,7 @@ func (r *queryResolver) GetAllFavoriteGenres(ctx context.Context) ([]*structs.Fa
   if err != nil {
     return nil, err
   }
+
   return favGenres, nil
 }
 
@@ -138,6 +145,7 @@ func (r *queryResolver) GetFavoriteMovies(ctx context.Context) ([]*structs.Favor
   if err != nil {
     return nil, err
   }
+
   return favMovies, nil
 }
 
@@ -155,6 +163,7 @@ func (r *queryResolver) GetFilteredMovies(ctx context.Context, filter structs.Mo
   if err != nil {
     return nil, err
   }
+  
   return filteredMovies, nil
 }
 

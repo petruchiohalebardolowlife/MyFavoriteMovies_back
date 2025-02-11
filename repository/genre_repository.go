@@ -79,5 +79,6 @@ func GetFavoriteGenres (userID uint) ([]*structs.FavoriteGenre ,error) {
   if err := database.DB.Where("user_id = ?", userID).Find(&favGenres).Error; err != nil {
     return nil, errors.New("No favorite genres")
   }
+  
   return favGenres, nil
 }

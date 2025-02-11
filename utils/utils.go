@@ -15,6 +15,7 @@ func BindJSON (c *gin.Context, input interface{}) bool {
     c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
     return false
   }
+
   return true
 }
 
@@ -43,6 +44,7 @@ func GetContextUser(ctx context.Context) (*structs.User, error) {
   if !errUser {
     return nil, errors.New("user is not in context")
   }
+
   return &user, nil
 }
 
@@ -51,5 +53,6 @@ func GetGenreNameByID(genreID uint) string {
   if err := database.DB.Where("id = ?", genreID).First(&genre).Error; err != nil {
       return ""
   }
+  
   return genre.Name
 }

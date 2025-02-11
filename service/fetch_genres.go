@@ -20,5 +20,6 @@ func FetchGenres() ([]structs.Genre, error) {
   if err := json.Unmarshal(body, &response); err != nil {
     return nil, err
   }
+  
   return response.Genres, nil
 }
