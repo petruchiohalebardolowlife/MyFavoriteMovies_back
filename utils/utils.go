@@ -47,12 +47,3 @@ func GetContextUser(ctx context.Context) (*models.User, error) {
 
   return &user, nil
 }
-
-func GetGenreNameByID(genreID uint) string {
-  var genre models.Genre
-  if err := database.DB.Where("id = ?", genreID).First(&genre).Error; err != nil {
-      return ""
-  }
-  
-  return genre.Name
-}
