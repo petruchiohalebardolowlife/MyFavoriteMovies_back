@@ -3,13 +3,13 @@ package repository
 import (
 	"errors"
 	"myfavouritemovies/database"
-	"myfavouritemovies/structs"
+	"myfavouritemovies/models"
 
 	"golang.org/x/exp/slices"
 )
 
-func GetAllGenres() ([]*structs.Genre, error) {
-  var genres []*structs.Genre
+func GetAllGenres() ([]*models.Genre, error) {
+  var genres []*models.Genre
   if err := database.DB.Find(&genres).Error; err != nil {
     return nil, err
   }
@@ -17,15 +17,15 @@ func GetAllGenres() ([]*structs.Genre, error) {
   return genres, nil
 }
 
-func SaveGenresToDB(genres []structs.Genre) error {
+func SaveGenresToDB(genres []models.Genre) error {
   existingGenres, err := GetAllGenres()
   if err != nil {
       return err
   }
 
-  var newGenres []structs.Genre
+  var newGenres []models.Genre
   for _, genre := range genres {
-    if !slices.ContainsFunc(existingGenres, func(gen *structs.Genre) bool {
+    if !slices.ContainsFunc(existingGenres, func(gen *models.Genre) bool {
       return gen.ID == genre.ID
     }) {
       newGenres = append(newGenres, genre)
@@ -43,12 +43,12 @@ func SaveGenresToDB(genres []structs.Genre) error {
 
 func AddFavoriteGenre(userID, genreID uint) error {
   err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
-      First(&structs.FavoriteGenre{}).Error
+      First(&models.FavoriteGenre{}).Error
   if err == nil {
       return errors.New("genre already in favorites")
   }
 
-  newFavorite := structs.FavoriteGenre{
+  newFavorite := models.FavoriteGenre{
       UserID:  userID,
       GenreID: genreID,
   }
@@ -61,7 +61,7 @@ func AddFavoriteGenre(userID, genreID uint) error {
 }
 
 func DeleteFavoriteGenre(userID, genreID uint) error {
-  var favGenre structs.FavoriteGenre
+  var favGenre models.FavoriteGenre
   if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
       First(&favGenre).Error; err != nil {
       return errors.New("genre not in favorites")
@@ -74,11 +74,11 @@ func DeleteFavoriteGenre(userID, genreID uint) error {
   return nil
 }
 
-func GetFavoriteGenres (userID uint) ([]*structs.FavoriteGenre ,error) {
-  var favGenres []*structs.FavoriteGenre
-  if err := database.DB.Where("user_id = ?", userID).Find(&favGenres).Error; err != nil {
-    return nil, errors.New("No favorite genres")
-  }
+func GetFavoriteGenres (userID uint) ([]uint ,error) {
+  var favGenresIDs []uint
+  if err := database.DB.Model(&models.FavoriteGenre{}).Where("user_id = ?", userID).Pluck("genre_id", &favGenresIDs).Error; err != nil {
+    return nil, errors.New("No favorite genres found")
+}
   
-  return favGenres, nil
+  return favGenresIDs, nil
 }

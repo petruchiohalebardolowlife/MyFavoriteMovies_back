@@ -3,16 +3,16 @@ package repository
 import (
 	"errors"
 	"myfavouritemovies/database"
-	"myfavouritemovies/structs"
+	"myfavouritemovies/models"
 	"myfavouritemovies/utils"
 )
 
-func AddFavoriteMovie(userID uint, input structs.MovieInput) error {
-  if _, err := utils.FindFavoriteMovie(userID, input.MovieID); err == nil {
-      return errors.New("movie already in favorites")
+func AddFavoriteMovie(userID uint, input models.MovieInput) (*models.FavoriteMovie, error) {
+  if err := database.DB.Where("user_id = ? AND movie_id = ?", userID, input.MovieID).First(&models.FavoriteMovie{}).Error; err == nil {
+      return nil, errors.New("movie already in favorites")
   }
 
-  newFavorite := structs.FavoriteMovie{
+  newFavorite := models.FavoriteMovie{
       UserID:      userID,
       MovieID:     input.MovieID,
       Title:       input.Title,
@@ -22,37 +22,37 @@ func AddFavoriteMovie(userID uint, input structs.MovieInput) error {
   }
 
   if err := database.DB.Create(&newFavorite).Error; err != nil {
-      return errors.New("failed to add favorite movie")
+      return nil, errors.New("failed to add favorite movie")
   }
-  var genres []*structs.Genre
+  var genres []*models.Genre
     if err := database.DB.Where("id IN ?", input.GenreIDs).Find(&genres).Error; err != nil {
-        return errors.New("failed to find genres")
+        return nil, errors.New("failed to find genres")
     }
 
   if err := database.DB.Model(&newFavorite).Association("Genres").Append(genres); err != nil {
-      return errors.New("failed to associate genres")
+      return nil, errors.New("failed to associate genres")
   }
 
-  return nil
+  return &newFavorite, nil
 }
 
-func ToggleWatchedStatus(userID, movieID uint) error {
-  favMovie, err := utils.FindFavoriteMovie(userID, movieID)
+func ToggleWatchedStatus(favMovieID uint) (*models.FavoriteMovie, error) {
+  favMovie, err := utils.FindFavoriteMovie(favMovieID)
   if err != nil {
-      return errors.New("favorite movie not found")
+      return nil, errors.New("favorite movie not found")
   }
 
   favMovie.Watched = !favMovie.Watched
 
   if err := database.DB.Save(&favMovie).Error; err != nil {
-    return errors.New("failed to toggle")
+    return nil, errors.New("failed to toggle")
   }
 
-  return nil
+  return &favMovie, nil
 }
 
-func DeleteFavoriteMovie(userID, movieID uint) error {
-  existingMovie, err := utils.FindFavoriteMovie(userID, movieID)
+func DeleteFavoriteMovie(favMovieID uint) error {
+  existingMovie, err := utils.FindFavoriteMovie(favMovieID)
   if err != nil {
       return errors.New("favorite movie not found")
   }
@@ -64,8 +64,8 @@ func DeleteFavoriteMovie(userID, movieID uint) error {
   return nil
 }
 
-func GetFavoriteMovies(userID uint) ([]*structs.FavoriteMovie, error) {
-  var favMovies []*structs.FavoriteMovie
+func GetFavoriteMovies(userID uint) ([]*models.FavoriteMovie, error) {
+  var favMovies []*models.FavoriteMovie
   if err := database.DB.
       Preload("Genres").
       Where("user_id = ?", userID).

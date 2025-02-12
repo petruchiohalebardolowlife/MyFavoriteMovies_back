@@ -7,8 +7,8 @@ exec:
   filename: graph/generated.go
 
 model:
-  filename: structs/structs_gen.go
-  package: structs
+  filename: models/models_gen.go
+  package: models
 
 resolver:
   package: graph
@@ -21,22 +21,22 @@ call_argument_directives_with_null: true
 models:
   User:
     model:
-      - myfavouritemovies/structs.User
+      - myfavouritemovies/models.User
   Genre:
     model:
-      - myfavouritemovies/structs.Genre
+      - myfavouritemovies/models.Genre
   FavoriteMovie:
     model:
-      - myfavouritemovies/structs.FavoriteMovie
+      - myfavouritemovies/models.FavoriteMovie
   FavoriteGenre:
     model:
-      - myfavouritemovies/structs.FavoriteGenre
+      - myfavouritemovies/models.FavoriteGenre
   MovieDetails:
     model:
-      - myfavouritemovies/structs.MovieDetails
+      - myfavouritemovies/models.MovieDetails
   Movie:
     model:
-      - myfavouritemovies/structs.Movie
+      - myfavouritemovies/models.Movie
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.UintID

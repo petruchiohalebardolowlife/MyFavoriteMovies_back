@@ -49,9 +49,11 @@ func main() {
     Cache: lru.New[string](100),
   })
 
-  http.Handle("/", utils.HardcodedUserMiddleware(playground.Handler("GraphQL playground", "/query")))
+  if config.APP_ENV == "development" {
+    http.Handle("/", playground.Handler("GraphQL playground", "/query"))
+} else {
+    http.Handle("/", http.NotFoundHandler())
+}
   http.Handle("/query", utils.HardcodedUserMiddleware(srv))
-
-  log.Printf("connect to http://localhost:%s/ for GraphQL playground", config.SRVR_PORT)
   log.Fatal(http.ListenAndServe(":"+config.SRVR_PORT, nil))
 }

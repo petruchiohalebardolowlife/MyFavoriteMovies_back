@@ -13,6 +13,7 @@ type Genre {
 }
 
 type FavoriteMovie {
+  id: ID!
   userID: ID!
   movieID: ID!
   title: String!
@@ -73,21 +74,21 @@ input SignInInput {
 type Query {
   getUser: User!
   getAllGenres: [Genre!]!
-  getAllFavoriteGenres: [FavoriteGenre!]
+  getAllFavoriteGenres: [Int!]!
   getFavoriteMovies: [FavoriteMovie!]
   getMovieDetails(movieID: ID!): MovieDetails!
   getFilteredMovies(filter: MovieFilter!): [Movie]
 }
 
 type Mutation {
-  addUser(nickName: String!, userName: String!, password: String!): Boolean!
+  addUser(nickName: String!, userName: String!, password: String!): User!
   deleteUser: Boolean!
-  updateUser(nickName: String, password: String): Boolean!
+  updateUser(nickName: String, password: String): User!
 
-  addFavoriteMovie(movie: MovieInput!): Boolean!
-  deleteFavoriteMovie(movieID: ID!): Boolean!
-  toggleWatchedStatus(movieID: ID!): Boolean!
+  addFavoriteMovie(movie: MovieInput!): FavoriteMovie!
+  deleteFavoriteMovie(favMovieID: ID!): Boolean!
+  toggleWatchedStatus(favMovieID: ID!): FavoriteMovie!
 
-  addFavoriteGenre(genreID: ID!): Boolean!
+  addFavoriteGenre(genreID: ID!): Int!
   deleteFavoriteGenre(genreID: ID!): Boolean!
 }

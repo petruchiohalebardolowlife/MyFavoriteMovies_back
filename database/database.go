@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	config "myfavouritemovies/configs"
-	"myfavouritemovies/structs"
+	"myfavouritemovies/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -23,7 +23,7 @@ func InitDB() *gorm.DB {
   }
   DB=db
   fmt.Println("Successfully connected to LocalDATABase on PostgreSQL!")
-  DB.AutoMigrate(&structs.User{},&structs.FavoriteMovie{}, &structs.FavoriteGenre{}, &structs.Genre{})
+  DB.AutoMigrate(&models.User{},&models.FavoriteMovie{}, &models.FavoriteGenre{}, &models.Genre{})
   
   return DB
 }

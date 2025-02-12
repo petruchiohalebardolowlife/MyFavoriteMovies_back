@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"myfavouritemovies/database"
-	"myfavouritemovies/structs"
+	"myfavouritemovies/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,15 +20,15 @@ func BindJSON (c *gin.Context, input interface{}) bool {
 }
 
 
-func FindFavoriteMovie(userID, movieID uint) (structs.FavoriteMovie, error) {
-  var favMovie structs.FavoriteMovie
-  err := database.DB.Where("user_id = ? AND movie_id = ?", userID, movieID).First(&favMovie).Error
+func FindFavoriteMovie(favMovieID uint) (models.FavoriteMovie, error) {
+  var favMovie models.FavoriteMovie
+  err := database.DB.Where("id = ?", favMovieID).First(&favMovie).Error
   return favMovie, err
 }
 
 func HardcodedUserMiddleware(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    user := structs.User{
+    user := models.User{
       ID:       671,
       NickName: "Vasiliy",
       UserName: "Vasya",
@@ -39,8 +39,8 @@ func HardcodedUserMiddleware(next http.Handler) http.Handler {
    })
 }
 
-func GetContextUser(ctx context.Context) (*structs.User, error) {
-  user, errUser := ctx.Value("user").(structs.User)
+func GetContextUser(ctx context.Context) (*models.User, error) {
+  user, errUser := ctx.Value("user").(models.User)
   if !errUser {
     return nil, errors.New("user is not in context")
   }
@@ -49,7 +49,7 @@ func GetContextUser(ctx context.Context) (*structs.User, error) {
 }
 
 func GetGenreNameByID(genreID uint) string {
-  var genre structs.Genre
+  var genre models.Genre
   if err := database.DB.Where("id = ?", genreID).First(&genre).Error; err != nil {
       return ""
   }

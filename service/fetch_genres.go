@@ -3,10 +3,10 @@ package service
 import (
 	"encoding/json"
 
-	"myfavouritemovies/structs"
+	"myfavouritemovies/models"
 )
 
-func FetchGenres() ([]structs.Genre, error) {
+func FetchGenres() ([]models.Genre, error) {
   endpoint := "/genre/movie/list"
   body, err := FetchFromTMDB(endpoint,"")
   if err != nil {
@@ -14,7 +14,7 @@ func FetchGenres() ([]structs.Genre, error) {
   }
 
   var response struct {
-    Genres []structs.Genre `json:"genres"`
+    Genres []models.Genre `json:"genres"`
   }
 
   if err := json.Unmarshal(body, &response); err != nil {

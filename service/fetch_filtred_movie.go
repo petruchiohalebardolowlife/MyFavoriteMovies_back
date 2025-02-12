@@ -3,13 +3,13 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"myfavouritemovies/structs"
+	"myfavouritemovies/models"
 
 	"strconv"
 	"strings"
 )
 
-func FetchFilteredMovies(filters structs.MovieFilter) ([]*structs.Movie, error){
+func FetchFilteredMovies(filters models.MovieFilter) ([]*models.Movie, error){
   endpoint := "/discover/movie"
 
   var queryParams []string
@@ -42,7 +42,7 @@ func FetchFilteredMovies(filters structs.MovieFilter) ([]*structs.Movie, error){
     return nil, err
   }
 
-  var response structs.ResponseFilteredMovies
+  var response models.ResponseFilteredMovies
   if err := json.Unmarshal(body, &response); err != nil {
     return nil, err
   }
