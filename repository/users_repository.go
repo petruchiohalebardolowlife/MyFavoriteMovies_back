@@ -23,19 +23,26 @@ func AddUser(user *models.User) error {
 }
 
 func UpdateUser(user *models.User, nickName *string, password *string) error {
-  if len(*nickName) == 0 && len(*password) == 0 {
-    return errors.New("at least one field must be provided")
+  if nickName == nil && password == nil {
+      return errors.New("all fields are empty")
   }
 
-  if len(*nickName) > 0 {
-    user.NickName = *nickName
+  if nickName != nil {
+      if *nickName == "" {
+          return errors.New("nickname cannot be empty")
+      }
+      user.NickName = *nickName
   }
-  if len(*password) > 0 {
-    user.Password = *password
+
+  if password != nil {
+      if *password == "" {
+          return errors.New("password cannot be empty")
+      }
+      user.Password = *password
   }
 
   if err := database.DB.Save(user).Error; err != nil {
-    return err
+      return err
   }
 
   return nil

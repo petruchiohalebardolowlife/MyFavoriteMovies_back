@@ -40,7 +40,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, nickName *string, pas
   }
   if err := repository.UpdateUser(user, nickName, password); err != nil {
     return nil, err
-  }
+ }
 
   return user, nil
 }

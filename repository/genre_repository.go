@@ -77,7 +77,7 @@ func DeleteFavoriteGenre(userID, genreID uint) error {
 func GetFavoriteGenres (userID uint) ([]uint ,error) {
   var favGenresIDs []uint
   if err := database.DB.Model(&models.FavoriteGenre{}).Where("user_id = ?", userID).Pluck("genre_id", &favGenresIDs).Error; err != nil {
-    return nil, errors.New("No favorite genres found")
+    return nil, errors.New("no favorite genres found")
 }
   
   return favGenresIDs, nil
