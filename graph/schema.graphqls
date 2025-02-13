@@ -83,7 +83,8 @@ type Query {
 type Mutation {
   addUser(nickName: String!, userName: String!, password: String!): User!
   deleteUser: Boolean!
-  updateUser(nickName: String, password: String): User!
+  updateNickName(nickName: String!): User!
+  updatePassWord(password: String!): User!
 
   addFavoriteMovie(movie: MovieInput!): FavoriteMovie!
   deleteFavoriteMovie(favMovieID: ID!): Boolean!

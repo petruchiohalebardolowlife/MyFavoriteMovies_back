@@ -4,10 +4,11 @@ import (
 	"errors"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
+	"strings"
 )
 
 func AddUser(user *models.User) error {
-  if len(user.NickName) == 0 || len(user.UserName) == 0 || len(user.Password) == 0 {
+  if len(strings.ReplaceAll(user.NickName, " ","")) == 0 || len(strings.ReplaceAll(user.UserName, " ","")) == 0 || len(strings.ReplaceAll(user.Password, " ","")) == 0 {
     return errors.New("some of fields are empty")
   }
   
@@ -22,31 +23,28 @@ func AddUser(user *models.User) error {
   return nil
 }
 
-func UpdateUser(user *models.User, nickName *string, password *string) error {
-  if nickName == nil && password == nil {
-      return errors.New("all fields are empty")
+func UpdateNickName(user *models.User, nickname string) error {
+  if len(strings.ReplaceAll(nickname, " ","")) == 0 {
+    return errors.New("nickname cannot be empty")
   }
-
-  if nickName != nil {
-      if *nickName == "" {
-          return errors.New("nickname cannot be empty")
-      }
-      user.NickName = *nickName
-  }
-
-  if password != nil {
-      if *password == "" {
-          return errors.New("password cannot be empty")
-      }
-      user.Password = *password
-  }
-
+  user.NickName=nickname
   if err := database.DB.Save(user).Error; err != nil {
-      return err
-  }
-
+    return err
+}
   return nil
 }
+
+func UpdatePassWord(user *models.User, password string) error {
+  if len(strings.ReplaceAll(password, " ","")) == 0 {
+    return errors.New("password cannot be empty")
+  }
+  user.Password=password
+  if err := database.DB.Save(user).Error; err != nil {
+    return err
+}
+  return nil
+}
+
 
 func DeleteUser(userID uint) error {
   if err := database.DB.Where("id = ?", userID).Delete(&models.User{}).Error; err != nil {
