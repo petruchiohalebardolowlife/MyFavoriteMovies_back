@@ -1,53 +1,49 @@
 package utils
 
 import (
+	"context"
+	"errors"
 	"myfavouritemovies/database"
-	"myfavouritemovies/structs"
+	"myfavouritemovies/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func BindJSON (c *gin.Context, input interface{}) bool {
-	if err:=c.ShouldBindJSON(input);err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
-		return false
-	}
-	return true
+  if err:=c.ShouldBindJSON(input);err != nil {
+    c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
+    return false
+  }
+
+  return true
 }
 
 
-func FindFavoriteMovie(userID, movieID uint) (structs.FavoriteMovie, error) {
-	var favMovie structs.FavoriteMovie
-	err := database.DB.Where("user_id = ? AND movie_id = ?", userID, movieID).First(&favMovie).Error
-	return favMovie, err
+func FindFavoriteMovie(favMovieID uint) (models.FavoriteMovie, error) {
+  var favMovie models.FavoriteMovie
+  err := database.DB.Where("id = ?", favMovieID).First(&favMovie).Error
+  return favMovie, err
 }
 
-func HardcodedUserMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        user := structs.User{
-            ID:       671,
-            NickName: "Vasiliy",
-            Username: "Vasya",
-        }
-
-        c.Set("user", user)
-        c.Next()
+func HardcodedUserMiddleware(next http.Handler) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    user := models.User{
+      ID:       671,
+      NickName: "Vasiliy",
+      UserName: "Vasya",
     }
+
+    ctx := context.WithValue(r.Context(), "user", user)
+    next.ServeHTTP(w, r.WithContext(ctx))
+   })
 }
 
-func GetContextUser(c *gin.Context) (*structs.User, bool) {
-    userInterface, exists := c.Get("user")
-    if !exists {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-        return nil, false
-    }
+func GetContextUser(ctx context.Context) (*models.User, error) {
+  user, errUser := ctx.Value("user").(models.User)
+  if !errUser {
+    return nil, errors.New("user is not in context")
+  }
 
-    user, errUser := userInterface.(structs.User)
-    if !errUser {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse user from context"})
-        return nil, false
-    }
-
-    return &user, true
+  return &user, nil
 }
