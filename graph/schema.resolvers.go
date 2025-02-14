@@ -6,11 +6,13 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"myfavouritemovies/models"
 	"myfavouritemovies/repository"
 	"myfavouritemovies/security"
 	"myfavouritemovies/service"
 	"myfavouritemovies/utils"
+	"net/http"
 )
 
 // AddUser is the resolver for the addUser field.
@@ -71,13 +73,28 @@ func (r *mutationResolver) UpdatePassWord(ctx context.Context, password string) 
 }
 
 // SignIn is the resolver for the signIn field.
-func (r *mutationResolver) SignIn(ctx context.Context, userName string, password string) (string, error) {
+func (r *mutationResolver) SignIn(ctx context.Context, userName string, password string) (*models.User, error) {
 	token, err := security.SignIn(userName, password)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
+	if !ok {
+		return nil, errors.New("response writer not found")
+	}
+	http.SetCookie(writer, &http.Cookie{
+		Name:     "jwt_token",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	user, errUser := utils.GetUserByUserName(userName)
+	if errUser != nil {
+		return nil, errUser
 	}
 
-	return token, nil
+	return user, nil
 }
 
 // AddFavoriteMovie is the resolver for the addFavoriteMovie field.
@@ -215,9 +232,21 @@ func (r *queryResolver) GetFilteredMovies(ctx context.Context, filter models.Mov
 	return filteredMovies, nil
 }
 
+// Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
+
+// Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type Resolver struct{}
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	type Resolver struct{}
+*/

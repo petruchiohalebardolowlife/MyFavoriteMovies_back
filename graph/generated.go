@@ -128,7 +128,7 @@ type MutationResolver interface {
 	DeleteUser(ctx context.Context) (bool, error)
 	UpdateNickName(ctx context.Context, nickName string) (*models.User, error)
 	UpdatePassWord(ctx context.Context, password string) (*models.User, error)
-	SignIn(ctx context.Context, userName string, password string) (string, error)
+	SignIn(ctx context.Context, userName string, password string) (*models.User, error)
 	AddFavoriteMovie(ctx context.Context, movie models.MovieInput) (*models.FavoriteMovie, error)
 	DeleteFavoriteMovie(ctx context.Context, favMovieID uint) (bool, error)
 	ToggleWatchedStatus(ctx context.Context, favMovieID uint) (*models.FavoriteMovie, error)
@@ -2456,9 +2456,9 @@ func (ec *executionContext) _Mutation_signIn(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖmyfavouritemoviesᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_signIn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2468,7 +2468,21 @@ func (ec *executionContext) fieldContext_Mutation_signIn(ctx context.Context, fi
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "nickName":
+				return ec.fieldContext_User_nickName(ctx, field)
+			case "userName":
+				return ec.fieldContext_User_userName(ctx, field)
+			case "passwordHash":
+				return ec.fieldContext_User_passwordHash(ctx, field)
+			case "favoriteMovies":
+				return ec.fieldContext_User_favoriteMovies(ctx, field)
+			case "favoriteGenres":
+				return ec.fieldContext_User_favoriteGenres(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	defer func() {

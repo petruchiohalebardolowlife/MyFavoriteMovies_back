@@ -14,8 +14,6 @@ require (
 	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c
 )
 
-require github.com/go-chi/chi/v5 v5.2.1
-
 require (
 	github.com/agnivade/levenshtein v1.2.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect

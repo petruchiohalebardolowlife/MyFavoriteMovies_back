@@ -23,8 +23,10 @@ func BindJSON (c *gin.Context, input interface{}) bool {
 
 func FindFavoriteMovie(favMovieID uint) (models.FavoriteMovie, error) {
   var favMovie models.FavoriteMovie
-  err := database.DB.Where("id = ?", favMovieID).First(&favMovie).Error
-  return favMovie, err
+  if err := database.DB.Where("id = ?", favMovieID).First(&favMovie).Error; err != nil{
+    return models.FavoriteMovie{},err
+  }
+  return favMovie, nil
 }
 
 func HardcodedUserMiddleware(next http.Handler) http.Handler {
@@ -53,8 +55,9 @@ func GetContextUser(ctx context.Context) (*models.User, error) {
 func Middleware(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     token := security.TokenFromHTTPRequest(r)
+    ctx := context.WithValue(r.Context(), "httpResponseWriter", w)
     if token == "" {
-      next.ServeHTTP(w, r)
+      next.ServeHTTP(w, r.WithContext(ctx))
       return
     }
 
@@ -68,7 +71,16 @@ func Middleware(next http.Handler) http.Handler {
       http.Error(w, "Unauthorized", http.StatusUnauthorized)
       return
     }
-    ctx := context.WithValue(r.Context(), "user", user)
+    ctx = context.WithValue(r.Context(), "user", user)
     next.ServeHTTP(w, r.WithContext(ctx))
    })
+}
+
+func GetUserByUserName (userName string) (*models.User, error) {
+  var user *models.User
+  if err := database.DB.Where("user_name = ?", userName).First(&user).Error; err != nil {
+    return nil, err
+  }
+
+  return user, nil
 }
