@@ -2,22 +2,23 @@ package service
 
 import (
 	"encoding/json"
-	"myfavouritemovies/structs"
+	"myfavouritemovies/models"
 
 	"strconv"
 )
 
-func FetchMovieDetails(movie_id int) (structs.MovieDetails, error) {
-	endpoint := "/movie/"+strconv.Itoa(movie_id)
-	body, err := FetchFromTMDB(endpoint,"")
-	if err != nil {
-		return structs.MovieDetails{}, err
-	}
+func FetchMovieDetails(movieID uint) (*models.MovieDetails, error) {
+  endpoint := "/movie/"+strconv.Itoa(int(movieID))
+  body, err := FetchFromTMDB(endpoint,"")
+  if err != nil {
+    return nil, err
+  }
 
-	var response structs.MovieDetails
+  var response models.MovieDetails
 
   if err := json.Unmarshal(body, &response); err != nil {
-    return structs.MovieDetails{}, err
+    return nil, err
   }
-  return response, nil
+  
+  return &response, nil
 }
