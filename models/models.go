@@ -9,7 +9,7 @@ type User struct {
   ID             uint             `json:"id" gorm:"primaryKey"`
   NickName       string           `json:"nickName" `
   UserName       string           `json:"userName" gorm:"unique"`
-  Password       string           `json:"password" gorm:"not null"`
+  PasswordHash   string           `json:"passwordhash" gorm:"not null"`
   FavoriteMovies []*FavoriteMovie `json:"favoriteMovies" gorm:"constraint:OnDelete:CASCADE;"`
   FavoriteGenres []*FavoriteGenre `json:"favoriteGenres" gorm:"constraint:OnDelete:CASCADE;"`
 }

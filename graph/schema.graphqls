@@ -2,7 +2,11 @@ type User {
   id: ID!
   nickName: String!
   userName: String!
+<<<<<<< HEAD
   password: String!
+=======
+  passwordHash: String!
+>>>>>>> feature/JWT_auth
   favoriteMovies: [FavoriteMovie!]!
   favoriteGenres: [FavoriteGenre!]!
 }
@@ -85,6 +89,7 @@ type Mutation {
   deleteUser: Boolean!
   updateNickName(nickName: String!): User!
   updatePassWord(password: String!): User!
+  signIn(userName: String!, password: String!): String!
 
   addFavoriteMovie(movie: MovieInput!): FavoriteMovie!
   deleteFavoriteMovie(favMovieID: ID!): Boolean!

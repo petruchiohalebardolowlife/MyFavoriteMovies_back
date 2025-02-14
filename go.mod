@@ -14,9 +14,12 @@ require (
 	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c
 )
 
+require github.com/go-chi/chi/v5 v5.2.1
+
 require (
 	github.com/agnivade/levenshtein v1.2.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect

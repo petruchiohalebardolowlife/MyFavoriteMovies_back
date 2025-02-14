@@ -5,6 +5,7 @@ import (
 	"errors"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
+	"myfavouritemovies/security"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -46,4 +47,28 @@ func GetContextUser(ctx context.Context) (*models.User, error) {
   }
 
   return &user, nil
+}
+
+
+func Middleware(next http.Handler) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    token := security.TokenFromHTTPRequest(r)
+    if token == "" {
+      next.ServeHTTP(w, r)
+      return
+    }
+
+    userID, err := security.ParseToken(token)
+    if err != nil {
+      http.Error(w, "Unauthorized", http.StatusUnauthorized)
+      return
+    }
+    var user models.User
+    if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+      http.Error(w, "Unauthorized", http.StatusUnauthorized)
+      return
+    }
+    ctx := context.WithValue(r.Context(), "user", user)
+    next.ServeHTTP(w, r.WithContext(ctx))
+   })
 }

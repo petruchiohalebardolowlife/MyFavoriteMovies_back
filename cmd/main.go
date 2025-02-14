@@ -54,6 +54,6 @@ func main() {
 } else {
     http.Handle("/", http.NotFoundHandler())
 }
-  http.Handle("/query", utils.HardcodedUserMiddleware(srv))
+  http.Handle("/query", utils.Middleware(srv))
   log.Fatal(http.ListenAndServe(":"+config.SRVR_PORT, nil))
 }

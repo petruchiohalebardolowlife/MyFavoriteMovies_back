@@ -4,11 +4,12 @@ import (
 	"errors"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
+	"myfavouritemovies/security"
 	"strings"
 )
 
 func AddUser(user *models.User) error {
-  if len(strings.ReplaceAll(user.NickName, " ","")) == 0 || len(strings.ReplaceAll(user.UserName, " ","")) == 0 || len(strings.ReplaceAll(user.Password, " ","")) == 0 {
+  if len(strings.ReplaceAll(user.NickName, " ","")) == 0 || len(strings.ReplaceAll(user.UserName, " ","")) == 0 || len(strings.ReplaceAll(user.PasswordHash, " ","")) == 0 {
     return errors.New("some of fields are empty")
   }
   
@@ -38,7 +39,11 @@ func UpdatePassWord(user *models.User, password string) error {
   if len(strings.ReplaceAll(password, " ","")) == 0 {
     return errors.New("password cannot be empty")
   }
-  user.Password=password
+  hash, err := security.GenerateHashPassword(password)
+  if err != nil {
+    return err
+  }
+  user.PasswordHash = hash
   if err := database.DB.Save(user).Error; err != nil {
     return err
 }
