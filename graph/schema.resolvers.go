@@ -89,24 +89,45 @@ func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignIn
 		return nil, err
 	}
 
-	writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
-	if !ok {
-		return nil, errors.New("response writer not found")
-	}
-	http.SetCookie(writer, &http.Cookie{
-		Name:     "jwt_access_token",
-		Value:    accessToken,
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Now().Add(24 * time.Hour),
-	})
+  session, errSession := repository.AddSession(&models.Session{
+    ID: refreshToken.Claims.RegisteredClaims.ID,
+    UserID: refreshToken.Claims.UserID,
+    RefreshToken: refreshToken.Value,
+    IsRevoked: false,
+    ExpiresAt: refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
+  })
+  if errSession != nil {
+    return nil, errSession
+  }
   user, errUser := utils.GetUserByUserName(signInInput.Username)
 	if errUser != nil {
 		return nil, errUser
 	}
 
-	return user, nil
+  res:=&models.SignInRes{
+    SessionID: session.ID,
+    AccessToken: accessToken.Value,
+    RefreshToken: refreshToken.Value,
+    AccessTokenExpiresAt: accessToken.Claims.RegisteredClaims.ExpiresAt.Time,
+    RefreshTokenExpiresAt: refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
+    User: user,
+  }
+	writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
+	if !ok {
+		return nil, errors.New("response writer not found")
+	}
+  writer.Header().Set("Content-Type", "applcation/json")
+  writer.WriteHeader(http.StatusOK)
+	// http.SetCookie(writer, &http.Cookie{
+	// 	Name:     "jwt_access_token",
+	// 	Value:    accessToken,
+	// 	Path:     "/",
+	// 	HttpOnly: true,
+	// 	SameSite: http.SameSiteLaxMode,
+	// 	Expires:  time.Now().Add(24 * time.Hour),
+	// })
+
+	return res, nil
 }
 
 // AddFavoriteMovie is the resolver for the addFavoriteMovie field.

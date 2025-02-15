@@ -65,7 +65,7 @@ type Movie struct {
 
 type Session struct {
 	gorm.Model
-	ID           uint
+	ID           string
 	UserID       uint
 	RefreshToken string
 	IsRevoked    bool
