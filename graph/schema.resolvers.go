@@ -13,6 +13,7 @@ import (
 	"myfavouritemovies/service"
 	"myfavouritemovies/utils"
 	"net/http"
+	"time"
 )
 
 // AddUser is the resolver for the addUser field.
@@ -73,23 +74,34 @@ func (r *mutationResolver) UpdatePassWord(ctx context.Context, password string) 
 }
 
 // SignIn is the resolver for the signIn field.
-func (r *mutationResolver) SignIn(ctx context.Context, userName string, password string) (*models.User, error) {
-	token, err := security.SignIn(userName, password)
+func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignInInput) (*models.SignInRes, error) {
+	if err := security.SignIn(signInInput.Username, signInInput.Password); err != nil {
+		return nil, err
+	}
+
+	accessToken, err := security.GenerateToken(signInInput.Username, 15*time.Minute)
 	if err != nil {
 		return nil, err
 	}
+
+  refreshToken, err := security.GenerateToken(signInInput.Username, 24*time.Hour)
+	if err != nil {
+		return nil, err
+	}
+
 	writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
 	if !ok {
 		return nil, errors.New("response writer not found")
 	}
 	http.SetCookie(writer, &http.Cookie{
-		Name:     "jwt_token",
-		Value:    token,
+		Name:     "jwt_access_token",
+		Value:    accessToken,
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(24 * time.Hour),
 	})
-	user, errUser := utils.GetUserByUserName(userName)
+  user, errUser := utils.GetUserByUserName(signInInput.Username)
 	if errUser != nil {
 		return nil, errUser
 	}
@@ -176,6 +188,10 @@ func (r *queryResolver) GetUser(ctx context.Context) (*models.User, error) {
 
 // GetAllGenres is the resolver for the getAllGenres field.
 func (r *queryResolver) GetAllGenres(ctx context.Context) ([]*models.Genre, error) {
+	_, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return nil, errUser
+	}
 	genres, err := repository.GetAllGenres()
 	if err != nil {
 		return nil, err
@@ -214,6 +230,10 @@ func (r *queryResolver) GetFavoriteMovies(ctx context.Context) ([]*models.Favori
 
 // GetMovieDetails is the resolver for the getMovieDetails field.
 func (r *queryResolver) GetMovieDetails(ctx context.Context, movieID uint) (*models.MovieDetails, error) {
+	_, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return nil, errUser
+	}
 	movieDetails, err := service.FetchMovieDetails(movieID)
 	if err != nil {
 		return nil, err
@@ -224,6 +244,10 @@ func (r *queryResolver) GetMovieDetails(ctx context.Context, movieID uint) (*mod
 
 // GetFilteredMovies is the resolver for the getFilteredMovies field.
 func (r *queryResolver) GetFilteredMovies(ctx context.Context, filter models.MovieFilter) ([]*models.Movie, error) {
+	_, errUser := utils.GetContextUser(ctx)
+	if errUser != nil {
+		return nil, errUser
+	}
 	filteredMovies, err := service.FetchFilteredMovies(filter)
 	if err != nil {
 		return nil, err

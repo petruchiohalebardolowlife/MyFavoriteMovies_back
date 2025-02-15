@@ -2,6 +2,10 @@
 
 package models
 
+import (
+	"time"
+)
+
 type MovieFilter struct {
 	GenreIDs   []uint   `json:"genreIDs,omitempty"`
 	Popularity *float64 `json:"popularity,omitempty"`
@@ -31,4 +35,13 @@ type ResponseFilteredMovies struct {
 type SignInInput struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type SignInRes struct {
+	SessionID             string    `json:"sessionID"`
+	AccessToken           string    `json:"accessToken"`
+	RefreshToken          string    `json:"refreshToken"`
+	AccessTokenExpiresAt  time.Time `json:"accessTokenExpiresAt"`
+	RefreshTokenExpiresAt time.Time `json:"refreshTokenExpiresAt"`
+	User                  *User     `json:"user"`
 }

@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -93,7 +94,7 @@ type ComplexityRoot struct {
 		DeleteFavoriteGenre func(childComplexity int, genreID uint) int
 		DeleteFavoriteMovie func(childComplexity int, favMovieID uint) int
 		DeleteUser          func(childComplexity int) int
-		SignIn              func(childComplexity int, userName string, password string) int
+		SignIn              func(childComplexity int, signInInput models.SignInInput) int
 		ToggleWatchedStatus func(childComplexity int, favMovieID uint) int
 		UpdateNickName      func(childComplexity int, nickName string) int
 		UpdatePassWord      func(childComplexity int, password string) int
@@ -113,6 +114,15 @@ type ComplexityRoot struct {
 		Results func(childComplexity int) int
 	}
 
+	SignInRes struct {
+		AccessToken           func(childComplexity int) int
+		AccessTokenExpiresAt  func(childComplexity int) int
+		RefreshToken          func(childComplexity int) int
+		RefreshTokenExpiresAt func(childComplexity int) int
+		SessionID             func(childComplexity int) int
+		User                  func(childComplexity int) int
+	}
+
 	User struct {
 		FavoriteGenres func(childComplexity int) int
 		FavoriteMovies func(childComplexity int) int
@@ -128,7 +138,7 @@ type MutationResolver interface {
 	DeleteUser(ctx context.Context) (bool, error)
 	UpdateNickName(ctx context.Context, nickName string) (*models.User, error)
 	UpdatePassWord(ctx context.Context, password string) (*models.User, error)
-	SignIn(ctx context.Context, userName string, password string) (*models.User, error)
+	SignIn(ctx context.Context, signInInput models.SignInInput) (*models.SignInRes, error)
 	AddFavoriteMovie(ctx context.Context, movie models.MovieInput) (*models.FavoriteMovie, error)
 	DeleteFavoriteMovie(ctx context.Context, favMovieID uint) (bool, error)
 	ToggleWatchedStatus(ctx context.Context, favMovieID uint) (*models.FavoriteMovie, error)
@@ -408,7 +418,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SignIn(childComplexity, args["userName"].(string), args["password"].(string)), true
+		return e.complexity.Mutation.SignIn(childComplexity, args["SignInInput"].(models.SignInInput)), true
 
 	case "Mutation.toggleWatchedStatus":
 		if e.complexity.Mutation.ToggleWatchedStatus == nil {
@@ -511,6 +521,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ResponseFilteredMovies.Results(childComplexity), true
+
+	case "SignInRes.accessToken":
+		if e.complexity.SignInRes.AccessToken == nil {
+			break
+		}
+
+		return e.complexity.SignInRes.AccessToken(childComplexity), true
+
+	case "SignInRes.accessTokenExpiresAt":
+		if e.complexity.SignInRes.AccessTokenExpiresAt == nil {
+			break
+		}
+
+		return e.complexity.SignInRes.AccessTokenExpiresAt(childComplexity), true
+
+	case "SignInRes.refreshToken":
+		if e.complexity.SignInRes.RefreshToken == nil {
+			break
+		}
+
+		return e.complexity.SignInRes.RefreshToken(childComplexity), true
+
+	case "SignInRes.refreshTokenExpiresAt":
+		if e.complexity.SignInRes.RefreshTokenExpiresAt == nil {
+			break
+		}
+
+		return e.complexity.SignInRes.RefreshTokenExpiresAt(childComplexity), true
+
+	case "SignInRes.sessionID":
+		if e.complexity.SignInRes.SessionID == nil {
+			break
+		}
+
+		return e.complexity.SignInRes.SessionID(childComplexity), true
+
+	case "SignInRes.user":
+		if e.complexity.SignInRes.User == nil {
+			break
+		}
+
+		return e.complexity.SignInRes.User(childComplexity), true
 
 	case "User.favoriteGenres":
 		if e.complexity.User.FavoriteGenres == nil {
@@ -835,41 +887,23 @@ func (ec *executionContext) field_Mutation_deleteFavoriteMovie_argsFavMovieID(
 func (ec *executionContext) field_Mutation_signIn_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := ec.field_Mutation_signIn_argsUserName(ctx, rawArgs)
+	arg0, err := ec.field_Mutation_signIn_argsSignInInput(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["userName"] = arg0
-	arg1, err := ec.field_Mutation_signIn_argsPassword(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["password"] = arg1
+	args["SignInInput"] = arg0
 	return args, nil
 }
-func (ec *executionContext) field_Mutation_signIn_argsUserName(
+func (ec *executionContext) field_Mutation_signIn_argsSignInInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userName"))
-	if tmp, ok := rawArgs["userName"]; ok {
-		return ec.unmarshalNString2string(ctx, tmp)
+) (models.SignInInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("SignInInput"))
+	if tmp, ok := rawArgs["SignInInput"]; ok {
+		return ec.unmarshalNSignInInput2myfavouritemoviesᚋmodelsᚐSignInInput(ctx, tmp)
 	}
 
-	var zeroVal string
-	return zeroVal, nil
-}
-
-func (ec *executionContext) field_Mutation_signIn_argsPassword(
-	ctx context.Context,
-	rawArgs map[string]any,
-) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-	if tmp, ok := rawArgs["password"]; ok {
-		return ec.unmarshalNString2string(ctx, tmp)
-	}
-
-	var zeroVal string
+	var zeroVal models.SignInInput
 	return zeroVal, nil
 }
 
@@ -2444,7 +2478,7 @@ func (ec *executionContext) _Mutation_signIn(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SignIn(rctx, fc.Args["userName"].(string), fc.Args["password"].(string))
+		return ec.resolvers.Mutation().SignIn(rctx, fc.Args["SignInInput"].(models.SignInInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2456,9 +2490,9 @@ func (ec *executionContext) _Mutation_signIn(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*models.SignInRes)
 	fc.Result = res
-	return ec.marshalNUser2ᚖmyfavouritemoviesᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNSignInRes2ᚖmyfavouritemoviesᚋmodelsᚐSignInRes(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_signIn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2469,20 +2503,20 @@ func (ec *executionContext) fieldContext_Mutation_signIn(ctx context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "nickName":
-				return ec.fieldContext_User_nickName(ctx, field)
-			case "userName":
-				return ec.fieldContext_User_userName(ctx, field)
-			case "passwordHash":
-				return ec.fieldContext_User_passwordHash(ctx, field)
-			case "favoriteMovies":
-				return ec.fieldContext_User_favoriteMovies(ctx, field)
-			case "favoriteGenres":
-				return ec.fieldContext_User_favoriteGenres(ctx, field)
+			case "sessionID":
+				return ec.fieldContext_SignInRes_sessionID(ctx, field)
+			case "accessToken":
+				return ec.fieldContext_SignInRes_accessToken(ctx, field)
+			case "refreshToken":
+				return ec.fieldContext_SignInRes_refreshToken(ctx, field)
+			case "accessTokenExpiresAt":
+				return ec.fieldContext_SignInRes_accessTokenExpiresAt(ctx, field)
+			case "refreshTokenExpiresAt":
+				return ec.fieldContext_SignInRes_refreshTokenExpiresAt(ctx, field)
+			case "user":
+				return ec.fieldContext_SignInRes_user(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type SignInRes", field.Name)
 		},
 	}
 	defer func() {
@@ -3381,6 +3415,284 @@ func (ec *executionContext) fieldContext_ResponseFilteredMovies_results(_ contex
 				return ec.fieldContext_Movie_releaseDate(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Movie", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SignInRes_sessionID(ctx context.Context, field graphql.CollectedField, obj *models.SignInRes) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SignInRes_sessionID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SignInRes_sessionID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SignInRes",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SignInRes_accessToken(ctx context.Context, field graphql.CollectedField, obj *models.SignInRes) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SignInRes_accessToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AccessToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SignInRes_accessToken(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SignInRes",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SignInRes_refreshToken(ctx context.Context, field graphql.CollectedField, obj *models.SignInRes) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SignInRes_refreshToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RefreshToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SignInRes_refreshToken(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SignInRes",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SignInRes_accessTokenExpiresAt(ctx context.Context, field graphql.CollectedField, obj *models.SignInRes) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SignInRes_accessTokenExpiresAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AccessTokenExpiresAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SignInRes_accessTokenExpiresAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SignInRes",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SignInRes_refreshTokenExpiresAt(ctx context.Context, field graphql.CollectedField, obj *models.SignInRes) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SignInRes_refreshTokenExpiresAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RefreshTokenExpiresAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SignInRes_refreshTokenExpiresAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SignInRes",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SignInRes_user(ctx context.Context, field graphql.CollectedField, obj *models.SignInRes) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SignInRes_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖmyfavouritemoviesᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SignInRes_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SignInRes",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "nickName":
+				return ec.fieldContext_User_nickName(ctx, field)
+			case "userName":
+				return ec.fieldContext_User_userName(ctx, field)
+			case "passwordHash":
+				return ec.fieldContext_User_passwordHash(ctx, field)
+			case "favoriteMovies":
+				return ec.fieldContext_User_favoriteMovies(ctx, field)
+			case "favoriteGenres":
+				return ec.fieldContext_User_favoriteGenres(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -6389,6 +6701,70 @@ func (ec *executionContext) _ResponseFilteredMovies(ctx context.Context, sel ast
 	return out
 }
 
+var signInResImplementors = []string{"SignInRes"}
+
+func (ec *executionContext) _SignInRes(ctx context.Context, sel ast.SelectionSet, obj *models.SignInRes) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, signInResImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SignInRes")
+		case "sessionID":
+			out.Values[i] = ec._SignInRes_sessionID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "accessToken":
+			out.Values[i] = ec._SignInRes_accessToken(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "refreshToken":
+			out.Values[i] = ec._SignInRes_refreshToken(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "accessTokenExpiresAt":
+			out.Values[i] = ec._SignInRes_accessTokenExpiresAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "refreshTokenExpiresAt":
+			out.Values[i] = ec._SignInRes_refreshTokenExpiresAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "user":
+			out.Values[i] = ec._SignInRes_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var userImplementors = []string{"User"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *models.User) graphql.Marshaler {
@@ -7112,6 +7488,25 @@ func (ec *executionContext) unmarshalNMovieInput2myfavouritemoviesᚋmodelsᚐMo
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNSignInInput2myfavouritemoviesᚋmodelsᚐSignInInput(ctx context.Context, v any) (models.SignInInput, error) {
+	res, err := ec.unmarshalInputSignInInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSignInRes2myfavouritemoviesᚋmodelsᚐSignInRes(ctx context.Context, sel ast.SelectionSet, v models.SignInRes) graphql.Marshaler {
+	return ec._SignInRes(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSignInRes2ᚖmyfavouritemoviesᚋmodelsᚐSignInRes(ctx context.Context, sel ast.SelectionSet, v *models.SignInRes) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SignInRes(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7119,6 +7514,21 @@ func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) 
 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

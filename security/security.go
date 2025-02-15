@@ -14,14 +14,8 @@ import (
 
 const (
   signInKey = "hjdsfhsjd12&*"
-  tokenTTL = 12 * time.Hour
+  tokenTTL = 20 * time.Second
 )
-
-type tokenClaims struct {
-  jwt.RegisteredClaims
-  UserID uint `json:"user_id"`
-}
-
 
 func GenerateHashPassword(password string) (string, error) {
   passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -39,21 +33,16 @@ func CheckPassword(passwordHash string, password string) error {
   return nil
 }
 
-func SignIn (userName string, password string) (string, error) {
+func SignIn (userName string, password string) error {
   var user models.User
   if err := database.DB.Where("user_name = ?", userName).First(&user).Error; err != nil {
-    return "", errors.New("incorrect username or password")
+    return errors.New("incorrect username or password")
 }
   if err := CheckPassword(user.PasswordHash, password); err!= nil {
-    return "", errors.New("incorrect username or password")
+    return errors.New("incorrect username or password")
   }
 
-  token, errToken := GenerateToken(userName, password)
-  if errToken != nil {
-    return "", errToken
-  }
-
-  return token, nil
+  return nil
 }
 
 func TokenFromHTTPRequest(r *http.Request) string {
@@ -67,23 +56,28 @@ func TokenFromHTTPRequest(r *http.Request) string {
   return tokenString
 }
 
-func GenerateToken (userName, password string) (string, error) {
+func GenerateToken (userName string, ttl time.Duration) (*Token, error) {
   var user models.User
   if err := database.DB.Where("user_name = ?", userName).First(&user).Error; err != nil {
-    return "", errors.New("incorrect username or password")
+    return nil, errors.New("incorrect username")
 }
-  if err := CheckPassword(user.PasswordHash, password); err!= nil {
-    return "", errors.New("incorrect username or password")
+  claims, err := NewClaims(user.ID, ttl)
+  if err !=nil {
+    return nil, err
   }
-  
   token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
     jwt.RegisteredClaims {
-    ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTTL)),
+    ExpiresAt: jwt.NewNumericDate(time.Now().Add(ttl)),
     IssuedAt: jwt.NewNumericDate(time.Now()),
     },
     user.ID})
 
-  return token.SignedString([]byte(signInKey))
+    signedToken, errSign := token.SignedString([]byte(signInKey))
+    if errSign != nil {
+      return nil, errSign
+    }
+
+  return &Token{Value: signedToken, Claims: claims} , nil
 }
 
 func ParseToken(accessToken string) (uint, error) {

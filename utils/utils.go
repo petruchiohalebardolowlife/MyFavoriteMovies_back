@@ -29,19 +29,6 @@ func FindFavoriteMovie(favMovieID uint) (models.FavoriteMovie, error) {
   return favMovie, nil
 }
 
-func HardcodedUserMiddleware(next http.Handler) http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    user := models.User{
-      ID:       671,
-      NickName: "Vasiliy",
-      UserName: "Vasya",
-    }
-
-    ctx := context.WithValue(r.Context(), "user", user)
-    next.ServeHTTP(w, r.WithContext(ctx))
-   })
-}
-
 func GetContextUser(ctx context.Context) (*models.User, error) {
   user, errUser := ctx.Value("user").(models.User)
   if !errUser {
