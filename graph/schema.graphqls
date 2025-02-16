@@ -97,6 +97,7 @@ type Mutation {
   updateNickName(nickName: String!): User!
   updatePassWord(password: String!): User!
   signIn(SignInInput: SignInInput!): SignInRes!
+  logOut: Boolean!
 
   addFavoriteMovie(movie: MovieInput!): FavoriteMovie!
   deleteFavoriteMovie(favMovieID: ID!): Boolean!

@@ -119,8 +119,8 @@ func UpdateTokens(UserID uint, ttlAccess, ttlRefresh time.Duration) (*Tokens, er
     return &Tokens{Access: newAccessToken, Refresh: newRefreshToken}, nil
 }
 
-func SetTokensInCookie(w http.ResponseWriter, tokens *Tokens) {
-  http.SetCookie(w, &http.Cookie{
+func SetTokensInCookie(writer http.ResponseWriter, tokens *Tokens) {
+  http.SetCookie(writer, &http.Cookie{
     Name:     "jwt_access_token",
     Value:    tokens.Access.Value,
     Path:     "/",
@@ -129,7 +129,7 @@ func SetTokensInCookie(w http.ResponseWriter, tokens *Tokens) {
     Expires:  tokens.Refresh.Claims.RegisteredClaims.ExpiresAt.Time,
   })
 
-  http.SetCookie(w, &http.Cookie{
+  http.SetCookie(writer, &http.Cookie{
     Name:     "jwt_refresh_token",
     Value:    tokens.Refresh.Value,
     Path:     "/",
@@ -137,4 +137,23 @@ func SetTokensInCookie(w http.ResponseWriter, tokens *Tokens) {
     SameSite: http.SameSiteLaxMode,
     Expires:  tokens.Refresh.Claims.RegisteredClaims.ExpiresAt.Time,
   })
+}
+
+func DeleteTokensFromCookie(writer http.ResponseWriter) {
+  http.SetCookie(writer, &http.Cookie{
+		Name:     "jwt_access_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+	})
+
+	http.SetCookie(writer, &http.Cookie{
+		Name:     "jwt_refresh_token",
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+	})
 }

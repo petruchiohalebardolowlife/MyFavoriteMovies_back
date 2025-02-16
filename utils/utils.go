@@ -53,11 +53,9 @@ func GetContextUserID(ctx context.Context) (uint, error) {
 
 func Middleware(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    ctx := context.WithValue(r.Context(), "httpResponseWriter", w)
-
     accessToken := security.TokenFromCookie(r,"jwt_access_token")
     if accessToken == "" {
-      next.ServeHTTP(w, r.WithContext(ctx))
+      next.ServeHTTP(w, r)
       return
     }
 
@@ -82,12 +80,12 @@ func Middleware(next http.Handler) http.Handler {
       }
       security.SetTokensInCookie(w, tokens)
 
-      ctx = context.WithValue(r.Context(), "userID", claimsRefresh.UserID)
+      ctx := context.WithValue(r.Context(), "userID", claimsRefresh.UserID)
       next.ServeHTTP(w, r.WithContext(ctx))
       return
     }
 
-    ctx = context.WithValue(r.Context(), "userID", claimsAccess.UserID)
+    ctx := context.WithValue(r.Context(), "userID", claimsAccess.UserID)
     next.ServeHTTP(w, r.WithContext(ctx))
    })
 }

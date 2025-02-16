@@ -53,10 +53,10 @@ func (r *mutationResolver) UpdateNickName(ctx context.Context, nickName string) 
 	if errUser != nil {
 		return nil, errUser
 	}
-  user, err := repository.GetUserByID(userID)
-  if err != nil {
-    return nil, err
-  }
+	user, err := repository.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
 	if err := repository.UpdateNickName(user, nickName); err != nil {
 		return nil, err
 	}
@@ -70,10 +70,10 @@ func (r *mutationResolver) UpdatePassWord(ctx context.Context, password string) 
 	if errUser != nil {
 		return nil, errUser
 	}
-  user, err := repository.GetUserByID(userID)
-  if err != nil {
-    return nil, err
-  }
+	user, err := repository.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
 	if err := repository.UpdatePassWord(user, password); err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignIn
 		return nil, err
 	}
 
-  user, errUser := utils.GetUserByUserName(signInInput.Username)
+	user, errUser := utils.GetUserByUserName(signInInput.Username)
 	if errUser != nil {
 		return nil, errUser
 	}
@@ -97,40 +97,55 @@ func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignIn
 		return nil, err
 	}
 
-  refreshToken, err := security.GenerateToken(user.ID, time.Minute)
+	refreshToken, err := security.GenerateToken(user.ID, time.Minute)
 	if err != nil {
 		return nil, err
 	}
 
-  session, errSession := repository.AddSession(&models.Session{
-    ID: refreshToken.Claims.RegisteredClaims.ID,
-    UserID: refreshToken.Claims.UserID,
-    RefreshToken: refreshToken.Value,
-    IsRevoked: false,
-    ExpiresAt: refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
-  })
-  if errSession != nil {
-    return nil, errSession
-  }
+	session, errSession := repository.AddSession(&models.Session{
+		ID:           refreshToken.Claims.RegisteredClaims.ID,
+		UserID:       refreshToken.Claims.UserID,
+		RefreshToken: refreshToken.Value,
+		IsRevoked:    false,
+		ExpiresAt:    refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
+	})
+	if errSession != nil {
+		return nil, errSession
+	}
 
-  res:=&models.SignInRes{
-    SessionID: session.ID,
-    AccessToken: accessToken.Value,
-    RefreshToken: refreshToken.Value,
-    AccessTokenExpiresAt: accessToken.Claims.RegisteredClaims.ExpiresAt.Time,
-    RefreshTokenExpiresAt: refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
-    User: user,
-  }
+	res := &models.SignInRes{
+		SessionID:             session.ID,
+		AccessToken:           accessToken.Value,
+		RefreshToken:          refreshToken.Value,
+		AccessTokenExpiresAt:  accessToken.Claims.RegisteredClaims.ExpiresAt.Time,
+		RefreshTokenExpiresAt: refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
+		User:                  user,
+	}
 	writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
 	if !ok {
 		return nil, errors.New("response writer not found")
 	}
-  security.SetTokensInCookie(writer, &security.Tokens{
-    Access: accessToken,
-    Refresh: refreshToken,
-  })
+	security.SetTokensInCookie(writer, &security.Tokens{
+		Access:  accessToken,
+		Refresh: refreshToken,
+	})
 
 	return res, nil
+}
+
+// LogOut is the resolver for the logOut field.
+func (r *mutationResolver) LogOut(ctx context.Context) (bool, error) {
+	_, errUser := utils.GetContextUserID(ctx)
+	if errUser != nil {
+		return false, errUser
+	}
+	writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
+	if !ok {
+		return false, errors.New("response writer not found!")
+	}
+	security.DeleteTokensFromCookie(writer)
+
+	return true, nil
 }
 
 // AddFavoriteMovie is the resolver for the addFavoriteMovie field.
@@ -206,11 +221,11 @@ func (r *queryResolver) GetUser(ctx context.Context) (*models.User, error) {
 	if errUser != nil {
 		return nil, errUser
 	}
-  user,err := repository.GetUserByID(UserID)
-  if err != nil {
-    return nil, err
-  }
-  
+	user, err := repository.GetUserByID(UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	return user, nil
 }
 
@@ -292,5 +307,3 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-type Resolver struct{}

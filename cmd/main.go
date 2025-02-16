@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	config "myfavouritemovies/configs"
@@ -54,6 +55,10 @@ func main() {
 } else {
     http.Handle("/", http.NotFoundHandler())
 }
-  http.Handle("/query", utils.Middleware(srv))
+http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+  ctx := context.WithValue(r.Context(), "httpResponseWriter", w)
+  utils.Middleware(srv).ServeHTTP(w, r.WithContext(ctx))
+}))
+
   log.Fatal(http.ListenAndServe(":"+config.SRVR_PORT, nil))
 }
