@@ -5,7 +5,6 @@ import (
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -45,23 +44,31 @@ func SignIn (userName string, password string) error {
   return nil
 }
 
-func TokenFromHTTPRequest(r *http.Request) string {
-  reqToken := r.Header.Get("Authorization")
-  var tokenString string
+// func TokenFromHTTPRequest(r *http.Request) string {
+//   reqToken := r.Header.Get("Authorization")
+//   var tokenString string
 
-  splitToken := strings.Split(reqToken, "Bearer ")
-  if len(splitToken)>1 {
-    tokenString = splitToken[1]
+//   splitToken := strings.Split(reqToken, "Bearer ")
+//   if len(splitToken)>1 {
+//     tokenString = splitToken[1]
+//   }
+//   return tokenString
+// }
+
+func TokenFromCookie(r *http.Request, tokentype string) string {
+  reqToken, err := r.Cookie(tokentype)
+  if err != nil {
+    return ""
   }
-  return tokenString
+  
+  return reqToken.Value
 }
 
-func GenerateToken (userName string, ttl time.Duration) (*Token, error) {
-  var user models.User
-  if err := database.DB.Where("user_name = ?", userName).First(&user).Error; err != nil {
+func GenerateToken (userID uint, ttl time.Duration) (*Token, error) {
+  if err := database.DB.Where("id = ?", userID).First(&models.User{}).Error; err != nil {
     return nil, errors.New("incorrect username")
 }
-  claims, err := NewClaims(user.ID, ttl)
+  claims, err := NewClaims(userID, ttl)
   if err !=nil {
     return nil, err
   }
@@ -70,7 +77,7 @@ func GenerateToken (userName string, ttl time.Duration) (*Token, error) {
     ExpiresAt: jwt.NewNumericDate(time.Now().Add(ttl)),
     IssuedAt: jwt.NewNumericDate(time.Now()),
     },
-    user.ID})
+    userID})
 
     signedToken, errSign := token.SignedString([]byte(signInKey))
     if errSign != nil {
@@ -80,8 +87,8 @@ func GenerateToken (userName string, ttl time.Duration) (*Token, error) {
   return &Token{Value: signedToken, Claims: claims} , nil
 }
 
-func ParseToken(accessToken string) (uint, error) {
-  token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+func ParseToken(TokenValue string) (*tokenClaims, error) {
+  token, err := jwt.ParseWithClaims(TokenValue, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
     if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
       return nil, errors.New("invalid signing method")
     }
@@ -89,13 +96,45 @@ func ParseToken(accessToken string) (uint, error) {
     return []byte(signInKey), nil
   })
   if err != nil {
-    return 0, err
+    return nil, err
   }
   
   claims, ok := token.Claims.(*tokenClaims)
   if !ok {
-    return 0, errors.New("token claims are not of type")
+    return nil, errors.New("token claims are not of type")
   }
 
-  return claims.UserID, nil
+  return claims, nil
+}
+
+func UpdateTokens(UserID uint, ttlAccess, ttlRefresh time.Duration) (*Tokens, error) {
+  newAccessToken, errAccessToken := GenerateToken(UserID, ttlAccess)
+      if errAccessToken != nil {
+        return nil, errAccessToken
+      }
+    newRefreshToken, errRefreshToken := GenerateToken(UserID, ttlRefresh)
+      if errRefreshToken != nil {
+        return nil, errRefreshToken
+      }
+    return &Tokens{Access: newAccessToken, Refresh: newRefreshToken}, nil
+}
+
+func SetTokensInCookie(w http.ResponseWriter, tokens *Tokens) {
+  http.SetCookie(w, &http.Cookie{
+    Name:     "jwt_access_token",
+    Value:    tokens.Access.Value,
+    Path:     "/",
+    HttpOnly: true,
+    SameSite: http.SameSiteLaxMode,
+    Expires:  tokens.Refresh.Claims.RegisteredClaims.ExpiresAt.Time,
+  })
+
+  http.SetCookie(w, &http.Cookie{
+    Name:     "jwt_refresh_token",
+    Value:    tokens.Refresh.Value,
+    Path:     "/",
+    HttpOnly: true,
+    SameSite: http.SameSiteLaxMode,
+    Expires:  tokens.Refresh.Claims.RegisteredClaims.ExpiresAt.Time,
+  })
 }

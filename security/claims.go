@@ -17,6 +17,11 @@ type Token struct {
   Claims *tokenClaims
 }
 
+type Tokens struct {
+  Access *Token
+  Refresh *Token
+}
+
 
 func NewClaims(id uint, duration time.Duration) (*tokenClaims, error) {
   tokenID, err := uuid.NewRandom()

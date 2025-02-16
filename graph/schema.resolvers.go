@@ -36,11 +36,11 @@ func (r *mutationResolver) AddUser(ctx context.Context, nickName string, userNam
 
 // DeleteUser is the resolver for the deleteUser field.
 func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
-	user, errUser := utils.GetContextUser(ctx)
+	userID, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return false, errUser
 	}
-	if err := repository.DeleteUser(user.ID); err != nil {
+	if err := repository.DeleteUser(userID); err != nil {
 		return false, err
 	}
 
@@ -49,10 +49,14 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 
 // UpdateNickName is the resolver for the updateNickName field.
 func (r *mutationResolver) UpdateNickName(ctx context.Context, nickName string) (*models.User, error) {
-	user, errUser := utils.GetContextUser(ctx)
+	userID, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return nil, errUser
 	}
+  user, err := repository.GetUserByID(userID)
+  if err != nil {
+    return nil, err
+  }
 	if err := repository.UpdateNickName(user, nickName); err != nil {
 		return nil, err
 	}
@@ -62,10 +66,14 @@ func (r *mutationResolver) UpdateNickName(ctx context.Context, nickName string) 
 
 // UpdatePassWord is the resolver for the updatePassWord field.
 func (r *mutationResolver) UpdatePassWord(ctx context.Context, password string) (*models.User, error) {
-	user, errUser := utils.GetContextUser(ctx)
+	userID, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return nil, errUser
 	}
+  user, err := repository.GetUserByID(userID)
+  if err != nil {
+    return nil, err
+  }
 	if err := repository.UpdatePassWord(user, password); err != nil {
 		return nil, err
 	}
@@ -79,12 +87,17 @@ func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignIn
 		return nil, err
 	}
 
-	accessToken, err := security.GenerateToken(signInInput.Username, 15*time.Minute)
+  user, errUser := utils.GetUserByUserName(signInInput.Username)
+	if errUser != nil {
+		return nil, errUser
+	}
+
+	accessToken, err := security.GenerateToken(user.ID, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}
 
-  refreshToken, err := security.GenerateToken(signInInput.Username, 24*time.Hour)
+  refreshToken, err := security.GenerateToken(user.ID, time.Minute)
 	if err != nil {
 		return nil, err
 	}
@@ -99,10 +112,6 @@ func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignIn
   if errSession != nil {
     return nil, errSession
   }
-  user, errUser := utils.GetUserByUserName(signInInput.Username)
-	if errUser != nil {
-		return nil, errUser
-	}
 
   res:=&models.SignInRes{
     SessionID: session.ID,
@@ -116,27 +125,21 @@ func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignIn
 	if !ok {
 		return nil, errors.New("response writer not found")
 	}
-  writer.Header().Set("Content-Type", "applcation/json")
-  writer.WriteHeader(http.StatusOK)
-	// http.SetCookie(writer, &http.Cookie{
-	// 	Name:     "jwt_access_token",
-	// 	Value:    accessToken,
-	// 	Path:     "/",
-	// 	HttpOnly: true,
-	// 	SameSite: http.SameSiteLaxMode,
-	// 	Expires:  time.Now().Add(24 * time.Hour),
-	// })
+  security.SetTokensInCookie(writer, &security.Tokens{
+    Access: accessToken,
+    Refresh: refreshToken,
+  })
 
 	return res, nil
 }
 
 // AddFavoriteMovie is the resolver for the addFavoriteMovie field.
 func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie models.MovieInput) (*models.FavoriteMovie, error) {
-	user, errUser := utils.GetContextUser(ctx)
+	userID, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return nil, errUser
 	}
-	favMovie, err := repository.AddFavoriteMovie(user.ID, movie)
+	favMovie, err := repository.AddFavoriteMovie(userID, movie)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +149,7 @@ func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie models.Mo
 
 // DeleteFavoriteMovie is the resolver for the deleteFavoriteMovie field.
 func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, favMovieID uint) (bool, error) {
-	_, errUser := utils.GetContextUser(ctx)
+	_, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return false, errUser
 	}
@@ -159,7 +162,7 @@ func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, favMovieID u
 
 // ToggleWatchedStatus is the resolver for the toggleWatchedStatus field.
 func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, favMovieID uint) (*models.FavoriteMovie, error) {
-	_, errUser := utils.GetContextUser(ctx)
+	_, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return nil, errUser
 	}
@@ -173,11 +176,11 @@ func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, favMovieID u
 
 // AddFavoriteGenre is the resolver for the addFavoriteGenre field.
 func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, genreID uint) (uint, error) {
-	user, errUser := utils.GetContextUser(ctx)
+	userID, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return 0, errUser
 	}
-	if err := repository.AddFavoriteGenre(user.ID, genreID); err != nil {
+	if err := repository.AddFavoriteGenre(userID, genreID); err != nil {
 		return 0, err
 	}
 
@@ -186,11 +189,11 @@ func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, genreID uint) (
 
 // DeleteFavoriteGenre is the resolver for the deleteFavoriteGenre field.
 func (r *mutationResolver) DeleteFavoriteGenre(ctx context.Context, genreID uint) (bool, error) {
-	user, errUser := utils.GetContextUser(ctx)
+	userID, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return false, errUser
 	}
-	if err := repository.DeleteFavoriteGenre(user.ID, genreID); err != nil {
+	if err := repository.DeleteFavoriteGenre(userID, genreID); err != nil {
 		return false, err
 	}
 
@@ -199,17 +202,21 @@ func (r *mutationResolver) DeleteFavoriteGenre(ctx context.Context, genreID uint
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context) (*models.User, error) {
-	user, errUser := utils.GetContextUser(ctx)
+	UserID, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return nil, errUser
 	}
-
+  user,err := repository.GetUserByID(UserID)
+  if err != nil {
+    return nil, err
+  }
+  
 	return user, nil
 }
 
 // GetAllGenres is the resolver for the getAllGenres field.
 func (r *queryResolver) GetAllGenres(ctx context.Context) ([]*models.Genre, error) {
-	_, errUser := utils.GetContextUser(ctx)
+	_, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return nil, errUser
 	}
@@ -223,11 +230,11 @@ func (r *queryResolver) GetAllGenres(ctx context.Context) ([]*models.Genre, erro
 
 // GetAllFavoriteGenres is the resolver for the getAllFavoriteGenres field.
 func (r *queryResolver) GetAllFavoriteGenres(ctx context.Context) ([]uint, error) {
-	user, errUser := utils.GetContextUser(ctx)
+	userID, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return []uint{}, errUser
 	}
-	favGenres, err := repository.GetFavoriteGenres(user.ID)
+	favGenres, err := repository.GetFavoriteGenres(userID)
 	if err != nil {
 		return []uint{}, err
 	}
@@ -237,11 +244,11 @@ func (r *queryResolver) GetAllFavoriteGenres(ctx context.Context) ([]uint, error
 
 // GetFavoriteMovies is the resolver for the getFavoriteMovies field.
 func (r *queryResolver) GetFavoriteMovies(ctx context.Context) ([]*models.FavoriteMovie, error) {
-	user, errUser := utils.GetContextUser(ctx)
+	userID, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return nil, errUser
 	}
-	favMovies, err := repository.GetFavoriteMovies(user.ID)
+	favMovies, err := repository.GetFavoriteMovies(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +258,7 @@ func (r *queryResolver) GetFavoriteMovies(ctx context.Context) ([]*models.Favori
 
 // GetMovieDetails is the resolver for the getMovieDetails field.
 func (r *queryResolver) GetMovieDetails(ctx context.Context, movieID uint) (*models.MovieDetails, error) {
-	_, errUser := utils.GetContextUser(ctx)
+	_, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return nil, errUser
 	}
@@ -265,7 +272,7 @@ func (r *queryResolver) GetMovieDetails(ctx context.Context, movieID uint) (*mod
 
 // GetFilteredMovies is the resolver for the getFilteredMovies field.
 func (r *queryResolver) GetFilteredMovies(ctx context.Context, filter models.MovieFilter) ([]*models.Movie, error) {
-	_, errUser := utils.GetContextUser(ctx)
+	_, errUser := utils.GetContextUserID(ctx)
 	if errUser != nil {
 		return nil, errUser
 	}
@@ -286,12 +293,4 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	type Resolver struct{}
-*/
+type Resolver struct{}
