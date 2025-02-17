@@ -67,7 +67,6 @@ type Session struct {
 	gorm.Model
 	ID           string
 	UserID       uint
-	RefreshToken string
-	IsRevoked    bool
+  Fingerprint  string
 	ExpiresAt    time.Time
 }

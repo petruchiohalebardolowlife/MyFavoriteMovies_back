@@ -102,12 +102,21 @@ func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignIn
 		return nil, err
 	}
 
+	writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
+	if !ok {
+		return nil, errors.New("response writer not found")
+	}
+
+	fingerprint, ok := ctx.Value("Fingerprint").(string)
+	if !ok {
+		return nil, errors.New("Fingerprint error from resolver")
+	}
+
 	session, errSession := repository.AddSession(&models.Session{
-		ID:           refreshToken.Claims.RegisteredClaims.ID,
-		UserID:       refreshToken.Claims.UserID,
-		RefreshToken: refreshToken.Value,
-		IsRevoked:    false,
-		ExpiresAt:    refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
+		ID:          refreshToken.Claims.RegisteredClaims.ID,
+		UserID:      user.ID,
+		Fingerprint: fingerprint,
+		ExpiresAt:   refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
 	})
 	if errSession != nil {
 		return nil, errSession
@@ -115,16 +124,13 @@ func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignIn
 
 	res := &models.SignInRes{
 		SessionID:             session.ID,
-		AccessToken:           accessToken.Value,
+		AccessToken:           accessToken.Value, // удалить в будущеим ненужные данные
 		RefreshToken:          refreshToken.Value,
 		AccessTokenExpiresAt:  accessToken.Claims.RegisteredClaims.ExpiresAt.Time,
 		RefreshTokenExpiresAt: refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
 		User:                  user,
 	}
-	writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
-	if !ok {
-		return nil, errors.New("response writer not found")
-	}
+
 	security.SetTokensInCookie(writer, &security.Tokens{
 		Access:  accessToken,
 		Refresh: refreshToken,

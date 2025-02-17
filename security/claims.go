@@ -23,7 +23,7 @@ type Tokens struct {
 }
 
 
-func NewClaims(id uint, duration time.Duration) (*tokenClaims, error) {
+func NewClaims(userID uint, duration time.Duration) (*tokenClaims, error) {
   tokenID, err := uuid.NewRandom()
   if err != nil {
     return nil, err
@@ -34,7 +34,7 @@ func NewClaims(id uint, duration time.Duration) (*tokenClaims, error) {
       IssuedAt: jwt.NewNumericDate(time.Now()),
       ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
     },
-    UserID: id,
+    UserID: userID,
   },
   nil
 }

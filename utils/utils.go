@@ -9,35 +9,17 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
-
-func BindJSON (c *gin.Context, input interface{}) bool {
-  if err:=c.ShouldBindJSON(input);err != nil {
-    c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
-    return false
-  }
-
-  return true
-}
-
 
 func FindFavoriteMovie(favMovieID uint) (models.FavoriteMovie, error) {
   var favMovie models.FavoriteMovie
   if err := database.DB.Where("id = ?", favMovieID).First(&favMovie).Error; err != nil{
     return models.FavoriteMovie{},err
   }
+  
   return favMovie, nil
 }
-
-// func GetContextUser(ctx context.Context) (*models.User, error) {
-//   user, errUser := ctx.Value("user").(models.User)
-//   if !errUser {
-//     return nil, errors.New("user is not in context")
-//   }
-
-//   return &user, nil
-// }
 
 func GetContextUserID(ctx context.Context) (uint, error) {
   userID, errUser := ctx.Value("userID").(uint)
@@ -48,48 +30,6 @@ func GetContextUserID(ctx context.Context) (uint, error) {
   return userID, nil
 }
 
-
-
-
-func Middleware(next http.Handler) http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    accessToken := security.TokenFromCookie(r,"jwt_access_token")
-    if accessToken == "" {
-      next.ServeHTTP(w, r)
-      return
-    }
-
-    claimsAccess, err := security.ParseToken(accessToken)
-    if err != nil {
-      refreshToken:=security.TokenFromCookie(r, "jwt_refresh_token")
-      if refreshToken == "" {
-        http.Error(w, "Unauthorized", http.StatusUnauthorized)
-        return 
-      }
-
-    claimsRefresh, err := security.ParseToken(refreshToken)
-      if err != nil {
-        http.Error(w, "Unauthorized", http.StatusUnauthorized)
-        return 
-      }
-      
-      tokens, errTokens := security.UpdateTokens(claimsRefresh.UserID, 30*time.Second, time.Minute)
-      if errTokens != nil {
-        http.Error(w, "Failed to generates tokens", http.StatusUnauthorized)
-        return
-      }
-      security.SetTokensInCookie(w, tokens)
-
-      ctx := context.WithValue(r.Context(), "userID", claimsRefresh.UserID)
-      next.ServeHTTP(w, r.WithContext(ctx))
-      return
-    }
-
-    ctx := context.WithValue(r.Context(), "userID", claimsAccess.UserID)
-    next.ServeHTTP(w, r.WithContext(ctx))
-   })
-}
-
 func GetUserByUserName (userName string) (*models.User, error) {
   var user *models.User
   if err := database.DB.Where("user_name = ?", userName).First(&user).Error; err != nil {
@@ -97,4 +37,87 @@ func GetUserByUserName (userName string) (*models.User, error) {
   }
 
   return user, nil
+}
+
+func Middleware(next http.Handler) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    accessToken := security.TokenFromCookie(r,"jwt_access_token")
+
+    fingerprint, err := security.FingerPrintFromHTTPRequest(r)
+    if err != nil {
+      return
+    }
+    ctx := context.WithValue(r.Context(), "Fingerprint", fingerprint)
+    
+    if accessToken == "" {
+      CheckRefreshToken(w, r.WithContext(ctx), next)
+      return
+    }
+
+    claimsAccess, err := security.ParseToken(accessToken)
+    if err != nil {
+      CheckRefreshToken(w, r.WithContext(ctx), next)
+      return
+    }
+
+    ctx = context.WithValue(r.Context(), "userID", claimsAccess.UserID)
+    ctx = context.WithValue(ctx, "Fingerprint", fingerprint)
+    next.ServeHTTP(w, r.WithContext(ctx))
+   })
+}
+
+func CheckRefreshToken(w http.ResponseWriter, r *http.Request, next http.Handler) {
+  refreshToken:=security.TokenFromCookie(r, "jwt_refresh_token")
+  if refreshToken == "" {
+    next.ServeHTTP(w, r)
+    return 
+  }
+
+  claimsRefresh, err := security.ParseToken(refreshToken)
+  if err != nil {
+    http.Error(w, "Unauthorized", http.StatusUnauthorized)
+    return 
+  }
+  
+
+  tokens, errTokens := security.UpdateTokens(claimsRefresh.UserID, 30*time.Second, time.Minute)
+  if errTokens != nil {
+    http.Error(w, "Failed to generates tokens", http.StatusUnauthorized)
+    return
+  }
+
+  fingerprint, ok := r.Context().Value("Fingerprint").(string)
+  if !ok  {
+    http.Error(w, "Fingerprint not found", http.StatusUnauthorized)
+    return
+  }
+
+  if err := UpdateRefreshTokenInDB(claimsRefresh.RegisteredClaims.ID, tokens.Refresh.Claims.ID, fingerprint, time.Now(), tokens.Refresh.Claims.ExpiresAt.Time); err != nil {
+    http.Error(w, "Session Not Found", http.StatusUnauthorized)
+    return
+  }
+
+  security.SetTokensInCookie(w, tokens)
+
+  ctx := context.WithValue(r.Context(), "userID", claimsRefresh.UserID)
+  next.ServeHTTP(w, r.WithContext(ctx))
+}
+
+func UpdateRefreshTokenInDB(refreshUUID, newRefreshUUID, fingerprint string, now, newExpireAt time.Time) error {
+  result := database.DB.Model(&models.Session{}).
+    Where("id = ? AND fingerprint = ? AND expires_at > ?", refreshUUID, fingerprint, now).
+    Updates(map[string]interface{}{
+      "id":         newRefreshUUID,
+      "expires_at": newExpireAt,
+    })
+
+  if result.Error != nil {
+    return result.Error
+  }
+  
+  if result.RowsAffected == 0 {
+    return gorm.ErrRecordNotFound
+  }
+
+  return nil
 }

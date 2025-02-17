@@ -44,16 +44,15 @@ func SignIn (userName string, password string) error {
   return nil
 }
 
-// func TokenFromHTTPRequest(r *http.Request) string {
-//   reqToken := r.Header.Get("Authorization")
-//   var tokenString string
+func FingerPrintFromHTTPRequest(r *http.Request) (string, error) {
+  fingerprint := r.Header.Get("Fingerprint")
+  if len(fingerprint) == 0 {
+    return "", errors.New("no fingerprint")
+  }
+  return fingerprint, nil
+}
 
-//   splitToken := strings.Split(reqToken, "Bearer ")
-//   if len(splitToken)>1 {
-//     tokenString = splitToken[1]
-//   }
-//   return tokenString
-// }
+
 
 func TokenFromCookie(r *http.Request, tokentype string) string {
   reqToken, err := r.Cookie(tokentype)
@@ -72,13 +71,8 @@ func GenerateToken (userID uint, ttl time.Duration) (*Token, error) {
   if err !=nil {
     return nil, err
   }
-  token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
-    jwt.RegisteredClaims {
-    ExpiresAt: jwt.NewNumericDate(time.Now().Add(ttl)),
-    IssuedAt: jwt.NewNumericDate(time.Now()),
-    },
-    userID})
-
+  token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    
     signedToken, errSign := token.SignedString([]byte(signInKey))
     if errSign != nil {
       return nil, errSign
@@ -107,12 +101,12 @@ func ParseToken(TokenValue string) (*tokenClaims, error) {
   return claims, nil
 }
 
-func UpdateTokens(UserID uint, ttlAccess, ttlRefresh time.Duration) (*Tokens, error) {
-  newAccessToken, errAccessToken := GenerateToken(UserID, ttlAccess)
+func UpdateTokens(userID uint, ttlAccess, ttlRefresh time.Duration) (*Tokens, error) {
+  newAccessToken, errAccessToken := GenerateToken(userID, ttlAccess)
       if errAccessToken != nil {
         return nil, errAccessToken
       }
-    newRefreshToken, errRefreshToken := GenerateToken(UserID, ttlRefresh)
+    newRefreshToken, errRefreshToken := GenerateToken(userID, ttlRefresh)
       if errRefreshToken != nil {
         return nil, errRefreshToken
       }
@@ -126,7 +120,7 @@ func SetTokensInCookie(writer http.ResponseWriter, tokens *Tokens) {
     Path:     "/",
     HttpOnly: true,
     SameSite: http.SameSiteLaxMode,
-    Expires:  tokens.Refresh.Claims.RegisteredClaims.ExpiresAt.Time,
+    Expires:  tokens.Access.Claims.RegisteredClaims.ExpiresAt.Time,
   })
 
   http.SetCookie(writer, &http.Cookie{
@@ -142,7 +136,6 @@ func SetTokensInCookie(writer http.ResponseWriter, tokens *Tokens) {
 func DeleteTokensFromCookie(writer http.ResponseWriter) {
   http.SetCookie(writer, &http.Cookie{
 		Name:     "jwt_access_token",
-		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
