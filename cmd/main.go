@@ -29,7 +29,7 @@ func main() {
   } else {
     log.Fatal("Failed to initialize the database.")
   }
-  repository.CleanExpiredTokens(time.Minute)
+  repository.CleanExpiredTokens(24*time.Hour)
 
   resolver := &graph.Resolver{}
   genres, err := service.FetchGenres()

@@ -81,11 +81,11 @@ func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignIn
   if errUser != nil {
     return nil, errUser
   }
-  accessToken, err := security.GenerateToken(user.ID, 30*time.Second)
+  accessToken, err := security.GenerateToken(user.ID, 15*time.Minute)
   if err != nil {
     return nil, err
   }
-  refreshToken, err := security.GenerateToken(user.ID, time.Minute)
+  refreshToken, err := security.GenerateToken(user.ID, 60*24*time.Hour)
   if err != nil {
     return nil, err
   }

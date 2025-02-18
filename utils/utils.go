@@ -61,7 +61,7 @@ func CheckRefreshToken(w http.ResponseWriter, r *http.Request, next http.Handler
   }
 
 
-  tokens, errTokens := security.UpdateTokens(claimsRefresh.UserID, 30*time.Second, time.Minute)
+  tokens, errTokens := security.UpdateTokens(claimsRefresh.UserID, 15*time.Minute, 60*24*time.Hour)
   if errTokens != nil {
     http.Error(w, "Failed to generates tokens", http.StatusUnauthorized)
     return
