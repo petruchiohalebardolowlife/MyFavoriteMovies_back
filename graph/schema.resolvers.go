@@ -18,8 +18,8 @@ func (r *mutationResolver) AddUser(ctx context.Context, nickName string, userNam
     return nil, err
   }
   user := &models.User{
-    NickName:     nickName,
-    UserName:     userName,
+    NickName: nickName,
+    UserName: userName,
     PasswordHash: hash,
   }
   if err := repository.AddUser(user); err != nil {
