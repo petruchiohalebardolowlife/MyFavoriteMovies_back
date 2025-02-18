@@ -17,6 +17,7 @@ var (
   API_KEY     string
   TMDB_API_BASE_URL string
   APP_ENV     string
+  TOKEN_KEY      string
 )
 
 func LoadConfig() {
@@ -35,4 +36,5 @@ func LoadConfig() {
   API_KEY = os.Getenv("API_KEY")
   TMDB_API_BASE_URL = os.Getenv("TMDB_API_BASE_URL")
   APP_ENV=os.Getenv("APP_ENV")
+  TOKEN_KEY=os.Getenv("TOKEN_KEY")
 }

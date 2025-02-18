@@ -2,17 +2,25 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"myfavouritemovies/models"
 	"myfavouritemovies/repository"
+	"myfavouritemovies/security"
 	"myfavouritemovies/service"
 	"myfavouritemovies/utils"
+	"net/http"
+	"time"
 )
 
 func (r *mutationResolver) AddUser(ctx context.Context, nickName string, userName string, password string) (*models.User, error) {
+  hash, err := security.GenerateHashPassword(password)
+  if err != nil {
+    return nil, err
+  }
   user := &models.User{
     NickName: nickName,
     UserName: userName,
-    Password: password,
+    PasswordHash: hash,
   }
   if err := repository.AddUser(user); err != nil {
     return nil, err
@@ -22,11 +30,11 @@ func (r *mutationResolver) AddUser(ctx context.Context, nickName string, userNam
 }
 
 func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
-  user, errUser := utils.GetContextUser(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return false, errUser
   }
-  if err := repository.DeleteUser(user.ID); err != nil {
+  if err := repository.DeleteUser(userID); err != nil {
     return false, err
   }
 
@@ -34,9 +42,13 @@ func (r *mutationResolver) DeleteUser(ctx context.Context) (bool, error) {
 }
 
 func (r *mutationResolver) UpdateNickName(ctx context.Context, nickName string) (*models.User, error) {
-  user, errUser := utils.GetContextUser(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return nil, errUser
+  }
+  user, err := repository.GetUserByID(userID)
+  if err != nil {
+    return nil, err
   }
   if err := repository.UpdateNickName(user, nickName); err != nil {
     return nil, err
@@ -46,9 +58,13 @@ func (r *mutationResolver) UpdateNickName(ctx context.Context, nickName string) 
 }
 
 func (r *mutationResolver) UpdatePassWord(ctx context.Context, password string) (*models.User, error) {
-  user, errUser := utils.GetContextUser(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return nil, errUser
+  }
+  user, err := repository.GetUserByID(userID)
+  if err != nil {
+    return nil, err
   }
   if err := repository.UpdatePassWord(user, password); err != nil {
     return nil, err
@@ -57,12 +73,74 @@ func (r *mutationResolver) UpdatePassWord(ctx context.Context, password string) 
   return user, nil
 }
 
-func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie models.MovieInput) (*models.FavoriteMovie, error) {
-  user, errUser := utils.GetContextUser(ctx)
+func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignInInput) (*models.User, error) {
+  if err := security.SignIn(signInInput.Username, signInInput.Password); err != nil {
+    return nil, err
+  }
+  user, errUser := repository.GetUserByUserName(signInInput.Username)
   if errUser != nil {
     return nil, errUser
   }
-  favMovie, err := repository.AddFavoriteMovie(user.ID, movie)
+  accessToken, err := security.GenerateToken(user.ID, 15*time.Minute)
+  if err != nil {
+    return nil, err
+  }
+  refreshToken, err := security.GenerateToken(user.ID, 60*24*time.Hour)
+  if err != nil {
+    return nil, err
+  }
+  writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
+  if !ok {
+    return nil, errors.New("response writer not found")
+  }
+  _, errSession := repository.AddSession(&models.Session{
+    ID:        refreshToken.Claims.RegisteredClaims.ID,
+    UserID:    user.ID,
+    ExpiresAt: refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
+  })
+  if errSession != nil {
+    return nil, errSession
+  }
+  security.SetTokensInCookie(writer, &models.Tokens{
+    Access:  accessToken,
+    Refresh: refreshToken,
+  })
+
+  return user, nil
+}
+
+func (r *mutationResolver) LogOut(ctx context.Context) (bool, error) {
+  _, errUser := utils.GetContextUserID(ctx)
+  if errUser != nil {
+    return false, errUser
+  }
+  writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
+  if !ok {
+    return false, errors.New("response writer not found!")
+  }
+  request, ok := ctx.Value("httpRequest").(*http.Request)
+  if !ok {
+    return false, errors.New("")
+  }
+  refreshToken := security.TokenFromCookie(request, "jwt_refresh_token")
+  claims, err := security.ParseToken(refreshToken)
+  if err != nil {
+    return false, err
+  }
+
+  repository.AddTokenInBlackList(claims)
+  repository.DeleteSession(claims.ID)
+  security.DeleteTokensFromCookie(writer)
+
+  return true, nil
+}
+
+func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie models.MovieInput) (*models.FavoriteMovie, error) {
+  userID, errUser := utils.GetContextUserID(ctx)
+  if errUser != nil {
+    return nil, errUser
+  }
+  favMovie, err := repository.AddFavoriteMovie(userID, movie)
   if err != nil {
     return nil, err
   }
@@ -71,7 +149,7 @@ func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie models.Mo
 }
 
 func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, favMovieID uint) (bool, error) {
-  _, errUser := utils.GetContextUser(ctx)
+  _, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return false, errUser
   }
@@ -83,7 +161,7 @@ func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, favMovieID u
 }
 
 func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, favMovieID uint) (*models.FavoriteMovie, error) {
-  _, errUser := utils.GetContextUser(ctx)
+  _, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return nil, errUser
   }
@@ -96,11 +174,11 @@ func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, favMovieID u
 }
 
 func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, genreID uint) (uint, error) {
-  user, errUser := utils.GetContextUser(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return 0, errUser
   }
-  if err := repository.AddFavoriteGenre(user.ID, genreID); err != nil {
+  if err := repository.AddFavoriteGenre(userID, genreID); err != nil {
     return 0, err
   }
 
@@ -108,11 +186,11 @@ func (r *mutationResolver) AddFavoriteGenre(ctx context.Context, genreID uint) (
 }
 
 func (r *mutationResolver) DeleteFavoriteGenre(ctx context.Context, genreID uint) (bool, error) {
-  user, errUser := utils.GetContextUser(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return false, errUser
   }
-  if err := repository.DeleteFavoriteGenre(user.ID, genreID); err != nil {
+  if err := repository.DeleteFavoriteGenre(userID, genreID); err != nil {
     return false, err
   }
 
@@ -120,15 +198,23 @@ func (r *mutationResolver) DeleteFavoriteGenre(ctx context.Context, genreID uint
 }
 
 func (r *queryResolver) GetUser(ctx context.Context) (*models.User, error) {
-  user, errUser := utils.GetContextUser(ctx)
+  UserID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return nil, errUser
+  }
+  user, err := repository.GetUserByID(UserID)
+  if err != nil {
+    return nil, err
   }
 
   return user, nil
 }
 
 func (r *queryResolver) GetAllGenres(ctx context.Context) ([]*models.Genre, error) {
+  _, errUser := utils.GetContextUserID(ctx)
+  if errUser != nil {
+    return nil, errUser
+  }
   genres, err := repository.GetAllGenres()
   if err != nil {
     return nil, err
@@ -138,11 +224,11 @@ func (r *queryResolver) GetAllGenres(ctx context.Context) ([]*models.Genre, erro
 }
 
 func (r *queryResolver) GetAllFavoriteGenres(ctx context.Context) ([]uint, error) {
-  user, errUser := utils.GetContextUser(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return []uint{}, errUser
   }
-  favGenres, err := repository.GetFavoriteGenres(user.ID)
+  favGenres, err := repository.GetFavoriteGenres(userID)
   if err != nil {
     return []uint{}, err
   }
@@ -151,11 +237,11 @@ func (r *queryResolver) GetAllFavoriteGenres(ctx context.Context) ([]uint, error
 }
 
 func (r *queryResolver) GetFavoriteMovies(ctx context.Context) ([]*models.FavoriteMovie, error) {
-  user, errUser := utils.GetContextUser(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return nil, errUser
   }
-  favMovies, err := repository.GetFavoriteMovies(user.ID)
+  favMovies, err := repository.GetFavoriteMovies(userID)
   if err != nil {
     return nil, err
   }
@@ -164,6 +250,10 @@ func (r *queryResolver) GetFavoriteMovies(ctx context.Context) ([]*models.Favori
 }
 
 func (r *queryResolver) GetMovieDetails(ctx context.Context, movieID uint) (*models.MovieDetails, error) {
+  _, errUser := utils.GetContextUserID(ctx)
+  if errUser != nil {
+    return nil, errUser
+  }
   movieDetails, err := service.FetchMovieDetails(movieID)
   if err != nil {
     return nil, err
@@ -173,6 +263,10 @@ func (r *queryResolver) GetMovieDetails(ctx context.Context, movieID uint) (*mod
 }
 
 func (r *queryResolver) GetFilteredMovies(ctx context.Context, filter models.MovieFilter) ([]*models.Movie, error) {
+  _, errUser := utils.GetContextUserID(ctx)
+  if errUser != nil {
+    return nil, errUser
+  }
   filteredMovies, err := service.FetchFilteredMovies(filter)
   if err != nil {
     return nil, err

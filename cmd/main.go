@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	config "myfavouritemovies/configs"
@@ -10,6 +11,7 @@ import (
 	"myfavouritemovies/service"
 	"myfavouritemovies/utils"
 	"net/http"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -27,6 +29,7 @@ func main() {
   } else {
     log.Fatal("Failed to initialize the database.")
   }
+  repository.CleanExpiredTokens(24*time.Hour)
 
   resolver := &graph.Resolver{}
   genres, err := service.FetchGenres()
@@ -54,6 +57,11 @@ func main() {
 } else {
     http.Handle("/", http.NotFoundHandler())
 }
-  http.Handle("/query", utils.HardcodedUserMiddleware(srv))
+http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+  ctx := context.WithValue(r.Context(), "httpResponseWriter", w)
+  ctx = context.WithValue(ctx, "httpRequest", r)
+  utils.Middleware(srv).ServeHTTP(w, r.WithContext(ctx))
+}))
+
   log.Fatal(http.ListenAndServe(":"+config.SRVR_PORT, nil))
 }

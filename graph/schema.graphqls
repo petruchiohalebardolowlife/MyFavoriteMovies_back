@@ -1,8 +1,10 @@
+scalar Time
+
 type User {
   id: ID!
   nickName: String!
   userName: String!
-  password: String!
+  passwordHash: String!
   favoriteMovies: [FavoriteMovie!]!
   favoriteGenres: [FavoriteGenre!]!
 }
@@ -85,6 +87,8 @@ type Mutation {
   deleteUser: Boolean!
   updateNickName(nickName: String!): User!
   updatePassWord(password: String!): User!
+  signIn(SignInInput: SignInInput!): User!
+  logOut: Boolean!
 
   addFavoriteMovie(movie: MovieInput!): FavoriteMovie!
   deleteFavoriteMovie(favMovieID: ID!): Boolean!

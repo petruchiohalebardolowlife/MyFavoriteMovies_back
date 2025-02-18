@@ -4,7 +4,6 @@ import (
 	"errors"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
-	"myfavouritemovies/utils"
 )
 
 func AddFavoriteMovie(userID uint, input models.MovieInput) (*models.FavoriteMovie, error) {
@@ -37,7 +36,7 @@ func AddFavoriteMovie(userID uint, input models.MovieInput) (*models.FavoriteMov
 }
 
 func ToggleWatchedStatus(favMovieID uint) (*models.FavoriteMovie, error) {
-  favMovie, err := utils.FindFavoriteMovie(favMovieID)
+  favMovie, err := FindFavoriteMovie(favMovieID)
   if err != nil {
       return nil, errors.New("favorite movie not found")
   }
@@ -52,7 +51,7 @@ func ToggleWatchedStatus(favMovieID uint) (*models.FavoriteMovie, error) {
 }
 
 func DeleteFavoriteMovie(favMovieID uint) error {
-  existingMovie, err := utils.FindFavoriteMovie(favMovieID)
+  existingMovie, err := FindFavoriteMovie(favMovieID)
   if err != nil {
       return errors.New("favorite movie not found")
   }
@@ -75,3 +74,13 @@ func GetFavoriteMovies(userID uint) ([]*models.FavoriteMovie, error) {
   
   return favMovies, nil
 }
+
+func FindFavoriteMovie(favMovieID uint) (models.FavoriteMovie, error) {
+  var favMovie models.FavoriteMovie
+  if err := database.DB.Where("id = ?", favMovieID).First(&favMovie).Error; err != nil{
+    return models.FavoriteMovie{},err
+  }
+  
+  return favMovie, nil
+}
+
