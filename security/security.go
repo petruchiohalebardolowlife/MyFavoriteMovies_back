@@ -124,18 +124,18 @@ func SetTokensInCookie(writer http.ResponseWriter, tokens *models.Tokens) {
 
 func DeleteTokensFromCookie(writer http.ResponseWriter) {
   http.SetCookie(writer, &http.Cookie{
-		Name:     "jwt_access_token",
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		MaxAge:   -1,
-	})
+    Name:     "jwt_access_token",
+    Path:     "/",
+    HttpOnly: true,
+    SameSite: http.SameSiteLaxMode,
+    MaxAge:   -1,
+  })
 
-	http.SetCookie(writer, &http.Cookie{
-		Name:     "jwt_refresh_token",
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		MaxAge:   -1,
-	})
+  http.SetCookie(writer, &http.Cookie{
+    Name:     "jwt_refresh_token",
+    Path:     "/",
+    HttpOnly: true,
+    SameSite: http.SameSiteLaxMode,
+    MaxAge:   -1,
+  })
 }

@@ -17,11 +17,11 @@ func AddSession(session *models.Session) (*models.Session, error) {
       return nil, err
     }
   }
-	if err := database.DB.Create(&session).Error; err != nil {
-		return nil, err
-	}
+  if err := database.DB.Create(&session).Error; err != nil {
+    return nil, err
+  }
 
-	return session, nil
+  return session, nil
 }
 
 func GetSession (ID string) (*models.Session, error) {
