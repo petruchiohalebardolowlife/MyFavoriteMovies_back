@@ -24,7 +24,7 @@ func FindFavoriteMovie(favMovieID uint) (models.FavoriteMovie, error) {
 func GetContextUserID(ctx context.Context) (uint, error) {
   userID, errUser := ctx.Value("userID").(uint)
   if !errUser {
-    return 0, errors.New("user is not in context")
+    return 0, errors.New("Unathorized")
   }
 
   return userID, nil
@@ -41,27 +41,20 @@ func GetUserByUserName (userName string) (*models.User, error) {
 
 func Middleware(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    accessToken := security.TokenFromCookie(r,"jwt_access_token")
+    accessToken:= security.TokenFromCookie(r,"jwt_access_token")
 
-    fingerprint, err := security.FingerPrintFromHTTPRequest(r)
-    if err != nil {
-      return
-    }
-    ctx := context.WithValue(r.Context(), "Fingerprint", fingerprint)
-    
     if accessToken == "" {
-      CheckRefreshToken(w, r.WithContext(ctx), next)
+      CheckRefreshToken(w, r, next)
       return
     }
 
     claimsAccess, err := security.ParseToken(accessToken)
     if err != nil {
-      CheckRefreshToken(w, r.WithContext(ctx), next)
+      CheckRefreshToken(w, r, next)
       return
     }
 
-    ctx = context.WithValue(r.Context(), "userID", claimsAccess.UserID)
-    ctx = context.WithValue(ctx, "Fingerprint", fingerprint)
+    ctx := context.WithValue(r.Context(), "userID", claimsAccess.UserID)
     next.ServeHTTP(w, r.WithContext(ctx))
    })
 }
@@ -86,13 +79,7 @@ func CheckRefreshToken(w http.ResponseWriter, r *http.Request, next http.Handler
     return
   }
 
-  fingerprint, ok := r.Context().Value("Fingerprint").(string)
-  if !ok  {
-    http.Error(w, "Fingerprint not found", http.StatusUnauthorized)
-    return
-  }
-
-  if err := UpdateRefreshTokenInDB(claimsRefresh.RegisteredClaims.ID, tokens.Refresh.Claims.ID, fingerprint, time.Now(), tokens.Refresh.Claims.ExpiresAt.Time); err != nil {
+  if err := UpdateRefreshTokenInDB(claimsRefresh.RegisteredClaims.ID, tokens.Refresh.Claims.ID, time.Now(), tokens.Refresh.Claims.ExpiresAt.Time); err != nil {
     http.Error(w, "Session Not Found", http.StatusUnauthorized)
     return
   }
@@ -103,9 +90,9 @@ func CheckRefreshToken(w http.ResponseWriter, r *http.Request, next http.Handler
   next.ServeHTTP(w, r.WithContext(ctx))
 }
 
-func UpdateRefreshTokenInDB(refreshUUID, newRefreshUUID, fingerprint string, now, newExpireAt time.Time) error {
+func UpdateRefreshTokenInDB(refreshUUID, newRefreshUUID string, now, newExpireAt time.Time) error {
   result := database.DB.Model(&models.Session{}).
-    Where("id = ? AND fingerprint = ? AND expires_at > ?", refreshUUID, fingerprint, now).
+    Where("id = ? AND expires_at > ?", refreshUUID, now).
     Updates(map[string]interface{}{
       "id":         newRefreshUUID,
       "expires_at": newExpireAt,

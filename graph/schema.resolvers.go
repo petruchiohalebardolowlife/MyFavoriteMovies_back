@@ -107,15 +107,9 @@ func (r *mutationResolver) SignIn(ctx context.Context, signInInput models.SignIn
 		return nil, errors.New("response writer not found")
 	}
 
-	fingerprint, ok := ctx.Value("Fingerprint").(string)
-	if !ok {
-		return nil, errors.New("Fingerprint error from resolver")
-	}
-
 	session, errSession := repository.AddSession(&models.Session{
 		ID:          refreshToken.Claims.RegisteredClaims.ID,
 		UserID:      user.ID,
-		Fingerprint: fingerprint,
 		ExpiresAt:   refreshToken.Claims.RegisteredClaims.ExpiresAt.Time,
 	})
 	if errSession != nil {

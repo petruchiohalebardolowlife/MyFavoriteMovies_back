@@ -11,6 +11,7 @@ import (
 	"myfavouritemovies/service"
 	"myfavouritemovies/utils"
 	"net/http"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -28,6 +29,7 @@ func main() {
   } else {
     log.Fatal("Failed to initialize the database.")
   }
+  repository.CleanExpiredSessions(time.Hour)
 
   resolver := &graph.Resolver{}
   genres, err := service.FetchGenres()
