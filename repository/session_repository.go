@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
 	"time"
@@ -32,7 +33,7 @@ func GetSession (ID string) (*models.Session, error) {
   return &session, nil
 }
 
-func DeleteSession(ID uint) error {
+func DeleteSession(ID string) error {
   if err := database.DB.Where("id = ?", ID).Delete(&models.Session{}).Error; err != nil {
       return err
   }
@@ -40,11 +41,29 @@ func DeleteSession(ID uint) error {
   return nil
 }
 
-func CleanExpiredSessions (duration time.Duration) {
+func CleanExpiredTokens (duration time.Duration) {
   ticker := time.NewTicker(duration)
   go func() {
     for range ticker.C {
-      database.DB.Where("expires_at < ?", time.Now()).Delete(&models.Session{})
+      database.DB.Unscoped().Where("expires_at < ?", time.Now()).Delete(&models.Session{})
+      database.DB.Unscoped().Where("expires_at < ?", time.Now()).Delete(&models.BlackListToken{})
     }
   }()
 } 
+
+func CheckTokenInBlackList(tokenUUID string) error {
+  if err := database.DB.Where("id = ?", tokenUUID).First(&models.BlackListToken{}).Error; err != nil {
+    return nil
+  }
+  
+  return errors.New("your refresh token in blacklist")
+}
+
+func AddTokenInBlackList(claims *models.TokenClaims) error {
+  if err := database.DB.Create(&models.BlackListToken{ID: claims.ID, UserID: claims.UserID, ExpiresAt: claims.ExpiresAt.Time}).Error; err != nil {
+    return err
+  }
+
+  return nil
+}
+ 

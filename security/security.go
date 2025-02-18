@@ -2,6 +2,7 @@ package security
 
 import (
 	"errors"
+	config "myfavouritemovies/configs"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
 	"net/http"
@@ -11,16 +12,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const (
-  signInKey = "hjdsfhsjd12&*"
-  tokenTTL = 20 * time.Second
-)
 
 func GenerateHashPassword(password string) (string, error) {
   passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
   if err != nil {
     return "", err
   }
+
   return string(passwordHash), nil
 }
 
@@ -29,6 +27,7 @@ func CheckPassword(passwordHash string, password string) error {
   if err!=nil {
     return err
   }
+  
   return nil
 }
 
@@ -44,16 +43,6 @@ func SignIn (userName string, password string) error {
   return nil
 }
 
-func FingerPrintFromHTTPRequest(r *http.Request) (string, error) {
-  fingerprint := r.Header.Get("Fingerprint")
-  if len(fingerprint) == 0 {
-    return "", errors.New("no fingerprint")
-  }
-  return fingerprint, nil
-}
-
-
-
 func TokenFromCookie(r *http.Request, tokentype string) string {
   reqToken, err := r.Cookie(tokentype)
   if err != nil {
@@ -63,7 +52,7 @@ func TokenFromCookie(r *http.Request, tokentype string) string {
   return reqToken.Value
 }
 
-func GenerateToken (userID uint, ttl time.Duration) (*Token, error) {
+func GenerateToken (userID uint, ttl time.Duration) (*models.Token, error) {
   if err := database.DB.Where("id = ?", userID).First(&models.User{}).Error; err != nil {
     return nil, errors.New("incorrect username")
 }
@@ -73,27 +62,27 @@ func GenerateToken (userID uint, ttl time.Duration) (*Token, error) {
   }
   token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
     
-    signedToken, errSign := token.SignedString([]byte(signInKey))
+    signedToken, errSign := token.SignedString([]byte(config.TOKEN_KEY))
     if errSign != nil {
       return nil, errSign
     }
 
-  return &Token{Value: signedToken, Claims: claims} , nil
+  return &models.Token{Value: signedToken, Claims: claims} , nil
 }
 
-func ParseToken(TokenValue string) (*tokenClaims, error) {
-  token, err := jwt.ParseWithClaims(TokenValue, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+func ParseToken(TokenValue string) (*models.TokenClaims, error) {
+  token, err := jwt.ParseWithClaims(TokenValue, &models.TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
     if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
       return nil, errors.New("invalid signing method")
     }
 
-    return []byte(signInKey), nil
+    return []byte(config.TOKEN_KEY), nil
   })
   if err != nil {
     return nil, err
   }
   
-  claims, ok := token.Claims.(*tokenClaims)
+  claims, ok := token.Claims.(*models.TokenClaims)
   if !ok {
     return nil, errors.New("token claims are not of type")
   }
@@ -101,7 +90,7 @@ func ParseToken(TokenValue string) (*tokenClaims, error) {
   return claims, nil
 }
 
-func UpdateTokens(userID uint, ttlAccess, ttlRefresh time.Duration) (*Tokens, error) {
+func UpdateTokens(userID uint, ttlAccess, ttlRefresh time.Duration) (*models.Tokens, error) {
   newAccessToken, errAccessToken := GenerateToken(userID, ttlAccess)
       if errAccessToken != nil {
         return nil, errAccessToken
@@ -110,10 +99,10 @@ func UpdateTokens(userID uint, ttlAccess, ttlRefresh time.Duration) (*Tokens, er
       if errRefreshToken != nil {
         return nil, errRefreshToken
       }
-    return &Tokens{Access: newAccessToken, Refresh: newRefreshToken}, nil
+    return &models.Tokens{Access: newAccessToken, Refresh: newRefreshToken}, nil
 }
 
-func SetTokensInCookie(writer http.ResponseWriter, tokens *Tokens) {
+func SetTokensInCookie(writer http.ResponseWriter, tokens *models.Tokens) {
   http.SetCookie(writer, &http.Cookie{
     Name:     "jwt_access_token",
     Value:    tokens.Access.Value,

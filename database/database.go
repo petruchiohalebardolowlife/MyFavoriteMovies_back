@@ -23,7 +23,7 @@ func InitDB() *gorm.DB {
   }
   DB=db
   fmt.Println("Successfully connected to LocalDATABase on PostgreSQL!")
-  DB.AutoMigrate(&models.User{},&models.FavoriteMovie{}, &models.FavoriteGenre{}, &models.Genre{}, &models.Session{})
+  DB.AutoMigrate(&models.User{},&models.FavoriteMovie{}, &models.FavoriteGenre{}, &models.Genre{}, &models.Session{}, &models.BlackListToken{})
   
   return DB
 }

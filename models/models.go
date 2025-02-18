@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
@@ -65,8 +66,29 @@ type Movie struct {
 
 type Session struct {
 	gorm.Model
-	ID           string
-	UserID       uint
-  Fingerprint  string
-	ExpiresAt    time.Time
+	ID        string `gorm:"primary_key"`
+	UserID    uint
+	ExpiresAt time.Time
+}
+
+type BlackListToken struct {
+	gorm.Model
+	ID        string `gorm:"primary_key"`
+	UserID    uint
+	ExpiresAt time.Time
+}
+
+type TokenClaims struct {
+  jwt.RegisteredClaims
+  UserID uint `json:"user_id"`
+}
+
+type Token struct {
+  Value string
+  Claims *TokenClaims
+}
+
+type Tokens struct {
+  Access *Token
+  Refresh *Token
 }

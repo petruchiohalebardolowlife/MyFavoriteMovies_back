@@ -5,21 +5,13 @@ import (
 	"errors"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
+	"myfavouritemovies/repository"
 	"myfavouritemovies/security"
 	"net/http"
 	"time"
 
 	"gorm.io/gorm"
 )
-
-func FindFavoriteMovie(favMovieID uint) (models.FavoriteMovie, error) {
-  var favMovie models.FavoriteMovie
-  if err := database.DB.Where("id = ?", favMovieID).First(&favMovie).Error; err != nil{
-    return models.FavoriteMovie{},err
-  }
-  
-  return favMovie, nil
-}
 
 func GetContextUserID(ctx context.Context) (uint, error) {
   userID, errUser := ctx.Value("userID").(uint)
@@ -28,15 +20,6 @@ func GetContextUserID(ctx context.Context) (uint, error) {
   }
 
   return userID, nil
-}
-
-func GetUserByUserName (userName string) (*models.User, error) {
-  var user *models.User
-  if err := database.DB.Where("user_name = ?", userName).First(&user).Error; err != nil {
-    return nil, err
-  }
-
-  return user, nil
 }
 
 func Middleware(next http.Handler) http.Handler {
@@ -62,7 +45,7 @@ func Middleware(next http.Handler) http.Handler {
 func CheckRefreshToken(w http.ResponseWriter, r *http.Request, next http.Handler) {
   refreshToken:=security.TokenFromCookie(r, "jwt_refresh_token")
   if refreshToken == "" {
-    next.ServeHTTP(w, r)
+    next.ServeHTTP(w,r)
     return 
   }
 
@@ -72,10 +55,20 @@ func CheckRefreshToken(w http.ResponseWriter, r *http.Request, next http.Handler
     return 
   }
   
+  if err := repository.CheckTokenInBlackList(claimsRefresh.ID); err != nil {
+    http.Error(w, "Your refresh token in blacklist", http.StatusUnauthorized)
+    return 
+  }
+
 
   tokens, errTokens := security.UpdateTokens(claimsRefresh.UserID, 30*time.Second, time.Minute)
   if errTokens != nil {
     http.Error(w, "Failed to generates tokens", http.StatusUnauthorized)
+    return
+  }
+
+  if err := repository.AddTokenInBlackList(claimsRefresh); err != nil {
+    http.Error(w, "Failed to add refresh token in blacklist",http.StatusUnauthorized)
     return
   }
 
@@ -85,7 +78,6 @@ func CheckRefreshToken(w http.ResponseWriter, r *http.Request, next http.Handler
   }
 
   security.SetTokensInCookie(w, tokens)
-
   ctx := context.WithValue(r.Context(), "userID", claimsRefresh.UserID)
   next.ServeHTTP(w, r.WithContext(ctx))
 }

@@ -29,7 +29,7 @@ func main() {
   } else {
     log.Fatal("Failed to initialize the database.")
   }
-  repository.CleanExpiredSessions(time.Hour)
+  repository.CleanExpiredTokens(time.Minute)
 
   resolver := &graph.Resolver{}
   genres, err := service.FetchGenres()
@@ -59,6 +59,7 @@ func main() {
 }
 http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
   ctx := context.WithValue(r.Context(), "httpResponseWriter", w)
+  ctx = context.WithValue(ctx, "httpRequest", r)
   utils.Middleware(srv).ServeHTTP(w, r.WithContext(ctx))
 }))
 

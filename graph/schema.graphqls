@@ -73,15 +73,6 @@ input SignInInput {
   password: String!
 }
 
-type SignInRes {
-  sessionID: String!
-  accessToken: String!
-  refreshToken: String!
-  accessTokenExpiresAt: Time!
-  refreshTokenExpiresAt: Time!
-  user: User!
-}
-
 type Query {
   getUser: User!
   getAllGenres: [Genre!]!
@@ -96,7 +87,7 @@ type Mutation {
   deleteUser: Boolean!
   updateNickName(nickName: String!): User!
   updatePassWord(password: String!): User!
-  signIn(SignInInput: SignInInput!): SignInRes!
+  signIn(SignInInput: SignInInput!): User!
   logOut: Boolean!
 
   addFavoriteMovie(movie: MovieInput!): FavoriteMovie!
