@@ -53,9 +53,6 @@ func TokenFromCookie(r *http.Request, tokentype string) string {
 }
 
 func GenerateToken (userID uint, ttl time.Duration) (*models.Token, error) {
-  if err := database.DB.Where("id = ?", userID).First(&models.User{}).Error; err != nil {
-    return nil, errors.New("incorrect username")
-}
   claims, err := NewClaims(userID, ttl)
   if err !=nil {
     return nil, err
