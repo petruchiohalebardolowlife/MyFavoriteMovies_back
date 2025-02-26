@@ -24,7 +24,7 @@ func GetContextUserID(ctx context.Context) (uint, error) {
 
 func Middleware(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    accessToken:= security.TokenFromCookie(r,"jwt_access_token")
+    accessToken:= security.TokenFromCookie(r)
 
     if accessToken == "" {
       CheckRefreshToken(w, r, next)
@@ -43,7 +43,7 @@ func Middleware(next http.Handler) http.Handler {
 }
 
 func CheckRefreshToken(w http.ResponseWriter, r *http.Request, next http.Handler) {
-  refreshToken:=security.TokenFromCookie(r, "jwt_refresh_token")
+  refreshToken:=security.TokenFromCookie(r)
   if refreshToken == "" {
     next.ServeHTTP(w,r)
     return 

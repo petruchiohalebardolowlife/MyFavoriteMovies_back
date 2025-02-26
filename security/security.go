@@ -34,22 +34,22 @@ func CheckPassword(passwordHash string, password string) error {
 func SignIn (userName string, password string) error {
   var user models.User
   if err := database.DB.Where("user_name = ?", userName).First(&user).Error; err != nil {
-    return errors.New("incorrect username or password")
+    return err
 }
   if err := CheckPassword(user.PasswordHash, password); err!= nil {
-    return errors.New("incorrect username or password")
+    return err
   }
 
   return nil
 }
 
-func TokenFromCookie(r *http.Request, tokentype string) string {
-  reqToken, err := r.Cookie(tokentype)
+func TokenFromCookie(r *http.Request) (string, error) {
+  reqToken, err := r.Cookie("jwtRefresh")
   if err != nil {
-    return ""
+    return "", err
   }
   
-  return reqToken.Value
+  return reqToken.Value, nil
 }
 
 func GenerateToken (userID uint, ttl time.Duration) (*models.Token, error) {
