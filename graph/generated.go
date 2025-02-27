@@ -63,6 +63,11 @@ type ComplexityRoot struct {
 		Watched     func(childComplexity int) int
 	}
 
+	FilteredMoviesResponse struct {
+		Page    func(childComplexity int) int
+		Results func(childComplexity int) int
+	}
+
 	Genre struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
@@ -94,6 +99,7 @@ type ComplexityRoot struct {
 		DeleteFavoriteMovie func(childComplexity int, favMovieID uint) int
 		DeleteUser          func(childComplexity int) int
 		LogOut              func(childComplexity int) int
+		RefreshToken        func(childComplexity int) int
 		SignIn              func(childComplexity int, signInInput models.SignInInput) int
 		ToggleWatchedStatus func(childComplexity int, favMovieID uint) int
 		UpdateNickName      func(childComplexity int, nickName string) int
@@ -109,9 +115,9 @@ type ComplexityRoot struct {
 		GetUser              func(childComplexity int) int
 	}
 
-	ResponseFilteredMovies struct {
-		Page    func(childComplexity int) int
-		Results func(childComplexity int) int
+	SignInResponse struct {
+		Token func(childComplexity int) int
+		User  func(childComplexity int) int
 	}
 
 	User struct {
@@ -129,13 +135,14 @@ type MutationResolver interface {
 	DeleteUser(ctx context.Context) (bool, error)
 	UpdateNickName(ctx context.Context, nickName string) (*models.User, error)
 	UpdatePassWord(ctx context.Context, password string) (*models.User, error)
-	SignIn(ctx context.Context, signInInput models.SignInInput) (*models.User, error)
+	SignIn(ctx context.Context, signInInput models.SignInInput) (*models.SignInResponse, error)
 	LogOut(ctx context.Context) (bool, error)
 	AddFavoriteMovie(ctx context.Context, movie models.MovieInput) (*models.FavoriteMovie, error)
 	DeleteFavoriteMovie(ctx context.Context, favMovieID uint) (bool, error)
 	ToggleWatchedStatus(ctx context.Context, favMovieID uint) (*models.FavoriteMovie, error)
 	AddFavoriteGenre(ctx context.Context, genreID uint) (uint, error)
 	DeleteFavoriteGenre(ctx context.Context, genreID uint) (bool, error)
+	RefreshToken(ctx context.Context) (string, error)
 }
 type QueryResolver interface {
 	GetUser(ctx context.Context) (*models.User, error)
@@ -234,6 +241,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FavoriteMovie.Watched(childComplexity), true
+
+	case "FilteredMoviesResponse.page":
+		if e.complexity.FilteredMoviesResponse.Page == nil {
+			break
+		}
+
+		return e.complexity.FilteredMoviesResponse.Page(childComplexity), true
+
+	case "FilteredMoviesResponse.results":
+		if e.complexity.FilteredMoviesResponse.Results == nil {
+			break
+		}
+
+		return e.complexity.FilteredMoviesResponse.Results(childComplexity), true
 
 	case "Genre.id":
 		if e.complexity.Genre.ID == nil {
@@ -407,6 +428,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.LogOut(childComplexity), true
 
+	case "Mutation.refreshToken":
+		if e.complexity.Mutation.RefreshToken == nil {
+			break
+		}
+
+		return e.complexity.Mutation.RefreshToken(childComplexity), true
+
 	case "Mutation.signIn":
 		if e.complexity.Mutation.SignIn == nil {
 			break
@@ -507,19 +535,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUser(childComplexity), true
 
-	case "ResponseFilteredMovies.page":
-		if e.complexity.ResponseFilteredMovies.Page == nil {
+	case "SignInResponse.token":
+		if e.complexity.SignInResponse.Token == nil {
 			break
 		}
 
-		return e.complexity.ResponseFilteredMovies.Page(childComplexity), true
+		return e.complexity.SignInResponse.Token(childComplexity), true
 
-	case "ResponseFilteredMovies.results":
-		if e.complexity.ResponseFilteredMovies.Results == nil {
+	case "SignInResponse.user":
+		if e.complexity.SignInResponse.User == nil {
 			break
 		}
 
-		return e.complexity.ResponseFilteredMovies.Results(childComplexity), true
+		return e.complexity.SignInResponse.User(childComplexity), true
 
 	case "User.favoriteGenres":
 		if e.complexity.User.FavoriteGenres == nil {
@@ -1548,6 +1576,105 @@ func (ec *executionContext) fieldContext_FavoriteMovie_genres(_ context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _FilteredMoviesResponse_page(ctx context.Context, field graphql.CollectedField, obj *models.FilteredMoviesResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FilteredMoviesResponse_page(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Page, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNInt2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FilteredMoviesResponse_page(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FilteredMoviesResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FilteredMoviesResponse_results(ctx context.Context, field graphql.CollectedField, obj *models.FilteredMoviesResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FilteredMoviesResponse_results(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Results, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Movie)
+	fc.Result = res
+	return ec.marshalOMovie2ᚕᚖmyfavouritemoviesᚋmodelsᚐMovieᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FilteredMoviesResponse_results(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FilteredMoviesResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Movie_id(ctx, field)
+			case "title":
+				return ec.fieldContext_Movie_title(ctx, field)
+			case "posterPath":
+				return ec.fieldContext_Movie_posterPath(ctx, field)
+			case "voteAverage":
+				return ec.fieldContext_Movie_voteAverage(ctx, field)
+			case "genreIDs":
+				return ec.fieldContext_Movie_genreIDs(ctx, field)
+			case "releaseDate":
+				return ec.fieldContext_Movie_releaseDate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Movie", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Genre_id(ctx context.Context, field graphql.CollectedField, obj *models.Genre) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Genre_id(ctx, field)
 	if err != nil {
@@ -2447,9 +2574,9 @@ func (ec *executionContext) _Mutation_signIn(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*models.SignInResponse)
 	fc.Result = res
-	return ec.marshalNUser2ᚖmyfavouritemoviesᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNSignInResponse2ᚖmyfavouritemoviesᚋmodelsᚐSignInResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_signIn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2460,20 +2587,12 @@ func (ec *executionContext) fieldContext_Mutation_signIn(ctx context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "nickName":
-				return ec.fieldContext_User_nickName(ctx, field)
-			case "userName":
-				return ec.fieldContext_User_userName(ctx, field)
-			case "passwordHash":
-				return ec.fieldContext_User_passwordHash(ctx, field)
-			case "favoriteMovies":
-				return ec.fieldContext_User_favoriteMovies(ctx, field)
-			case "favoriteGenres":
-				return ec.fieldContext_User_favoriteGenres(ctx, field)
+			case "user":
+				return ec.fieldContext_SignInResponse_user(ctx, field)
+			case "token":
+				return ec.fieldContext_SignInResponse_token(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type SignInResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -2841,6 +2960,50 @@ func (ec *executionContext) fieldContext_Mutation_deleteFavoriteGenre(ctx contex
 	if fc.Args, err = ec.field_Mutation_deleteFavoriteGenre_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_refreshToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RefreshToken(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_refreshToken(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -3322,8 +3485,8 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _ResponseFilteredMovies_page(ctx context.Context, field graphql.CollectedField, obj *models.ResponseFilteredMovies) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ResponseFilteredMovies_page(ctx, field)
+func (ec *executionContext) _SignInResponse_user(ctx context.Context, field graphql.CollectedField, obj *models.SignInResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SignInResponse_user(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3336,7 +3499,7 @@ func (ec *executionContext) _ResponseFilteredMovies_page(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Page, nil
+		return obj.User, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3348,26 +3511,40 @@ func (ec *executionContext) _ResponseFilteredMovies_page(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(uint)
+	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNInt2uint(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖmyfavouritemoviesᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ResponseFilteredMovies_page(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SignInResponse_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ResponseFilteredMovies",
+		Object:     "SignInResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "nickName":
+				return ec.fieldContext_User_nickName(ctx, field)
+			case "userName":
+				return ec.fieldContext_User_userName(ctx, field)
+			case "passwordHash":
+				return ec.fieldContext_User_passwordHash(ctx, field)
+			case "favoriteMovies":
+				return ec.fieldContext_User_favoriteMovies(ctx, field)
+			case "favoriteGenres":
+				return ec.fieldContext_User_favoriteGenres(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _ResponseFilteredMovies_results(ctx context.Context, field graphql.CollectedField, obj *models.ResponseFilteredMovies) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ResponseFilteredMovies_results(ctx, field)
+func (ec *executionContext) _SignInResponse_token(ctx context.Context, field graphql.CollectedField, obj *models.SignInResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SignInResponse_token(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3380,42 +3557,31 @@ func (ec *executionContext) _ResponseFilteredMovies_results(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Results, nil
+		return obj.Token, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.Movie)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOMovie2ᚕᚖmyfavouritemoviesᚋmodelsᚐMovieᚄ(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ResponseFilteredMovies_results(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SignInResponse_token(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ResponseFilteredMovies",
+		Object:     "SignInResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Movie_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Movie_title(ctx, field)
-			case "posterPath":
-				return ec.fieldContext_Movie_posterPath(ctx, field)
-			case "voteAverage":
-				return ec.fieldContext_Movie_voteAverage(ctx, field)
-			case "genreIDs":
-				return ec.fieldContext_Movie_genreIDs(ctx, field)
-			case "releaseDate":
-				return ec.fieldContext_Movie_releaseDate(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Movie", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5923,6 +6089,47 @@ func (ec *executionContext) _FavoriteMovie(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var filteredMoviesResponseImplementors = []string{"FilteredMoviesResponse"}
+
+func (ec *executionContext) _FilteredMoviesResponse(ctx context.Context, sel ast.SelectionSet, obj *models.FilteredMoviesResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, filteredMoviesResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FilteredMoviesResponse")
+		case "page":
+			out.Values[i] = ec._FilteredMoviesResponse_page(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "results":
+			out.Values[i] = ec._FilteredMoviesResponse_results(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var genreImplementors = []string{"Genre"}
 
 func (ec *executionContext) _Genre(ctx context.Context, sel ast.SelectionSet, obj *models.Genre) graphql.Marshaler {
@@ -6191,6 +6398,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "refreshToken":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_refreshToken(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6390,24 +6604,27 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
-var responseFilteredMoviesImplementors = []string{"ResponseFilteredMovies"}
+var signInResponseImplementors = []string{"SignInResponse"}
 
-func (ec *executionContext) _ResponseFilteredMovies(ctx context.Context, sel ast.SelectionSet, obj *models.ResponseFilteredMovies) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, responseFilteredMoviesImplementors)
+func (ec *executionContext) _SignInResponse(ctx context.Context, sel ast.SelectionSet, obj *models.SignInResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, signInResponseImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("ResponseFilteredMovies")
-		case "page":
-			out.Values[i] = ec._ResponseFilteredMovies_page(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("SignInResponse")
+		case "user":
+			out.Values[i] = ec._SignInResponse_user(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "results":
-			out.Values[i] = ec._ResponseFilteredMovies_results(ctx, field, obj)
+		case "token":
+			out.Values[i] = ec._SignInResponse_token(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7157,6 +7374,20 @@ func (ec *executionContext) unmarshalNMovieInput2myfavouritemoviesᚋmodelsᚐMo
 func (ec *executionContext) unmarshalNSignInInput2myfavouritemoviesᚋmodelsᚐSignInInput(ctx context.Context, v any) (models.SignInInput, error) {
 	res, err := ec.unmarshalInputSignInInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSignInResponse2myfavouritemoviesᚋmodelsᚐSignInResponse(ctx context.Context, sel ast.SelectionSet, v models.SignInResponse) graphql.Marshaler {
+	return ec._SignInResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSignInResponse2ᚖmyfavouritemoviesᚋmodelsᚐSignInResponse(ctx context.Context, sel ast.SelectionSet, v *models.SignInResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SignInResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {

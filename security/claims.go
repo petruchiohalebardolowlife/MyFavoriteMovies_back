@@ -14,12 +14,12 @@ func NewClaims(userID uint, duration time.Duration) (*models.TokenClaims, error)
     return nil, err
   }
   return &models.TokenClaims{
-    RegisteredClaims : jwt.RegisteredClaims{
-      ID: tokenID.String(),
-      IssuedAt: jwt.NewNumericDate(time.Now()),
-      ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
+      RegisteredClaims: jwt.RegisteredClaims{
+        ID:        tokenID.String(),
+        IssuedAt:  jwt.NewNumericDate(time.Now()),
+        ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
+      },
+      UserID: userID,
     },
-    UserID: userID,
-  },
-  nil
+    nil
 }

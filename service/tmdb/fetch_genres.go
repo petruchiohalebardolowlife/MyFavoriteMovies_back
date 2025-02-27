@@ -8,7 +8,7 @@ import (
 
 func FetchGenres() ([]models.Genre, error) {
   endpoint := "/genre/movie/list"
-  body, err := FetchFromTMDB(endpoint,"")
+  body, err := FetchFromTMDB(endpoint, "")
   if err != nil {
     return nil, err
   }
@@ -20,6 +20,6 @@ func FetchGenres() ([]models.Genre, error) {
   if err := json.Unmarshal(body, &response); err != nil {
     return nil, err
   }
-  
+
   return response.Genres, nil
 }

@@ -84,11 +84,11 @@ type TokenClaims struct {
 }
 
 type Token struct {
-  Value string
+  Value  string
   Claims *TokenClaims
 }
 
 type Tokens struct {
-  Access *Token
+  Access  *Token
   Refresh *Token
 }

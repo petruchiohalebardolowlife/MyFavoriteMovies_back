@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func FetchFilteredMovies(filters models.MovieFilter) ([]*models.Movie, error){
+func FetchFilteredMovies(filters models.MovieFilter) ([]*models.Movie, error) {
   endpoint := "/discover/movie"
 
   var queryParams []string
@@ -34,7 +34,7 @@ func FetchFilteredMovies(filters models.MovieFilter) ([]*models.Movie, error){
 
   var paramsString string
   if len(queryParams) > 0 {
-     paramsString = fmt.Sprintf("%s?%s", endpoint, strings.Join(queryParams, "&"))
+    paramsString = fmt.Sprintf("%s?%s", endpoint, strings.Join(queryParams, "&"))
   }
 
   body, err := FetchFromTMDB(endpoint, paramsString)
@@ -42,10 +42,10 @@ func FetchFilteredMovies(filters models.MovieFilter) ([]*models.Movie, error){
     return nil, err
   }
 
-  var response models.ResponseFilteredMovies
+  var response models.FilteredMoviesResponse
   if err := json.Unmarshal(body, &response); err != nil {
     return nil, err
   }
-  
+
   return response.Results, nil
 }

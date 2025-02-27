@@ -8,7 +8,7 @@ import (
 	"myfavouritemovies/database"
 	"myfavouritemovies/graph"
 	"myfavouritemovies/repository"
-	"myfavouritemovies/service"
+	service "myfavouritemovies/service/tmdb"
 	"myfavouritemovies/utils"
 	"net/http"
 	"time"
@@ -21,7 +21,6 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-
 func main() {
   db := database.InitDB()
   if db != nil {
@@ -29,7 +28,7 @@ func main() {
   } else {
     log.Fatal("Failed to initialize the database.")
   }
-  repository.CleanExpiredTokens(24*time.Hour)
+  repository.CleanExpiredTokens(24 * time.Hour)
 
   resolver := &graph.Resolver{}
   genres, err := service.FetchGenres()
@@ -54,14 +53,14 @@ func main() {
 
   if config.APP_ENV == "development" {
     http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-} else {
+  } else {
     http.Handle("/", http.NotFoundHandler())
-}
-http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-  ctx := context.WithValue(r.Context(), "httpResponseWriter", w)
-  ctx = context.WithValue(ctx, "httpRequest", r)
-  utils.Middleware(srv).ServeHTTP(w, r.WithContext(ctx))
-}))
+  }
+  http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    ctx := context.WithValue(r.Context(), "httpResponseWriter", w)
+    ctx = context.WithValue(ctx, "httpRequest", r)
+    utils.Middleware(srv).ServeHTTP(w, r.WithContext(ctx))
+  }))
 
   log.Fatal(http.ListenAndServe(":"+config.SRVR_PORT, nil))
 }

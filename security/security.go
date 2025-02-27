@@ -12,7 +12,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-
 func GenerateHashPassword(password string) (string, error) {
   passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
   if err != nil {
@@ -23,20 +22,20 @@ func GenerateHashPassword(password string) (string, error) {
 }
 
 func CheckPassword(passwordHash string, password string) error {
-  err:=bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
-  if err!=nil {
+  err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
+  if err != nil {
     return err
   }
-  
+
   return nil
 }
 
-func SignIn (userName string, password string) error {
+func SignIn(userName string, password string) error {
   var user models.User
   if err := database.DB.Where("user_name = ?", userName).First(&user).Error; err != nil {
     return err
-}
-  if err := CheckPassword(user.PasswordHash, password); err!= nil {
+  }
+  if err := CheckPassword(user.PasswordHash, password); err != nil {
     return err
   }
 
@@ -48,23 +47,23 @@ func TokenFromCookie(r *http.Request) (string, error) {
   if err != nil {
     return "", err
   }
-  
+
   return reqToken.Value, nil
 }
 
-func GenerateToken (userID uint, ttl time.Duration) (*models.Token, error) {
+func GenerateToken(userID uint, ttl time.Duration) (*models.Token, error) {
   claims, err := NewClaims(userID, ttl)
-  if err !=nil {
+  if err != nil {
     return nil, err
   }
   token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    
-    signedToken, errSign := token.SignedString([]byte(config.TOKEN_KEY))
-    if errSign != nil {
-      return nil, errSign
-    }
 
-  return &models.Token{Value: signedToken, Claims: claims} , nil
+  signedToken, errSign := token.SignedString([]byte(config.TOKEN_KEY))
+  if errSign != nil {
+    return nil, errSign
+  }
+
+  return &models.Token{Value: signedToken, Claims: claims}, nil
 }
 
 func ParseToken(TokenValue string) (*models.TokenClaims, error) {
@@ -78,7 +77,7 @@ func ParseToken(TokenValue string) (*models.TokenClaims, error) {
   if err != nil {
     return nil, err
   }
-  
+
   claims, ok := token.Claims.(*models.TokenClaims)
   if !ok {
     return nil, errors.New("token claims are not of type")
@@ -89,33 +88,23 @@ func ParseToken(TokenValue string) (*models.TokenClaims, error) {
 
 func UpdateTokens(userID uint, ttlAccess, ttlRefresh time.Duration) (*models.Tokens, error) {
   newAccessToken, errAccessToken := GenerateToken(userID, ttlAccess)
-      if errAccessToken != nil {
-        return nil, errAccessToken
-      }
-    newRefreshToken, errRefreshToken := GenerateToken(userID, ttlRefresh)
-      if errRefreshToken != nil {
-        return nil, errRefreshToken
-      }
-    return &models.Tokens{Access: newAccessToken, Refresh: newRefreshToken}, nil
+  if errAccessToken != nil {
+    return nil, errAccessToken
+  }
+  newRefreshToken, errRefreshToken := GenerateToken(userID, ttlRefresh)
+  if errRefreshToken != nil {
+    return nil, errRefreshToken
+  }
+  return &models.Tokens{Access: newAccessToken, Refresh: newRefreshToken}, nil
 }
 
-func SetTokensInCookie(writer http.ResponseWriter, tokens *models.Tokens) {
+func SetTokenInCookie(writer http.ResponseWriter, refreshToken string) {
   http.SetCookie(writer, &http.Cookie{
-    Name:     "jwt_access_token",
-    Value:    tokens.Access.Value,
+    Name:     "jwtRefresh",
+    Value:    refreshToken,
     Path:     "/",
     HttpOnly: true,
     SameSite: http.SameSiteLaxMode,
-    Expires:  tokens.Access.Claims.RegisteredClaims.ExpiresAt.Time,
-  })
-
-  http.SetCookie(writer, &http.Cookie{
-    Name:     "jwt_refresh_token",
-    Value:    tokens.Refresh.Value,
-    Path:     "/",
-    HttpOnly: true,
-    SameSite: http.SameSiteLaxMode,
-    Expires:  tokens.Refresh.Claims.RegisteredClaims.ExpiresAt.Time,
   })
 }
 
