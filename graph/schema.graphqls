@@ -4,7 +4,6 @@ type User {
   id: ID!
   nickName: String!
   userName: String!
-  passwordHash: String!
   favoriteMovies: [FavoriteMovie!]!
   favoriteGenres: [FavoriteGenre!]!
 }

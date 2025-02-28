@@ -5,9 +5,11 @@ import (
 	"log"
 	config "myfavouritemovies/configs"
 	"myfavouritemovies/models"
+	"os"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
@@ -17,7 +19,16 @@ func InitDB() *gorm.DB {
   dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
     config.DB_HOST, config.DB_USER, config.DB_PASSWORD, config.DB_NAME, config.DB_PORT, config.DB_SSLMODE)
 
-  db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+  newLogger := logger.New(
+    log.New(os.Stdout, "\r\n", log.LstdFlags),
+    logger.Config{
+      IgnoreRecordNotFoundError: true,
+    },
+  )
+
+  db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+    Logger: newLogger,
+  })
   if err != nil {
     log.Fatal("Failed to connect to database ", err)
   }

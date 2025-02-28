@@ -5,6 +5,8 @@ import (
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 func AddSession(session *models.Session) (*models.Session, error) {
@@ -22,15 +24,6 @@ func AddSession(session *models.Session) (*models.Session, error) {
   }
 
   return session, nil
-}
-
-func GetSession(ID string) (*models.Session, error) {
-  var session models.Session
-  if err := database.DB.Where("id = ?", ID).First(&session).Error; err != nil {
-    return nil, err
-  }
-
-  return &session, nil
 }
 
 func DeleteSession(ID string) error {
@@ -52,8 +45,11 @@ func CleanExpiredTokens(duration time.Duration) {
 }
 
 func CheckTokenInBlackList(tokenUUID string) error {
-  if err := database.DB.Where("id = ?", tokenUUID).First(&models.BlackListToken{}).Error; err != nil {
-    return nil
+  err := database.DB.Where("id = ?", tokenUUID).First(&models.BlackListToken{}).Error
+  if err != nil {
+    if errors.Is(err, gorm.ErrRecordNotFound) {
+      return nil
+    }
   }
 
   return errors.New("your refresh token in blacklist")

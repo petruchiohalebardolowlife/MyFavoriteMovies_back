@@ -2,12 +2,11 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
-	"myfavouritemovies/repository"
-	"myfavouritemovies/security"
 	tokenService "myfavouritemovies/service/tokens"
 	"net/http"
 	"time"
@@ -32,62 +31,32 @@ func Middleware(next http.Handler) http.Handler {
       next.ServeHTTP(w, r)
       return
     }
-
-    userID, err := tokenService.Validate(accessToken)
+    claims, err := tokenService.Validate(accessToken)
     if err != nil {
-      http.Error(w, "Token expired", http.StatusUnauthorized)
+      graphQLError := gqlerror.Errorf("Token expired")
+      graphQLError.Extensions = map[string]interface{}{
+        "code": "401",
+      }
+      response := struct {
+        Errors gqlerror.List `json:"errors"`
+      }{
+        Errors: gqlerror.List{graphQLError},
+      }
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(http.StatusUnauthorized)
+
+      json.NewEncoder(w).Encode(response)
+      return
     }
 
-    ctx := context.WithValue(r.Context(), "userID", userID)
+    ctx := context.WithValue(r.Context(), "userID", claims.UserID)
     next.ServeHTTP(w, r.WithContext(ctx))
   })
 }
 
-func CheckRefreshToken(w http.ResponseWriter, r *http.Request, next http.Handler) {
-  refreshToken, err := security.TokenFromCookie(r)
-  if err != nil {
-    return
-  }
-  if refreshToken == "" {
-    next.ServeHTTP(w, r)
-    return
-  }
-
-  claimsRefresh, err := security.ParseToken(refreshToken)
-  if err != nil {
-    http.Error(w, "Unauthorized", http.StatusUnauthorized)
-    return
-  }
-
-  if err := repository.CheckTokenInBlackList(claimsRefresh.ID); err != nil {
-    http.Error(w, "Your refresh token in blacklist", http.StatusUnauthorized)
-    return
-  }
-
-  tokens, errTokens := security.UpdateTokens(claimsRefresh.UserID, 15*time.Minute, 60*24*time.Hour)
-  if errTokens != nil {
-    http.Error(w, "Failed to generates tokens", http.StatusUnauthorized)
-    return
-  }
-
-  if err := repository.AddTokenInBlackList(claimsRefresh); err != nil {
-    http.Error(w, "Failed to add refresh token in blacklist", http.StatusUnauthorized)
-    return
-  }
-
-  if err := UpdateRefreshTokenInDB(claimsRefresh.RegisteredClaims.ID, tokens.Refresh.Claims.ID, time.Now(), tokens.Refresh.Claims.ExpiresAt.Time); err != nil {
-    http.Error(w, "Session Not Found", http.StatusUnauthorized)
-    return
-  }
-
-  // security.SetTokensInCookie(w, tokens)
-  ctx := context.WithValue(r.Context(), "userID", claimsRefresh.UserID)
-  next.ServeHTTP(w, r.WithContext(ctx))
-}
-
-func UpdateRefreshTokenInDB(refreshUUID, newRefreshUUID string, now, newExpireAt time.Time) error {
+func UpdateRefreshTokenInDB(currentRefreshUUID, newRefreshUUID string, newExpireAt time.Time) error {
   result := database.DB.Model(&models.Session{}).
-    Where("id = ? AND expires_at > ?", refreshUUID, now).
+    Where("id = ?", currentRefreshUUID).
     Updates(map[string]interface{}{
       "id":         newRefreshUUID,
       "expires_at": newExpireAt,
@@ -121,4 +90,33 @@ func HandleError(message string, code string) *gqlerror.Error {
       "code": code,
     },
   }
+}
+
+func GetTokenFromCookie(r *http.Request) (string, error) {
+  reqToken, err := r.Cookie("jwtRefresh")
+  if err != nil {
+    return "", err
+  }
+
+  return reqToken.Value, nil
+}
+
+func SetTokenInCookie(writer http.ResponseWriter, refreshToken string) {
+  http.SetCookie(writer, &http.Cookie{
+    Name:     "jwtRefresh",
+    Value:    refreshToken,
+    Path:     "/",
+    HttpOnly: true,
+    SameSite: http.SameSiteLaxMode,
+  })
+}
+
+func DeleteTokenFromCookie(writer http.ResponseWriter) {
+  http.SetCookie(writer, &http.Cookie{
+    Name:     "jwtRefresh",
+    Path:     "/",
+    HttpOnly: true,
+    SameSite: http.SameSiteLaxMode,
+    MaxAge:   -1,
+  })
 }

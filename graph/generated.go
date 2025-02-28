@@ -125,7 +125,6 @@ type ComplexityRoot struct {
 		FavoriteMovies func(childComplexity int) int
 		ID             func(childComplexity int) int
 		NickName       func(childComplexity int) int
-		PasswordHash   func(childComplexity int) int
 		UserName       func(childComplexity int) int
 	}
 }
@@ -576,13 +575,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.NickName(childComplexity), true
-
-	case "User.passwordHash":
-		if e.complexity.User.PasswordHash == nil {
-			break
-		}
-
-		return e.complexity.User.PasswordHash(childComplexity), true
 
 	case "User.userName":
 		if e.complexity.User.UserName == nil {
@@ -2342,8 +2334,6 @@ func (ec *executionContext) fieldContext_Mutation_addUser(ctx context.Context, f
 				return ec.fieldContext_User_nickName(ctx, field)
 			case "userName":
 				return ec.fieldContext_User_userName(ctx, field)
-			case "passwordHash":
-				return ec.fieldContext_User_passwordHash(ctx, field)
 			case "favoriteMovies":
 				return ec.fieldContext_User_favoriteMovies(ctx, field)
 			case "favoriteGenres":
@@ -2455,8 +2445,6 @@ func (ec *executionContext) fieldContext_Mutation_updateNickName(ctx context.Con
 				return ec.fieldContext_User_nickName(ctx, field)
 			case "userName":
 				return ec.fieldContext_User_userName(ctx, field)
-			case "passwordHash":
-				return ec.fieldContext_User_passwordHash(ctx, field)
 			case "favoriteMovies":
 				return ec.fieldContext_User_favoriteMovies(ctx, field)
 			case "favoriteGenres":
@@ -2524,8 +2512,6 @@ func (ec *executionContext) fieldContext_Mutation_updatePassWord(ctx context.Con
 				return ec.fieldContext_User_nickName(ctx, field)
 			case "userName":
 				return ec.fieldContext_User_userName(ctx, field)
-			case "passwordHash":
-				return ec.fieldContext_User_passwordHash(ctx, field)
 			case "favoriteMovies":
 				return ec.fieldContext_User_favoriteMovies(ctx, field)
 			case "favoriteGenres":
@@ -3053,8 +3039,6 @@ func (ec *executionContext) fieldContext_Query_getUser(_ context.Context, field 
 				return ec.fieldContext_User_nickName(ctx, field)
 			case "userName":
 				return ec.fieldContext_User_userName(ctx, field)
-			case "passwordHash":
-				return ec.fieldContext_User_passwordHash(ctx, field)
 			case "favoriteMovies":
 				return ec.fieldContext_User_favoriteMovies(ctx, field)
 			case "favoriteGenres":
@@ -3530,8 +3514,6 @@ func (ec *executionContext) fieldContext_SignInResponse_user(_ context.Context, 
 				return ec.fieldContext_User_nickName(ctx, field)
 			case "userName":
 				return ec.fieldContext_User_userName(ctx, field)
-			case "passwordHash":
-				return ec.fieldContext_User_passwordHash(ctx, field)
 			case "favoriteMovies":
 				return ec.fieldContext_User_favoriteMovies(ctx, field)
 			case "favoriteGenres":
@@ -3707,50 +3689,6 @@ func (ec *executionContext) _User_userName(ctx context.Context, field graphql.Co
 }
 
 func (ec *executionContext) fieldContext_User_userName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _User_passwordHash(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_passwordHash(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PasswordHash, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_passwordHash(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -6671,11 +6609,6 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "userName":
 			out.Values[i] = ec._User_userName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "passwordHash":
-			out.Values[i] = ec._User_passwordHash(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

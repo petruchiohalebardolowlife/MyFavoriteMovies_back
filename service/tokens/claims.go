@@ -1,4 +1,4 @@
-package security
+package service
 
 import (
 	"myfavouritemovies/models"
