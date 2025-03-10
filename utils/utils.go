@@ -2,48 +2,121 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"log"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
+	tokenService "myfavouritemovies/service/tokens"
 	"net/http"
+	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/vektah/gqlparser/v2/gqlerror"
+	"gorm.io/gorm"
 )
 
-func BindJSON (c *gin.Context, input interface{}) bool {
-  if err:=c.ShouldBindJSON(input);err != nil {
-    c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
-    return false
+func GetContextUserID(ctx context.Context) (uint, error) {
+  userID, ok := ctx.Value("userID").(uint)
+  if !ok || userID == 0 {
+    return 0, errors.New("Unauthorized")
   }
 
-  return true
+  return userID, nil
 }
 
-
-func FindFavoriteMovie(favMovieID uint) (models.FavoriteMovie, error) {
-  var favMovie models.FavoriteMovie
-  err := database.DB.Where("id = ?", favMovieID).First(&favMovie).Error
-  return favMovie, err
-}
-
-func HardcodedUserMiddleware(next http.Handler) http.Handler {
+func Middleware(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    user := models.User{
-      ID:       671,
-      NickName: "Vasiliy",
-      UserName: "Vasya",
+    accessToken := r.Header.Get("Authorization")
+    if len(accessToken) == 0 {
+      next.ServeHTTP(w, r)
+      return
+    }
+    claims, err := tokenService.Validate(accessToken)
+    if err != nil {
+      graphQLError := gqlerror.Errorf("Token expired")
+      graphQLError.Extensions = map[string]interface{}{
+        "code": "401",
+      }
+      response := struct {
+        Errors gqlerror.List `json:"errors"`
+      }{
+        Errors: gqlerror.List{graphQLError},
+      }
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(http.StatusUnauthorized)
+
+      json.NewEncoder(w).Encode(response)
+      return
     }
 
-    ctx := context.WithValue(r.Context(), "user", user)
+    ctx := context.WithValue(r.Context(), "userID", claims.UserID)
     next.ServeHTTP(w, r.WithContext(ctx))
-   })
+  })
 }
 
-func GetContextUser(ctx context.Context) (*models.User, error) {
-  user, errUser := ctx.Value("user").(models.User)
-  if !errUser {
-    return nil, errors.New("user is not in context")
+func UpdateRefreshTokenInDB(currentRefreshUUID, newRefreshUUID string, newExpireAt time.Time) error {
+  result := database.DB.Model(&models.Session{}).
+    Where("id = ?", currentRefreshUUID).
+    Updates(map[string]interface{}{
+      "id":         newRefreshUUID,
+      "expires_at": newExpireAt,
+    })
+
+  if result.Error != nil {
+    return result.Error
   }
 
-  return &user, nil
+  if result.RowsAffected == 0 {
+    return gorm.ErrRecordNotFound
+  }
+
+  return nil
+}
+
+func HandleError(message string, code string) *gqlerror.Error {
+  if code == "500" {
+    log.Printf("[ERROR] %v", message)
+    return &gqlerror.Error{
+      Message: "Internal server error",
+      Extensions: map[string]interface{}{
+        "code": code,
+      },
+    }
+  }
+
+  return &gqlerror.Error{
+    Message: message,
+    Extensions: map[string]interface{}{
+      "code": code,
+    },
+  }
+}
+
+func GetTokenFromCookie(r *http.Request) (string, error) {
+  reqToken, err := r.Cookie("jwtRefresh")
+  if err != nil {
+    return "", err
+  }
+
+  return reqToken.Value, nil
+}
+
+func SetTokenInCookie(writer http.ResponseWriter, refreshToken string) {
+  http.SetCookie(writer, &http.Cookie{
+    Name:     "jwtRefresh",
+    Value:    refreshToken,
+    Path:     "/",
+    HttpOnly: true,
+    SameSite: http.SameSiteLaxMode,
+  })
+}
+
+func DeleteTokenFromCookie(writer http.ResponseWriter) {
+  http.SetCookie(writer, &http.Cookie{
+    Name:     "jwtRefresh",
+    Path:     "/",
+    HttpOnly: true,
+    SameSite: http.SameSiteLaxMode,
+    MaxAge:   -1,
+  })
 }

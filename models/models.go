@@ -1,6 +1,9 @@
 package models
 
 import (
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
@@ -9,7 +12,7 @@ type User struct {
   ID             uint             `json:"id" gorm:"primaryKey"`
   NickName       string           `json:"nickName" `
   UserName       string           `json:"userName" gorm:"unique"`
-  Password       string           `json:"password" gorm:"not null"`
+  PasswordHash   string           `json:"passwordhash" gorm:"not null"`
   FavoriteMovies []*FavoriteMovie `json:"favoriteMovies" gorm:"constraint:OnDelete:CASCADE;"`
   FavoriteGenres []*FavoriteGenre `json:"favoriteGenres" gorm:"constraint:OnDelete:CASCADE;"`
 }
@@ -59,4 +62,33 @@ type Movie struct {
   VoteAverage float64 `json:"vote_average"`
   GenreIDs    []uint  `json:"genre_ids"`
   ReleaseDate string  `json:"release_date"`
+}
+
+type Session struct {
+  gorm.Model
+  ID        string `gorm:"primary_key"`
+  UserID    uint
+  ExpiresAt time.Time
+}
+
+type BlackListToken struct {
+  gorm.Model
+  ID        string `gorm:"primary_key"`
+  UserID    uint
+  ExpiresAt time.Time
+}
+
+type TokenClaims struct {
+  jwt.RegisteredClaims
+  UserID uint `json:"user_id"`
+}
+
+type Token struct {
+  Value  string
+  Claims *TokenClaims
+}
+
+type Tokens struct {
+  Access  *Token
+  Refresh *Token
 }

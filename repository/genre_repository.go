@@ -20,7 +20,7 @@ func GetAllGenres() ([]*models.Genre, error) {
 func SaveGenresToDB(genres []models.Genre) error {
   existingGenres, err := GetAllGenres()
   if err != nil {
-      return err
+    return err
   }
 
   var newGenres []models.Genre
@@ -43,18 +43,18 @@ func SaveGenresToDB(genres []models.Genre) error {
 
 func AddFavoriteGenre(userID, genreID uint) error {
   err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
-      First(&models.FavoriteGenre{}).Error
+    First(&models.FavoriteGenre{}).Error
   if err == nil {
-      return errors.New("genre already in favorites")
+    return errors.New("genre already in favorites")
   }
 
   newFavorite := models.FavoriteGenre{
-      UserID:  userID,
-      GenreID: genreID,
+    UserID:  userID,
+    GenreID: genreID,
   }
 
   if err := database.DB.Create(&newFavorite).Error; err != nil {
-      return err
+    return err
   }
 
   return nil
@@ -63,22 +63,22 @@ func AddFavoriteGenre(userID, genreID uint) error {
 func DeleteFavoriteGenre(userID, genreID uint) error {
   var favGenre models.FavoriteGenre
   if err := database.DB.Where("user_id = ? AND genre_id = ?", userID, genreID).
-      First(&favGenre).Error; err != nil {
-      return errors.New("genre not in favorites")
+    First(&favGenre).Error; err != nil {
+    return errors.New("genre not in favorites")
   }
 
   if err := database.DB.Delete(&favGenre).Error; err != nil {
-      return err
+    return err
   }
-  
+
   return nil
 }
 
-func GetFavoriteGenres (userID uint) ([]uint ,error) {
+func GetFavoriteGenres(userID uint) ([]uint, error) {
   var favGenresIDs []uint
   if err := database.DB.Model(&models.FavoriteGenre{}).Where("user_id = ?", userID).Pluck("genre_id", &favGenresIDs).Error; err != nil {
     return nil, errors.New("no favorite genres found")
-}
-  
+  }
+
   return favGenresIDs, nil
 }

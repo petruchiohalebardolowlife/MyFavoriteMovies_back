@@ -7,16 +7,17 @@ import (
 )
 
 var (
-  DB_HOST     string
-  DB_USER     string
-  DB_PASSWORD string
-  DB_NAME     string
-  DB_PORT     string
-  DB_SSLMODE  string
-  SRVR_PORT   string
-  API_KEY     string
+  DB_HOST           string
+  DB_USER           string
+  DB_PASSWORD       string
+  DB_NAME           string
+  DB_PORT           string
+  DB_SSLMODE        string
+  SRVR_PORT         string
+  API_KEY           string
   TMDB_API_BASE_URL string
-  APP_ENV     string
+  APP_ENV           string
+  TOKEN_KEY         string
 )
 
 func LoadConfig() {
@@ -34,5 +35,6 @@ func LoadConfig() {
   SRVR_PORT = os.Getenv("SRVR_PORT")
   API_KEY = os.Getenv("API_KEY")
   TMDB_API_BASE_URL = os.Getenv("TMDB_API_BASE_URL")
-  APP_ENV=os.Getenv("APP_ENV")
+  APP_ENV = os.Getenv("APP_ENV")
+  TOKEN_KEY = os.Getenv("TOKEN_KEY")
 }

@@ -1,7 +1,6 @@
 package security
 
 import (
-	"errors"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
 
@@ -13,25 +12,27 @@ func GenerateHashPassword(password string) (string, error) {
   if err != nil {
     return "", err
   }
+
   return string(passwordHash), nil
 }
 
 func CheckPassword(passwordHash string, password string) error {
-  err:=bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
-  if err!=nil {
+  err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
+  if err != nil {
     return err
   }
+
   return nil
 }
 
-func SignIn (userName string, password string) (*models.User, error) {
+func SignIn(userName string, password string) error {
   var user models.User
   if err := database.DB.Where("user_name = ?", userName).First(&user).Error; err != nil {
-    return nil, errors.New("incorrect username or password")
-}
-  if err := CheckPassword(user.PasswordHash, password); err!= nil {
-    return nil, errors.New("incorrect username or password")
+    return err
+  }
+  if err := CheckPassword(user.PasswordHash, password); err != nil {
+    return err
   }
 
-  return &user, nil
+  return nil
 }

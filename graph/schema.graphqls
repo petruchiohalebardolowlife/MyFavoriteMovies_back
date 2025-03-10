@@ -1,8 +1,9 @@
+scalar Time
+
 type User {
   id: ID!
   nickName: String!
   userName: String!
-  password: String!
   favoriteMovies: [FavoriteMovie!]!
   favoriteGenres: [FavoriteGenre!]!
 }
@@ -61,9 +62,14 @@ input MovieInput {
   genreIDs: [ID!]!
 }
 
-type ResponseFilteredMovies {
+type FilteredMoviesResponse {
   page: Int!
   results: [Movie!]
+}
+
+type SignInResponse {
+  user: User!
+  token: String!
 }
 
 input SignInInput {
@@ -85,6 +91,8 @@ type Mutation {
   deleteUser: Boolean!
   updateNickName(nickName: String!): User!
   updatePassWord(password: String!): User!
+  signIn(SignInInput: SignInInput!): SignInResponse!
+  logOut: Boolean!
 
   addFavoriteMovie(movie: MovieInput!): FavoriteMovie!
   deleteFavoriteMovie(favMovieID: ID!): Boolean!
@@ -92,4 +100,6 @@ type Mutation {
 
   addFavoriteGenre(genreID: ID!): Int!
   deleteFavoriteGenre(genreID: ID!): Boolean!
+
+  refreshToken: String!
 }

@@ -2,6 +2,11 @@
 
 package models
 
+type FilteredMoviesResponse struct {
+  Page    uint     `json:"page"`
+  Results []*Movie `json:"results,omitempty"`
+}
+
 type MovieFilter struct {
   GenreIDs   []uint   `json:"genreIDs,omitempty"`
   Popularity *float64 `json:"popularity,omitempty"`
@@ -23,12 +28,12 @@ type Mutation struct {
 type Query struct {
 }
 
-type ResponseFilteredMovies struct {
-  Page    uint     `json:"page"`
-  Results []*Movie `json:"results,omitempty"`
-}
-
 type SignInInput struct {
   Username string `json:"username"`
   Password string `json:"password"`
+}
+
+type SignInResponse struct {
+  User  *User  `json:"user"`
+  Token string `json:"token"`
 }
