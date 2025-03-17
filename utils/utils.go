@@ -33,7 +33,7 @@ func Middleware(next http.Handler) http.Handler {
     }
     claims, err := tokenService.Validate(accessToken)
     if err != nil {
-      graphQLError := gqlerror.Errorf("Token expired")
+      graphQLError := gqlerror.Errorf("Invalid token or token expired")
       graphQLError.Extensions = map[string]interface{}{
         "code": "401",
       }

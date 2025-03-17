@@ -35,8 +35,8 @@ func AddFavoriteMovie(userID uint, input models.MovieInput) (*models.FavoriteMov
   return &newFavorite, nil
 }
 
-func ToggleWatchedStatus(favMovieID uint) (*models.FavoriteMovie, error) {
-  favMovie, err := FindFavoriteMovie(favMovieID)
+func ToggleWatchedStatus(favMovieID, userID uint) (*models.FavoriteMovie, error) {
+  favMovie, err := FindFavoriteMovie(favMovieID, userID)
   if err != nil {
     return nil, errors.New("favorite movie not found")
   }
@@ -50,8 +50,8 @@ func ToggleWatchedStatus(favMovieID uint) (*models.FavoriteMovie, error) {
   return &favMovie, nil
 }
 
-func DeleteFavoriteMovie(favMovieID uint) error {
-  existingMovie, err := FindFavoriteMovie(favMovieID)
+func DeleteFavoriteMovie(favMovieID, userID uint) error {
+  existingMovie, err := FindFavoriteMovie(favMovieID, userID)
   if err != nil {
     return errors.New("favorite movie not found")
   }
@@ -75,9 +75,9 @@ func GetFavoriteMovies(userID uint) ([]*models.FavoriteMovie, error) {
   return favMovies, nil
 }
 
-func FindFavoriteMovie(favMovieID uint) (models.FavoriteMovie, error) {
+func FindFavoriteMovie(favMovieID, userID uint) (models.FavoriteMovie, error) {
   var favMovie models.FavoriteMovie
-  if err := database.DB.Where("id = ?", favMovieID).First(&favMovie).Error; err != nil {
+  if err := database.DB.Where("movie_id = ? AND user_id = ?", favMovieID, userID).First(&favMovie).Error; err != nil {
     return models.FavoriteMovie{}, err
   }
 

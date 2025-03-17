@@ -157,11 +157,11 @@ func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie models.Mo
 }
 
 func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, favMovieID uint) (bool, error) {
-  _, errUser := utils.GetContextUserID(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return false, utils.HandleError("Unauthorized", "401")
   }
-  if err := repository.DeleteFavoriteMovie(favMovieID); err != nil {
+  if err := repository.DeleteFavoriteMovie(favMovieID, userID); err != nil {
     return false, utils.HandleError("DB Error", "500")
   }
 
@@ -169,11 +169,11 @@ func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, favMovieID u
 }
 
 func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, favMovieID uint) (*models.FavoriteMovie, error) {
-  _, errUser := utils.GetContextUserID(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return nil, utils.HandleError("Unauthorized", "401")
   }
-  favMovie, err := repository.ToggleWatchedStatus(favMovieID)
+  favMovie, err := repository.ToggleWatchedStatus(favMovieID, userID)
   if err != nil {
     return nil, utils.HandleError("DB Error", "500")
   }
