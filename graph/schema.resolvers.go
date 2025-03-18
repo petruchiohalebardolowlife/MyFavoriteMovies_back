@@ -157,11 +157,11 @@ func (r *mutationResolver) AddFavoriteMovie(ctx context.Context, movie models.Mo
 }
 
 func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, favMovieID uint) (bool, error) {
-  _, errUser := utils.GetContextUserID(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return false, utils.HandleError("Unauthorized", "401")
   }
-  if err := repository.DeleteFavoriteMovie(favMovieID); err != nil {
+  if err := repository.DeleteFavoriteMovie(favMovieID, userID); err != nil {
     return false, utils.HandleError("DB Error", "500")
   }
 
@@ -169,11 +169,11 @@ func (r *mutationResolver) DeleteFavoriteMovie(ctx context.Context, favMovieID u
 }
 
 func (r *mutationResolver) ToggleWatchedStatus(ctx context.Context, favMovieID uint) (*models.FavoriteMovie, error) {
-  _, errUser := utils.GetContextUserID(ctx)
+  userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return nil, utils.HandleError("Unauthorized", "401")
   }
-  favMovie, err := repository.ToggleWatchedStatus(favMovieID)
+  favMovie, err := repository.ToggleWatchedStatus(favMovieID, userID)
   if err != nil {
     return nil, utils.HandleError("DB Error", "500")
   }
@@ -280,17 +280,17 @@ func (r *queryResolver) GetAllFavoriteGenres(ctx context.Context) ([]uint, error
   return favGenres, nil
 }
 
-func (r *queryResolver) GetFavoriteMovies(ctx context.Context) ([]*models.FavoriteMovie, error) {
+func (r *queryResolver) GetFavoriteMovies(ctx context.Context, page uint, moviesPerPage uint) (*models.GetFavoriteMoviesResponse, error) {
   userID, errUser := utils.GetContextUserID(ctx)
   if errUser != nil {
     return nil, utils.HandleError("Unauthorized", "401")
   }
-  favMovies, err := repository.GetFavoriteMovies(userID)
+  favMoviesResponse, err := repository.GetFavoriteMovies(userID, page, moviesPerPage)
   if err != nil {
     return nil, utils.HandleError("DB Error", "500")
   }
 
-  return favMovies, nil
+  return favMoviesResponse, nil
 }
 
 func (r *queryResolver) GetMovieDetails(ctx context.Context, movieID uint) (*models.MovieDetails, error) {
@@ -320,8 +320,9 @@ func (r *queryResolver) GetFilteredMovies(ctx context.Context, filter models.Mov
 }
 
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
-func (r *Resolver) Query() QueryResolver       { return &queryResolver{r} }
+func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type Resolver struct{}
+

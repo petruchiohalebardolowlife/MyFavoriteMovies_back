@@ -7,6 +7,12 @@ type FilteredMoviesResponse struct {
   Results []*Movie `json:"results,omitempty"`
 }
 
+type GetFavoriteMoviesResponse struct {
+  Page       uint             `json:"page"`
+  Results    []*FavoriteMovie `json:"results,omitempty"`
+  TotalPages uint             `json:"totalPages"`
+}
+
 type MovieFilter struct {
   GenreIDs   []uint   `json:"genreIDs,omitempty"`
   Popularity *float64 `json:"popularity,omitempty"`

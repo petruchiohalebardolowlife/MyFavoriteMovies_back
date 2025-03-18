@@ -77,11 +77,17 @@ input SignInInput {
   password: String!
 }
 
+type GetFavoriteMoviesResponse {
+  page: Int!
+  results: [FavoriteMovie!]
+  totalPages: Int!
+}
+
 type Query {
   getUser: User!
   getAllGenres: [Genre!]!
   getAllFavoriteGenres: [Int!]!
-  getFavoriteMovies: [FavoriteMovie!]
+  getFavoriteMovies(page: Int!, moviesPerPage: Int!): GetFavoriteMoviesResponse!
   getMovieDetails(movieID: ID!): MovieDetails!
   getFilteredMovies(filter: MovieFilter!): [Movie]
 }
