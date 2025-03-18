@@ -92,3 +92,9 @@ type Tokens struct {
   Access  *Token
   Refresh *Token
 }
+
+type GetFavMoviesResponse struct {
+  Page    int     
+  Results []*FavoriteMovie 
+  TotalPages int
+}

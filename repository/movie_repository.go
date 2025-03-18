@@ -1,6 +1,7 @@
 package repository
 
 import (
+  "math"
 	"errors"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
@@ -63,17 +64,37 @@ func DeleteFavoriteMovie(favMovieID, userID uint) error {
   return nil
 }
 
-func GetFavoriteMovies(userID uint) ([]*models.FavoriteMovie, error) {
-  var favMovies []*models.FavoriteMovie
+// func GetFavoriteMovies(userID uint) ([]*models.FavoriteMovie, error) {
+//   var favMovies []*models.FavoriteMovie
+//   if err := database.DB.
+//     Preload("Genres").
+//     Where("user_id = ?", userID).
+//     Find(&favMovies).Error; err != nil {
+//     return nil, errors.New("failed to get favorite movies")
+//   }
+
+//   return favMovies, nil
+// }
+func GetFavoriteMovies(userID uint, moviesPerPage, page int) (*models.GetFavMoviesResponse, error) {
+  var numberOfMovies int64
   if err := database.DB.
     Preload("Genres").
     Where("user_id = ?", userID).
-    Find(&favMovies).Error; err != nil {
-    return nil, errors.New("failed to get favorite movies")
+    Count(&numberOfMovies).Error; err != nil {
+    return nil, errors.New("failed to count favorite movies")
+  }
+  totalPages := int(math.Ceil(float64(numberOfMovies) / float64(moviesPerPage)));
+  if (page> totalPages) {
+    return nil, errors.New("Invalid value of page")
+  }
+  var results []*models.FavoriteMovie
+  if err := database.DB.Where("user_id = ?", userID).Offset((page-1)*moviesPerPage).Limit(int(moviesPerPage)).Find(results).Error; err != nil {
+    return nil, err
   }
 
-  return favMovies, nil
+  return &models.GetFavMoviesResponse{Page: page, TotalPages: totalPages, Results:results}, nil
 }
+
 
 func FindFavoriteMovie(favMovieID, userID uint) (models.FavoriteMovie, error) {
   var favMovie models.FavoriteMovie

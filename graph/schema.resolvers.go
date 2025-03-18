@@ -285,7 +285,7 @@ func (r *queryResolver) GetFavoriteMovies(ctx context.Context) ([]*models.Favori
   if errUser != nil {
     return nil, utils.HandleError("Unauthorized", "401")
   }
-  favMovies, err := repository.GetFavoriteMovies(userID)
+  favMovies, err := repository.GetFavoriteMovies(userID, 10, 1)
   if err != nil {
     return nil, utils.HandleError("DB Error", "500")
   }
