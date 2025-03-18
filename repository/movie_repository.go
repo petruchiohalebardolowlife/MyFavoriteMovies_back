@@ -1,8 +1,8 @@
 package repository
 
 import (
-  "math"
 	"errors"
+	"math"
 	"myfavouritemovies/database"
 	"myfavouritemovies/models"
 )
@@ -64,37 +64,32 @@ func DeleteFavoriteMovie(favMovieID, userID uint) error {
   return nil
 }
 
-// func GetFavoriteMovies(userID uint) ([]*models.FavoriteMovie, error) {
-//   var favMovies []*models.FavoriteMovie
-//   if err := database.DB.
-//     Preload("Genres").
-//     Where("user_id = ?", userID).
-//     Find(&favMovies).Error; err != nil {
-//     return nil, errors.New("failed to get favorite movies")
-//   }
-
-//   return favMovies, nil
-// }
-func GetFavoriteMovies(userID uint, moviesPerPage, page int) (*models.GetFavMoviesResponse, error) {
+func GetFavoriteMovies(userID uint, page, moviesPerPage uint) (*models.GetFavoriteMoviesResponse, error) {
+  var favMovies []*models.FavoriteMovie
   var numberOfMovies int64
-  if err := database.DB.
-    Preload("Genres").
-    Where("user_id = ?", userID).
-    Count(&numberOfMovies).Error; err != nil {
-    return nil, errors.New("failed to count favorite movies")
+
+  if err := database.DB.Model(&models.FavoriteMovie{}).
+      Where("user_id = ?", userID).
+      Count(&numberOfMovies).Error; err != nil {
+      return nil, errors.New("failed to count favorite movies")
   }
+
   totalPages := int(math.Ceil(float64(numberOfMovies) / float64(moviesPerPage)));
-  if (page> totalPages) {
-    return nil, errors.New("Invalid value of page")
+  if (page > uint(totalPages)) {
+    return nil, errors.New("incorrect page")
   }
-  var results []*models.FavoriteMovie
-  if err := database.DB.Where("user_id = ?", userID).Offset((page-1)*moviesPerPage).Limit(int(moviesPerPage)).Find(results).Error; err != nil {
-    return nil, err
+  offset := (page - 1) * moviesPerPage
+  if err := database.DB.
+      Preload("Genres").
+      Where("user_id = ?", userID).
+      Limit(int(moviesPerPage)).
+      Offset(int(offset)).
+      Find(&favMovies).Error; err != nil {
+      return nil, errors.New("failed to get favorite movies")
   }
 
-  return &models.GetFavMoviesResponse{Page: page, TotalPages: totalPages, Results:results}, nil
+  return &models.GetFavoriteMoviesResponse{Page: uint(page), TotalPages: uint(totalPages), Results:favMovies}, nil
 }
-
 
 func FindFavoriteMovie(favMovieID, userID uint) (models.FavoriteMovie, error) {
   var favMovie models.FavoriteMovie
