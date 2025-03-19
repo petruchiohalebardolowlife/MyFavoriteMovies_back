@@ -90,6 +90,7 @@ type Query {
   getFavoriteMovies(page: Int!, moviesPerPage: Int!): GetFavoriteMoviesResponse!
   getMovieDetails(movieID: ID!): MovieDetails!
   getFilteredMovies(filter: MovieFilter!): [Movie]
+  getTest: String!
 }
 
 type Mutation {

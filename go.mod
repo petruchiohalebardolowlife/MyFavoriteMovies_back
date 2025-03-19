@@ -13,7 +13,7 @@ require (
 	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c
 )
 
-require github.com/rs/cors v1.11.1 // indirect
+require github.com/rs/cors v1.11.1
 
 require (
 	github.com/agnivade/levenshtein v1.2.0 // indirect
