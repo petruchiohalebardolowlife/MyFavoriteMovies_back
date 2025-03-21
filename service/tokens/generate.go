@@ -8,7 +8,7 @@ import (
 )
 
 func Generate(userID uint) (string, string, error) {
-  claimsAccess, err := NewClaims(userID, 15*time.Minute)
+  claimsAccess, err := NewClaims(userID, 30*time.Second)
   if err != nil {
     return "", "", err
   }

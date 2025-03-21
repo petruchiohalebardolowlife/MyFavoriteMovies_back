@@ -91,6 +91,7 @@ type Query {
   getMovieDetails(movieID: ID!): MovieDetails!
   getFilteredMovies(filter: MovieFilter!): [Movie]
   getTest: String!
+  queryRefreshToken: String!
 }
 
 type Mutation {

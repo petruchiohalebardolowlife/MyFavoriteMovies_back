@@ -346,6 +346,43 @@ func (r *queryResolver) GetTest(ctx context.Context) (string, error) {
 	return "testString", nil
 }
 
+// QueryRefreshToken is the resolver for the queryRefreshToken field.
+func (r *queryResolver) QueryRefreshToken(ctx context.Context) (string, error) {
+	request, ok := ctx.Value("httpRequest").(*http.Request)
+	if !ok {
+		return "", utils.HandleError("httpRequest not found", "500")
+	}
+	writer, ok := ctx.Value("httpResponseWriter").(http.ResponseWriter)
+	if !ok {
+		return "", utils.HandleError("httpResponseWriter not found", "500")
+	}
+	currentRefreshTokenCookie, err := request.Cookie("jwtRefresh")
+	if err != nil {
+		return "", utils.HandleError("No refresh token in cookies", "401")
+	}
+	currentClaimsRefresh, err := tokenService.Validate(currentRefreshTokenCookie.Value)
+	if err != nil {
+		return "", utils.HandleError(err.Error(), "401")
+	}
+	newAccessToken, newRefreshToken, err := tokenService.Refresh(currentRefreshTokenCookie.Value)
+	if err != nil {
+		return "", utils.HandleError(err.Error(), "401")
+	}
+	newClaimsRefresh, err := tokenService.Validate(newRefreshToken)
+	if err != nil {
+		return "", utils.HandleError(err.Error(), "401")
+	}
+	if err := repository.AddTokenInBlackList(currentClaimsRefresh); err != nil {
+		return "", utils.HandleError("DB Error", "500")
+	}
+	if err := utils.UpdateRefreshTokenInDB(currentClaimsRefresh.ID, newClaimsRefresh.ID, newClaimsRefresh.ExpiresAt.Time); err != nil {
+		return "", utils.HandleError("DB Error", "500")
+	}
+	utils.SetTokenInCookie(writer, newRefreshToken)
+
+	return newAccessToken, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
@@ -354,13 +391,3 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	type Resolver struct{}
-*/
